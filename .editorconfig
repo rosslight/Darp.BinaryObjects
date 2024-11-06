@@ -184,6 +184,8 @@ dotnet_diagnostic.IDE0055.severity = none
 # https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/unnecessary-code-rules
 ##########################################
 
+dotnet_diagnostic.CA1000.severity = none
+
 # .NET Unnecessary code rules
 [*.{cs,csx,cake,vb,vbx}]
 dotnet_code_quality_unused_parameters = all:warning
