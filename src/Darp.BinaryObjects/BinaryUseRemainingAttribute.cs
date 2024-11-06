@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 /// <summary> Read the remaining bytes into the array this attribute is applied on </summary>
 /// <param name="minLength"> An optional minimum length for the array </param>

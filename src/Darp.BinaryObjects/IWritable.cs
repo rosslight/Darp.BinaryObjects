@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 /// <summary> Defines a mechanism for writing the object to a <see cref="Span{T}"/> </summary>
 public interface IWritable

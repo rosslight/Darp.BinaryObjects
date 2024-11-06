@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 /// <summary>
 /// The options to choose from

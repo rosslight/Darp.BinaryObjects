@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 using System.Diagnostics.CodeAnalysis;
 

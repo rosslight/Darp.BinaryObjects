@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 /// <summary> Supply a length to an array during binary reading or writing </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]

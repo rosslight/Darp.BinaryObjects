@@ -1,4 +1,4 @@
-﻿namespace Darp.BinaryObjects.Abstractions;
+﻿namespace Darp.BinaryObjects;
 
 /// <summary> Marks an object or struct as binary readable or writable </summary>
 /// <param name="binaryOptions"> The options on what to generate </param>

@@ -1,4 +1,4 @@
-namespace Darp.BinaryObjects.Abstractions;
+namespace Darp.BinaryObjects;
 
 /// <summary> Sets the number of bytes to be used when reading or writing a primitive </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
