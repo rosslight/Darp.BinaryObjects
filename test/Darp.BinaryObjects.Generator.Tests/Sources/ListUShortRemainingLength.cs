@@ -6,18 +6,18 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [BinaryObject]
-public sealed partial record TwoUShorts(ushort Value, ushort ValueTwo);
+public sealed partial record ListUShortRemainingLength([property: BinaryReadRemaining(2)] IReadOnlyList<ushort> Value);
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Value"/></term> <description>2</description> </item>
-/// <item> <term> --- </term> <description>2</description> </item>
+/// <item> <term><see cref="Value"/></term> <description>2 * (2 + k)</description> </item>
+/// <item> <term> --- </term> <description>4 + 2 * k</description> </item>
 /// </list> </remarks>
-public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUShorts>
+public sealed partial record ListUShortRemainingLength : IWritable, ISpanReadable<ListUShortRemainingLength>
 {
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetWriteSize() => 4;
+    public int GetWriteSize() => Math.Max(4, Value.Count * 2);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryWrite(Span<byte> destination, bool writeLittleEndian)
@@ -26,20 +26,21 @@ public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUS
         {
             return false;
         }
-        if (BitConverter.IsLittleEndian != writeLittleEndian)
+        var writeValueIndex = 0;
+        foreach (var writeValue in Value)
         {
-            MemoryMarshal.Write(destination, BinaryPrimitives.ReverseEndianness(Value));
-            MemoryMarshal.Write(destination[2..], BinaryPrimitives.ReverseEndianness(ValueTwo));
-        }
-        else
-        {
-            MemoryMarshal.Write(destination, Value);
-            MemoryMarshal.Write(destination[2..], ValueTwo);
+            MemoryMarshal.Write(
+                destination[(2 * writeValueIndex++)..],
+                BitConverter.IsLittleEndian != writeLittleEndian
+                    ? BinaryPrimitives.ReverseEndianness(writeValue)
+                    : writeValue
+            );
         }
         return true;
     }
 
     /// <inheritdoc />
+    /// <remarks>This method is not thread safe</remarks>
     public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, true);
 
     /// <inheritdoc />
@@ -48,7 +49,7 @@ public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUS
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(
         ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out Sources.TwoUShorts? value,
+        [NotNullWhen(true)] out ListUShortRemainingLength? value,
         out int bytesRead,
         bool readLittleEndian
     )
@@ -59,39 +60,46 @@ public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUS
             bytesRead = 0;
             return false;
         }
-        var readValue = MemoryMarshal.Read<ushort>(source);
-        var readValueTwo = MemoryMarshal.Read<ushort>(source[2..]);
+        var readValueLength = (source.Length - 0) / 2;
+        var readValue = new ushort[readValueLength];
+        ReadOnlySpan<ushort> readValueSpan = MemoryMarshal.Cast<byte, ushort>(source.Slice(0, readValueLength * 2));
         if (BitConverter.IsLittleEndian != readLittleEndian)
         {
-            readValue = BinaryPrimitives.ReverseEndianness(readValue);
-            readValueTwo = BinaryPrimitives.ReverseEndianness(readValueTwo);
+            BinaryPrimitives.ReverseEndianness(readValueSpan, readValue);
         }
-        value = new Sources.TwoUShorts(readValue, readValueTwo);
-        bytesRead = 4;
+        else
+        {
+            readValueSpan.CopyTo(readValue);
+        }
+
+        value = new ListUShortRemainingLength(readValue);
+        bytesRead = readValueLength * 2;
         return true;
     }
 
     /// <inheritdoc />
     public static bool TryReadLittleEndian(
         ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out Sources.TwoUShorts? value
+        [NotNullWhen(true)] out ListUShortRemainingLength? value
     ) => TryRead(source, out value, out _, true);
 
     /// <inheritdoc />
     public static bool TryReadLittleEndian(
         ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out Sources.TwoUShorts? value,
+        [NotNullWhen(true)] out ListUShortRemainingLength? value,
         out int bytesRead
     ) => TryRead(source, out value, out bytesRead, true);
 
     /// <inheritdoc />
-    public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out Sources.TwoUShorts? value) =>
-        TryRead(source, out value, out _, false);
+    public static bool TryReadBigEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ListUShortRemainingLength? value
+    ) => TryRead(source, out value, out _, false);
 
     /// <inheritdoc />
     public static bool TryReadBigEndian(
         ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out Sources.TwoUShorts? value,
+        [NotNullWhen(true)] out ListUShortRemainingLength? value,
         out int bytesRead
     ) => TryRead(source, out value, out bytesRead, false);
 }

@@ -2,18 +2,18 @@ namespace Darp.BinaryObjects;
 
 /// <summary> Supply a length to an array during binary reading or writing </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public sealed class BinaryLengthAttribute : Attribute
+public sealed class BinaryArrayLengthAttribute : Attribute
 {
     /// <summary> Use a member which provides the length </summary>
     /// <param name="memberWithLength"> The name of the member </param>
-    public BinaryLengthAttribute(string memberWithLength)
+    public BinaryArrayLengthAttribute(string memberWithLength)
     {
         MemberWithLength = memberWithLength;
     }
 
     /// <summary> Use a constant length </summary>
     /// <param name="length"> The constant length </param>
-    public BinaryLengthAttribute(int length)
+    public BinaryArrayLengthAttribute(int length)
     {
         Length = length;
     }

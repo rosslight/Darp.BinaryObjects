@@ -7,13 +7,13 @@ public interface IWritable
     /// <returns> The number of bytes used in binary serialization </returns>
     public int GetWriteSize();
 
-    /// <summary> Attempt to pack the current object to a span </summary>
-    /// <param name="destination"> The buffer to hold the packed object </param>
-    /// <returns> True, when the packing was successful </returns>
+    /// <summary> Tries to write the current value, in little-endian format, to a given span. </summary>
+    /// <param name="destination"> The span to which the current value should be written. </param>
+    /// <returns> <c>true</c> if the value was successfully written to <paramref name="destination" />; otherwise, <c>false</c>. </returns>
     public bool TryWriteLittleEndian(Span<byte> destination);
 
-    /// <summary> Attempt to pack the current object to a span </summary>
-    /// <param name="destination"> The buffer to hold the packed object </param>
-    /// <returns> True, when the packing was successful </returns>
+    /// <summary> Tries to write the current value, in big-endian format, to a given span. </summary>
+    /// <param name="destination"> The span to which the current value should be written. </param>
+    /// <returns> <c>true</c> if the value was successfully written to <paramref name="destination" />; otherwise, <c>false</c>. </returns>
     public bool TryWriteBigEndian(Span<byte> destination);
 }

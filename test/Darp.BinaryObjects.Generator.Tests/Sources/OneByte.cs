@@ -3,6 +3,7 @@ namespace Darp.BinaryObjects.Generator.Tests.Sources;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
+[BinaryObject]
 public sealed partial record OneByte(byte Value);
 
 /// <remarks> <list type="table">
@@ -37,19 +38,19 @@ public sealed partial record OneByte : IWritable, ISpanReadable<Sources.OneByte>
     private static bool TryRead(
         ReadOnlySpan<byte> source,
         [NotNullWhen(true)] out Sources.OneByte? value,
-        out int bytesConsumed,
+        out int bytesRead,
         bool readLittleEndian
     )
     {
         if (source.Length < 1)
         {
             value = default;
-            bytesConsumed = 0;
+            bytesRead = 0;
             return false;
         }
         var readValue = source[0];
         value = new Sources.OneByte(readValue);
-        bytesConsumed = 1;
+        bytesRead = 1;
         return true;
     }
 
@@ -61,8 +62,8 @@ public sealed partial record OneByte : IWritable, ISpanReadable<Sources.OneByte>
     public static bool TryReadLittleEndian(
         ReadOnlySpan<byte> source,
         [NotNullWhen(true)] out Sources.OneByte? value,
-        out int bytesConsumed
-    ) => TryRead(source, out value, out bytesConsumed, true);
+        out int bytesRead
+    ) => TryRead(source, out value, out bytesRead, true);
 
     /// <inheritdoc />
     public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out Sources.OneByte? value) =>
@@ -72,6 +73,6 @@ public sealed partial record OneByte : IWritable, ISpanReadable<Sources.OneByte>
     public static bool TryReadBigEndian(
         ReadOnlySpan<byte> source,
         [NotNullWhen(true)] out Sources.OneByte? value,
-        out int bytesConsumed
-    ) => TryRead(source, out value, out bytesConsumed, false);
+        out int bytesRead
+    ) => TryRead(source, out value, out bytesRead, false);
 }

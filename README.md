@@ -3,6 +3,7 @@
 The goal of this project is to be used in situations when:
 - Serialization to a buffer of bytes
 - Deserialization from a buffer already completely received
+- Endianess is important
 
 Usage: When you want to use MemoryMarshal.TryWrite / TryRead or BinaryPrimitives but your objects are too complex
 
