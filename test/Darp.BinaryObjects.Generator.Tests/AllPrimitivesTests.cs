@@ -241,14 +241,20 @@ public class AllPrimitivesTests
             valueByte
         );
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeTrue();
-        successBE.Should().BeTrue();
+        successLE1.Should().BeTrue();
+        successLE2.Should().BeTrue();
+        successBE1.Should().BeTrue();
+        successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytesLE);
         bufferBE.Should().BeEquivalentTo(expectedHexBytesBE);
-        writable.GetWriteSize().Should().Be(77);
+        writtenLE.Should().Be(77);
+        writtenBE.Should().Be(77);
+        writable.GetByteCount().Should().Be(77);
     }
 
     [Theory]
@@ -280,12 +286,18 @@ public class AllPrimitivesTests
             default
         );
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeFalse();
-        successBE.Should().BeFalse();
+        successLE1.Should().BeFalse();
+        successLE2.Should().BeFalse();
+        successBE1.Should().BeFalse();
+        successBE2.Should().BeFalse();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
+        writtenLE.Should().Be(0);
+        writtenBE.Should().Be(0);
     }
 }

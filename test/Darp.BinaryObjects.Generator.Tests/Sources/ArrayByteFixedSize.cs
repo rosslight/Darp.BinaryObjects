@@ -1,6 +1,7 @@
 namespace Darp.BinaryObjects.Generator.Tests.Sources;
 
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 [BinaryObject]
@@ -15,25 +16,35 @@ public sealed partial record ArrayByteFixedSize : IWritable, ISpanReadable<Array
 {
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetWriteSize() => 2;
+    public int GetByteCount() => 2;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryWrite(Span<byte> destination, bool writeLittleEndian)
+    private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
     {
-        if (destination.Length < GetWriteSize())
+        if (destination.Length < GetByteCount())
         {
+            bytesWritten = 0;
             return false;
         }
 
-        Value.AsSpan().Slice(0, Math.Min(Value.Length, 2)).CopyTo(destination);
+        var valueLength = Math.Min(Value.Length, 2);
+        Value.AsSpan().Slice(0, valueLength).CopyTo(destination);
+        bytesWritten = valueLength;
         return true;
     }
 
     /// <inheritdoc />
-    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, true);
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, out _, true);
 
     /// <inheritdoc />
-    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, false);
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, true);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, out _, false);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(

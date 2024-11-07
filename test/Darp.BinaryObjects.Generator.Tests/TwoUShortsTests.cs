@@ -87,14 +87,20 @@ public class TwoUShortsTests
         var expectedHexBytesBE = Convert.FromHexString(expectedHexStringBE);
         var writable = new TwoUShorts(value, valueTwo);
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeTrue();
-        successBE.Should().BeTrue();
+        successLE1.Should().BeTrue();
+        successLE2.Should().BeTrue();
+        successBE1.Should().BeTrue();
+        successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytesLE);
         bufferBE.Should().BeEquivalentTo(expectedHexBytesBE);
-        writable.GetWriteSize().Should().Be(4);
+        writtenLE.Should().Be(4);
+        writtenBE.Should().Be(4);
+        writable.GetByteCount().Should().Be(4);
     }
 
     [Theory]
@@ -109,12 +115,18 @@ public class TwoUShortsTests
         var expectedHexBytes = Convert.FromHexString(expectedHexString);
         var writable = new TwoUShorts(value, valueTwo);
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeFalse();
-        successBE.Should().BeFalse();
+        successLE1.Should().BeFalse();
+        successLE2.Should().BeFalse();
+        successBE1.Should().BeFalse();
+        successBE2.Should().BeFalse();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
+        writtenLE.Should().Be(0);
+        writtenBE.Should().Be(0);
     }
 }

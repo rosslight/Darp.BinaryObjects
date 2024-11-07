@@ -36,13 +36,13 @@ public class ListUShortRemainingLengthTests
         successBE1.Should().BeTrue();
         successBE2.Should().BeTrue();
         valueLE1!.Value.Should().BeEquivalentTo(expectedValue);
-        valueLE1.GetWriteSize().Should().Be(expectedBytesRead);
+        valueLE1.GetByteCount().Should().Be(expectedBytesRead);
         valueLE2!.Value.Should().BeEquivalentTo(expectedValue);
-        valueLE2.GetWriteSize().Should().Be(expectedBytesRead);
+        valueLE2.GetByteCount().Should().Be(expectedBytesRead);
         valueBE1!.Value.Should().BeEquivalentTo(expectedValueBE);
-        valueBE1.GetWriteSize().Should().Be(expectedBytesRead);
+        valueBE1.GetByteCount().Should().Be(expectedBytesRead);
         valueBE2!.Value.Should().BeEquivalentTo(expectedValueBE);
-        valueBE2.GetWriteSize().Should().Be(expectedBytesRead);
+        valueBE2.GetByteCount().Should().Be(expectedBytesRead);
         consumedLE.Should().Be(expectedBytesRead);
         consumedBE.Should().Be(expectedBytesRead);
     }
@@ -103,14 +103,20 @@ public class ListUShortRemainingLengthTests
 
         var writable = new ListUShortRemainingLength(value);
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeTrue();
-        successBE.Should().BeTrue();
+        successLE1.Should().BeTrue();
+        successLE2.Should().BeTrue();
+        successBE1.Should().BeTrue();
+        successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedValueLE);
         bufferBE.Should().BeEquivalentTo(expectedValueBE);
-        writable.GetWriteSize().Should().Be(expectedWriteSize);
+        writtenLE.Should().Be(expectedWriteSize);
+        writtenBE.Should().Be(expectedWriteSize);
+        writable.GetByteCount().Should().Be(expectedWriteSize);
     }
 
     [Theory]
@@ -125,12 +131,18 @@ public class ListUShortRemainingLengthTests
         var expectedHexBytes = Convert.FromHexString(expectedHexString);
         var writable = new ListUShortRemainingLength(value);
 
-        var successLE = writable.TryWriteLittleEndian(bufferLE);
-        var successBE = writable.TryWriteBigEndian(bufferBE);
+        var successLE1 = writable.TryWriteLittleEndian(bufferLE);
+        var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
+        var successBE1 = writable.TryWriteBigEndian(bufferBE);
+        var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE.Should().BeFalse();
-        successBE.Should().BeFalse();
+        successLE1.Should().BeFalse();
+        successLE2.Should().BeFalse();
+        successBE1.Should().BeFalse();
+        successBE2.Should().BeFalse();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
+        writtenLE.Should().Be(0);
+        writtenBE.Should().Be(0);
     }
 }

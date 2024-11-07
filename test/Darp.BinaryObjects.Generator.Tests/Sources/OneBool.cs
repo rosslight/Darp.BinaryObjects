@@ -15,24 +15,33 @@ public sealed partial record OneBool : IWritable, ISpanReadable<Sources.OneBool>
 {
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetWriteSize() => 1;
+    public int GetByteCount() => 1;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryWrite(Span<byte> destination, bool writeLittleEndian)
+    private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
     {
-        if (destination.Length < GetWriteSize())
+        if (destination.Length < GetByteCount())
         {
+            bytesWritten = 0;
             return false;
         }
         destination[0] = Value ? (byte)0b1 : (byte)0b0;
+        bytesWritten = 1;
         return true;
     }
 
     /// <inheritdoc />
-    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, true);
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, out _, true);
 
     /// <inheritdoc />
-    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, false);
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, true);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, out _, false);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(

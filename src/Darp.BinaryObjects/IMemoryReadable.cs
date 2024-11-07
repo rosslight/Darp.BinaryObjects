@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 /// <summary> Defines a mechanism for reading the object from a <see cref="ReadOnlyMemory{T}"/> </summary>
 /// <typeparam name="TSelf"> The type that implements this interface </typeparam>
-public interface IMemoryReadable<TSelf>
+internal interface IMemoryReadable<TSelf>
     where TSelf : IMemoryReadable<TSelf>
 {
     /// <summary> Tries to read the object from a memory, in little-endian format </summary>

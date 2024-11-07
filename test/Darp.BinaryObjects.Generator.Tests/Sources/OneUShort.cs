@@ -17,13 +17,13 @@ public sealed partial record OneUShort : IWritable, ISpanReadable<Sources.OneUSh
 {
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetWriteSize() => 2;
+    public int GetByteCount() => 2;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryWrite(Span<byte> destination, bool writeLittleEndian)
+    private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
     {
-        if (destination.Length < GetWriteSize())
+        if (destination.Length < GetByteCount())
         {
+            bytesWritten = 0;
             return false;
         }
         if (BitConverter.IsLittleEndian != writeLittleEndian)
@@ -34,14 +34,23 @@ public sealed partial record OneUShort : IWritable, ISpanReadable<Sources.OneUSh
         {
             MemoryMarshal.Write(destination, Value);
         }
+        bytesWritten = 2;
         return true;
     }
 
     /// <inheritdoc />
-    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, true);
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, out _, true);
 
     /// <inheritdoc />
-    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, false);
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, true);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, out _, false);
+
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWrite(destination, out bytesWritten, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(
