@@ -79,15 +79,16 @@ public class MemoryMemberLengthSizeTests
     }
 
     [Theory]
-    [InlineData(1, "", 3, "010000", "000100")]
-    [InlineData(1, "01", 3, "010001", "000101")]
-    [InlineData(3, "030201", 5, "0300030201", "0003030201")]
-    [InlineData(3, "0102030405", 5, "0300010203", "0003010203")]
-    [InlineData(3, "01020304", 6, "030001020300", "000301020300")]
+    [InlineData(1, "", 3, 2, "010000", "000100")]
+    [InlineData(1, "01", 3, 3, "010001", "000101")]
+    [InlineData(3, "030201", 5, 5, "0300030201", "0003030201")]
+    [InlineData(3, "0102030405", 5, 5, "0300010203", "0003010203")]
+    [InlineData(3, "01020304", 6, 5, "030001020300", "000301020300")]
     public void TryWrite_GoodInputShouldBeValid(
         int length,
         string valueHexString,
         int bufferSize,
+        int expectedBytesWritten,
         string expectedHexStringLE,
         string expectedHexStringBE
     )
@@ -109,8 +110,8 @@ public class MemoryMemberLengthSizeTests
         successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytesLE);
         bufferBE.Should().BeEquivalentTo(expectedHexBytesBE);
-        writtenLE.Should().Be(2 + length);
-        writtenBE.Should().Be(2 + length);
+        writtenLE.Should().Be(expectedBytesWritten);
+        writtenBE.Should().Be(expectedBytesWritten);
         writable.GetByteCount().Should().Be(2 + length);
     }
 

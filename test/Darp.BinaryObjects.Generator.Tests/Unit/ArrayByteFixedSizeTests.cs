@@ -71,13 +71,18 @@ public class ArrayByteFixedSizeTests
     }
 
     [Theory]
-    [InlineData("", 2, "0000")]
-    [InlineData("01", 2, "0100")]
-    [InlineData("0000", 2, "0000")]
-    [InlineData("0103", 2, "0103")]
-    [InlineData("100101", 2, "1001")]
-    [InlineData("100102", 3, "100100")]
-    public void TryWrite_GoodInputShouldBeValid(string valueHexString, int bufferSize, string expectedHexString)
+    [InlineData("", 2, 0, "0000")]
+    [InlineData("01", 2, 1, "0100")]
+    [InlineData("0000", 2, 2, "0000")]
+    [InlineData("0103", 2, 2, "0103")]
+    [InlineData("100101", 2, 2, "1001")]
+    [InlineData("100102", 3, 2, "100100")]
+    public void TryWrite_GoodInputShouldBeValid(
+        string valueHexString,
+        int bufferSize,
+        int expectedBytesWritten,
+        string expectedHexString
+    )
     {
         var bufferLE = new byte[bufferSize];
         var bufferBE = new byte[bufferSize];
@@ -95,8 +100,8 @@ public class ArrayByteFixedSizeTests
         successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        writtenLE.Should().Be(2);
-        writtenBE.Should().Be(2);
+        writtenLE.Should().Be(expectedBytesWritten);
+        writtenBE.Should().Be(expectedBytesWritten);
         writable.GetByteCount().Should().Be(2);
     }
 

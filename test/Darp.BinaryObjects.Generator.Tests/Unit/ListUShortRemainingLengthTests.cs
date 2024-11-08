@@ -81,16 +81,17 @@ public class ListUShortRemainingLengthTests
     }
 
     [Theory]
-    [InlineData("00000000", 4, 4, "00000000", "00000000")]
-    [InlineData("01000100", 4, 4, "01000100", "00010001")]
-    [InlineData("00100100", 4, 4, "00100100", "10000001")]
-    [InlineData("FFFFAAAA", 4, 4, "FFFFAAAA", "FFFFAAAA")]
-    [InlineData("FFFFFFFFFFFF", 7, 6, "FFFFFFFFFFFF00", "FFFFFFFFFFFF00")]
-    [InlineData("1234", 4, 4, "12340000", "34120000")]
+    [InlineData("00000000", 4, 4, 4, "00000000", "00000000")]
+    [InlineData("01000100", 4, 4, 4, "01000100", "00010001")]
+    [InlineData("00100100", 4, 4, 4, "00100100", "10000001")]
+    [InlineData("FFFFAAAA", 4, 4, 4, "FFFFAAAA", "FFFFAAAA")]
+    [InlineData("FFFFFFFFFFFF", 7, 6, 6, "FFFFFFFFFFFF00", "FFFFFFFFFFFF00")]
+    [InlineData("1234", 4, 4, 2, "12340000", "34120000")]
     public void TryWrite_GoodInputShouldBeValid(
         string valueHexString,
         int bufferSize,
-        int expectedWriteSize,
+        int expectedWriteCount,
+        int expectedBytesWritten,
         string expectedBufferHexStringLE,
         string expectedBufferHexStringBE
     )
@@ -114,9 +115,9 @@ public class ListUShortRemainingLengthTests
         successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedValueLE);
         bufferBE.Should().BeEquivalentTo(expectedValueBE);
-        writtenLE.Should().Be(expectedWriteSize);
-        writtenBE.Should().Be(expectedWriteSize);
-        writable.GetByteCount().Should().Be(expectedWriteSize);
+        writtenLE.Should().Be(expectedBytesWritten);
+        writtenBE.Should().Be(expectedBytesWritten);
+        writable.GetByteCount().Should().Be(expectedWriteCount);
     }
 
     [Theory]
