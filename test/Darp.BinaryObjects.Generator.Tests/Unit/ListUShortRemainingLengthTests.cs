@@ -1,9 +1,9 @@
-namespace Darp.BinaryObjects.Generator.Tests;
+namespace Darp.BinaryObjects.Generator.Tests.Unit;
 
 using System.Buffers.Binary;
 using System.Runtime.InteropServices;
+using Darp.BinaryObjects.Generator.Tests.Sources;
 using FluentAssertions;
-using Sources;
 
 public class ListUShortRemainingLengthTests
 {

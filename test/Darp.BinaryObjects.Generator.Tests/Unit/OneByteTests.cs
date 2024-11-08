@@ -1,24 +1,24 @@
-namespace Darp.BinaryObjects.Generator.Tests;
+namespace Darp.BinaryObjects.Generator.Tests.Unit;
 
+using Darp.BinaryObjects.Generator.Tests.Sources;
 using FluentAssertions;
-using Sources;
 
-public class OneBoolTests
+public class OneByteTests
 {
     [Theory]
-    [InlineData("00", false)]
-    [InlineData("01", true)]
-    [InlineData("10", true)]
-    [InlineData("FF", true)]
-    [InlineData("0100", true)]
-    public void TryRead_GoodInputShouldBeValid(string hexString, bool expectedValue)
+    [InlineData("00", 0x00)]
+    [InlineData("01", 0x01)]
+    [InlineData("10", 0x10)]
+    [InlineData("FF", 0xFF)]
+    [InlineData("0100", 0x01)]
+    public void TryRead_GoodInputShouldBeValid(string hexString, byte expectedValue)
     {
         var buffer = Convert.FromHexString(hexString);
 
-        var successLE1 = OneBool.TryReadLittleEndian(buffer, out OneBool? valueLE1);
-        var successLE2 = OneBool.TryReadLittleEndian(buffer, out OneBool? valueLE2, out var consumedLE);
-        var successBE1 = OneBool.TryReadBigEndian(buffer, out OneBool? valueBE1);
-        var successBE2 = OneBool.TryReadBigEndian(buffer, out OneBool? valueBE2, out var consumedBE);
+        var successLE1 = OneByte.TryReadLittleEndian(buffer, out OneByte? valueLE1);
+        var successLE2 = OneByte.TryReadLittleEndian(buffer, out OneByte? valueLE2, out var consumedLE);
+        var successBE1 = OneByte.TryReadBigEndian(buffer, out OneByte? valueBE1);
+        var successBE2 = OneByte.TryReadBigEndian(buffer, out OneByte? valueBE2, out var consumedBE);
 
         successLE1.Should().BeTrue();
         successLE2.Should().BeTrue();
@@ -38,10 +38,10 @@ public class OneBoolTests
     {
         var buffer = Convert.FromHexString(hexString);
 
-        var successLE1 = OneBool.TryReadLittleEndian(buffer, out OneBool? valueLE1);
-        var successLE2 = OneBool.TryReadLittleEndian(buffer, out OneBool? valueLE2, out var consumedLE);
-        var successBE1 = OneBool.TryReadBigEndian(buffer, out OneBool? valueBE1);
-        var successBE2 = OneBool.TryReadBigEndian(buffer, out OneBool? valueBE2, out var consumedBE);
+        var successLE1 = OneByte.TryReadLittleEndian(buffer, out OneByte? valueLE1);
+        var successLE2 = OneByte.TryReadLittleEndian(buffer, out OneByte? valueLE2, out var consumedLE);
+        var successBE1 = OneByte.TryReadBigEndian(buffer, out OneByte? valueBE1);
+        var successBE2 = OneByte.TryReadBigEndian(buffer, out OneByte? valueBE2, out var consumedBE);
 
         successLE1.Should().BeFalse();
         successLE2.Should().BeFalse();
@@ -56,15 +56,15 @@ public class OneBoolTests
     }
 
     [Theory]
-    [InlineData(false, 1, "00")]
-    [InlineData(true, 1, "01")]
-    [InlineData(true, 2, "0100")]
-    public void TryWrite_GoodInputShouldBeValid(bool value, int bufferSize, string expectedHexString)
+    [InlineData(0x00, 1, "00")]
+    [InlineData(0x01, 1, "01")]
+    [InlineData(0x01, 2, "0100")]
+    public void TryWrite_GoodInputShouldBeValid(byte value, int bufferSize, string expectedHexString)
     {
         var bufferLE = new byte[bufferSize];
         var bufferBE = new byte[bufferSize];
         var expectedHexBytes = Convert.FromHexString(expectedHexString);
-        var writable = new OneBool(value);
+        var writable = new OneByte(value);
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
@@ -83,14 +83,14 @@ public class OneBoolTests
     }
 
     [Theory]
-    [InlineData(false, 0, "")]
-    [InlineData(true, 0, "")]
-    public void TryWrite_BadInputShouldBeValid(bool value, int bufferSize, string expectedHexString)
+    [InlineData(0x00, 0, "")]
+    [InlineData(0x01, 0, "")]
+    public void TryWrite_BadInputShouldBeValid(byte value, int bufferSize, string expectedHexString)
     {
         var bufferLE = new byte[bufferSize];
         var bufferBE = new byte[bufferSize];
         var expectedHexBytes = Convert.FromHexString(expectedHexString);
-        var writable = new OneBool(value);
+        var writable = new OneByte(value);
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);

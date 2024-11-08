@@ -1,7 +1,7 @@
-namespace Darp.BinaryObjects.Generator.Tests;
+namespace Darp.BinaryObjects.Generator.Tests.Unit;
 
+using Darp.BinaryObjects.Generator.Tests.Sources;
 using FluentAssertions;
-using Sources;
 
 public class ArrayByteFixedSizeTests
 {
