@@ -92,9 +92,7 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
             foreach (var resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
                 if (!resourceName.StartsWith(expectedPrefix, StringComparison.Ordinal))
-                {
                     continue;
-                }
 
                 using Stream resourceStream =
                     Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
@@ -106,7 +104,7 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
                     bufferSize: 4096,
                     leaveOpen: true
                 );
-                var name = resourceName.Substring(expectedPrefix.Length);
+                var name = resourceName[expectedPrefix.Length..];
                 var readData = reader.ReadToEnd();
                 readData = readData.ReplaceLineEndings("\n");
                 TestState.GeneratedSources.Add(

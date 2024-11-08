@@ -1,7 +1,5 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
-using System.Text;
-using Microsoft.CodeAnalysis.Text;
 using VerifyCS = Verifier.CSharpSourceGeneratorVerifier<BinaryObjectsGenerator>;
 
 public class IntegrationTest
@@ -10,8 +8,10 @@ public class IntegrationTest
     public async Task OneBool_DefaultAsync()
     {
         const string code = """
-[Darp.BinaryObjects.BinaryObject]
-public sealed partial record OneBool(bool Value);
+using Darp.BinaryObjects;
+
+[BinaryObject]
+public sealed partial record OneBool([property: BinaryByteLengthAttribute(1)] bool Value);
 """;
         await new VerifyCS.Test { TestState = { Sources = { code } } }
             .AddGeneratedSources()

@@ -1,7 +1,6 @@
 namespace Darp.BinaryObjects.Generator.Tests.Sources;
 
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
 [BinaryObject]
