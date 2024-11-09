@@ -11,7 +11,7 @@ public class IntegrationTest
 using Darp.BinaryObjects;
 
 [BinaryObject]
-public sealed partial record OneBool([property: BinaryByteLengthAttribute(1)] bool Value);
+public sealed partial record OneBool(bool Value);
 """;
         await new VerifyCS.Test { TestState = { Sources = { code } } }
             .AddGeneratedSources()

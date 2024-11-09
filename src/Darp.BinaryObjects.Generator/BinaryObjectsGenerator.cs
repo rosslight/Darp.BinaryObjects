@@ -42,7 +42,7 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         var isCodeGenerated = TryGenerateSourceCode(info, out BinaryObjectBuilder builder);
         foreach (Diagnostic diagnostic in builder.Diagnostics)
             spc.ReportDiagnostic(diagnostic);
-        if (!isCodeGenerated)
+        if (!isCodeGenerated || builder.Diagnostics.Any(x => x.Severity >= DiagnosticSeverity.Error))
             return;
         spc.AddSource(
             $"{info.Symbol.Name}.g.cs",
@@ -52,7 +52,7 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
 
     private static bool TryGenerateSourceCode(TargetTypeInfo info, out BinaryObjectBuilder builder)
     {
-        builder = new BinaryObjectBuilder(info.Symbol, info.Syntax);
+        builder = BinaryObjectBuilder.Create(info.Symbol, info.Syntax);
         builder.AddFileHeader();
         builder.StringBuilder.AppendLine();
         if (!builder.TryAddTypeDeclaration())
