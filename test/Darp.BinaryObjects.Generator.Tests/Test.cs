@@ -17,4 +17,18 @@ public sealed partial record OneBool(bool Value);
             .AddGeneratedSources()
             .RunAsync();
     }
+
+    [Fact]
+    public async Task TwoUShorts_DefaultAsync()
+    {
+        const string code = """
+using Darp.BinaryObjects;
+
+[BinaryObject]
+public sealed partial record TwoUShorts(ushort ValueOne, ushort ValueTwo);
+""";
+        await new VerifyCS.Test { TestState = { Sources = { code } } }
+            .AddGeneratedSources()
+            .RunAsync();
+    }
 }

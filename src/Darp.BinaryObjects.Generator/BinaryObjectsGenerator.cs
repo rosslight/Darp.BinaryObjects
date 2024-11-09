@@ -64,13 +64,11 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         builder.StringBuilder.AppendLine("{");
         builder.AddGetByteCountMethod();
         builder.StringBuilder.AppendLine();
-        builder.AddWriteBoilerplate();
+        builder.AddWriteImplementationMethod(true);
+        builder.AddWriteImplementationMethod(false);
         builder.StringBuilder.AppendLine();
-        builder.AddWriteImplementationMethod();
-        builder.StringBuilder.AppendLine();
-        builder.AddReadBoilerplate();
-        builder.StringBuilder.AppendLine();
-        builder.AddReadImplementationMethod();
+        builder.AddReadImplementationMethod(true);
+        builder.AddReadImplementationMethod(false);
         builder.StringBuilder.AppendLine("}");
         return true;
     }

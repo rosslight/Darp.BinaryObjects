@@ -5,7 +5,7 @@ using Test;
 
 Console.WriteLine("Hello, World!");
 
-OneBool.TryReadLittleEndian(Convert.FromHexString("01"), out var value);
+OneBool.TryReadLittleEndian(Convert.FromHexString("010002"), out var value);
 int i = 0;
 
 namespace Test
