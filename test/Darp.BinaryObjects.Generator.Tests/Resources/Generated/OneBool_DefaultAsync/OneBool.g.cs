@@ -23,9 +23,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
         bytesWritten = 0;
 
         if (destination.Length < 1)
-        {
             return false;
-        }
         destination[0] = this.Value ? (byte)0b1 : (byte)0b0;
         bytesWritten += 1;
 
@@ -39,9 +37,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
         bytesWritten = 0;
 
         if (destination.Length < 1)
-        {
             return false;
-        }
         destination[0] = this.Value ? (byte)0b1 : (byte)0b0;
         bytesWritten += 1;
 
@@ -54,12 +50,10 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
     public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out OneBool? value, out int bytesRead)
     {
         bytesRead = 0;
+        value = default;
 
         if (source.Length < 1)
-        {
-            value = default;
             return false;
-        }
         var ___readValue = source[0] > 0;
         bytesRead += 1;
 
@@ -72,12 +66,10 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
     public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out OneBool? value, out int bytesRead)
     {
         bytesRead = 0;
+        value = default;
 
         if (source.Length < 1)
-        {
-            value = default;
             return false;
-        }
         var ___readValue = source[0] > 0;
         bytesRead += 1;
 

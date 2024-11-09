@@ -24,9 +24,7 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
         bytesWritten = 0;
 
         if (destination.Length < 4)
-        {
             return false;
-        }
         BinaryPrimitives.WriteUInt16LittleEndian(destination[0..], this.ValueOne);
         BinaryPrimitives.WriteUInt16LittleEndian(destination[2..], this.ValueTwo);
         bytesWritten += 4;
@@ -41,9 +39,7 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
         bytesWritten = 0;
 
         if (destination.Length < 4)
-        {
             return false;
-        }
         BinaryPrimitives.WriteUInt16BigEndian(destination[0..], this.ValueOne);
         BinaryPrimitives.WriteUInt16BigEndian(destination[2..], this.ValueTwo);
         bytesWritten += 4;
@@ -57,12 +53,10 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
     public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out TwoUShorts? value, out int bytesRead)
     {
         bytesRead = 0;
+        value = default;
 
         if (source.Length < 4)
-        {
-            value = default;
             return false;
-        }
         var ___readValueOne = BinaryPrimitives.ReadUInt16LittleEndian(source[0..]);
         var ___readValueTwo = BinaryPrimitives.ReadUInt16LittleEndian(source[2..]);
         bytesRead += 4;
@@ -76,12 +70,10 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
     public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out TwoUShorts? value, out int bytesRead)
     {
         bytesRead = 0;
+        value = default;
 
         if (source.Length < 4)
-        {
-            value = default;
             return false;
-        }
         var ___readValueOne = BinaryPrimitives.ReadUInt16BigEndian(source[0..]);
         var ___readValueTwo = BinaryPrimitives.ReadUInt16BigEndian(source[2..]);
         bytesRead += 4;

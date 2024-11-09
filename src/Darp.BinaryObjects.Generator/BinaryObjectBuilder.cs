@@ -254,11 +254,9 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
         // Ensure length of destination
         var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
         StringBuilder.AppendLine(
-            $$"""
-        if (destination.Length < {{summedLength}})
-        {
+            $"""
+        if (destination.Length < {summedLength})
             return false;
-        }
 """
         );
         // All the members in the group
@@ -306,18 +304,16 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
     public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<byte> source, {{valueParameter}} value, out int bytesRead)
     {
         bytesRead = 0;
+        value = default;
 
 """
         );
         // Ensure length of source
         var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
         StringBuilder.AppendLine(
-            $$"""
-        if (source.Length < {{summedLength}})
-        {
-            value = default;
+            $"""
+        if (source.Length < {summedLength})
             return false;
-        }
 """
         );
         List<string> constructorParameters = [];
