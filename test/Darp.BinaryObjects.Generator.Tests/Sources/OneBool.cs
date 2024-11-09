@@ -43,7 +43,7 @@ public sealed partial record OneBool : IWritable, ISpanReadable<Sources.OneBool>
     public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
         TryWrite(destination, out bytesWritten, false);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [global::System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(
         ReadOnlySpan<byte> source,
         [NotNullWhen(true)] out Sources.OneBool? value,

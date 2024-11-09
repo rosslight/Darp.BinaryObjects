@@ -16,10 +16,12 @@ public sealed partial record TwoUShorts(ushort Value, ushort ValueTwo);
 public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUShorts>
 {
     /// <inheritdoc />
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [global::System.Runtime.CompilerServices.MethodImpl(
+        global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining
+    )]
     public int GetByteCount() => 4;
 
-    private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
+    private bool TryWrite(global::System.Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
     {
         if (destination.Length < GetByteCount())
         {

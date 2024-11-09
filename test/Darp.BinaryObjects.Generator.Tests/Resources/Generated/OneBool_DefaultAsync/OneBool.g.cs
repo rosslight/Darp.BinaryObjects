@@ -6,7 +6,30 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool
+public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable
 {
+    /// <inheritdoc />
+    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public int GetByteCount() => 1;
 
+    private bool TryWrite(global::System.Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
+    {
+        if (destination.Length < GetByteCount())
+        {
+            bytesWritten = 0;
+            return false;
+        }
+        destination[0] = Value ? (byte)0b1 : (byte)0b0;
+        bytesWritten = 1;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination) => TryWrite(destination, out _, true);
+    /// <inheritdoc />
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination, out int bytesWritten) => TryWrite(destination, out bytesWritten, true);
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(global::System.Span<byte> destination) => TryWrite(destination, out _, false);
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(global::System.Span<byte> destination, out int bytesWritten) => TryWrite(destination, out bytesWritten, false);
 }

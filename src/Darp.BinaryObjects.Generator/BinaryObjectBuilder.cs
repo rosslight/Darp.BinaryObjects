@@ -190,7 +190,9 @@ internal sealed class BinaryObjectBuilder(
 """
         );
         // Add actual type declaration
-        StringBuilder.AppendLine($"{_syntax.Modifiers} {_syntax.Keyword} {_syntax.Identifier}");
+        StringBuilder.AppendLine(
+            $"{_syntax.Modifiers} {_syntax.Keyword} {_syntax.Identifier} : global::Darp.BinaryObjects.IWritable"
+        );
         return true;
 
         string GetLengthDoc(BinaryArrayMemberInfo info)
@@ -205,4 +207,68 @@ internal sealed class BinaryObjectBuilder(
     }
 
     public override string ToString() => StringBuilder.ToString().Replace("\r", "");
+
+    public void AddGetByteCountMethod()
+    {
+        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+        StringBuilder.AppendLine(
+            $"""
+    /// <inheritdoc />
+    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public int GetByteCount() => {summedLength};
+"""
+        );
+    }
+
+    public void AddWriteImplementationMethod()
+    {
+        StringBuilder.AppendLine(
+            """
+    private bool TryWrite(global::System.Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
+    {
+        if (destination.Length < GetByteCount())
+        {
+            bytesWritten = 0;
+            return false;
+        }
+"""
+        );
+        var currentByteIndex = 0;
+        foreach (BinaryMemberInfo memberInfo in _members)
+        {
+            if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
+                continue;
+            var write = memberInfo.TypeSymbol.ToDisplayString() switch
+            {
+                "bool" =>
+                    $"        destination[{currentByteIndex}] = {memberInfo.Symbol.Name} ? (byte)0b1 : (byte)0b0;",
+                _ => null,
+            };
+            StringBuilder.AppendLine(write);
+            currentByteIndex += memberInfo.TypeByteLength;
+        }
+        StringBuilder.AppendLine(
+            """
+        bytesWritten = 1;
+        return true;
+    }
+"""
+        );
+    }
+
+    public void AddWriteBoilerplate()
+    {
+        StringBuilder.AppendLine(
+            """
+    /// <inheritdoc />
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination) => TryWrite(destination, out _, true);
+    /// <inheritdoc />
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination, out int bytesWritten) => TryWrite(destination, out bytesWritten, true);
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(global::System.Span<byte> destination) => TryWrite(destination, out _, false);
+    /// <inheritdoc />
+    public bool TryWriteBigEndian(global::System.Span<byte> destination, out int bytesWritten) => TryWrite(destination, out bytesWritten, false);
+"""
+        );
+    }
 }

@@ -58,7 +58,11 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         if (!builder.TryAddTypeDeclaration())
             return false;
         builder.StringBuilder.AppendLine("{");
+        builder.AddGetByteCountMethod();
         builder.StringBuilder.AppendLine();
+        builder.AddWriteImplementationMethod();
+        builder.StringBuilder.AppendLine();
+        builder.AddWriteBoilerplate();
         builder.StringBuilder.AppendLine("}");
         return true;
     }
