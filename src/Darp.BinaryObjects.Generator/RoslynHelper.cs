@@ -28,4 +28,12 @@ internal static class RoslynHelper
             );
         return arguments.Concat(constructorArguments);
     }
+
+    public static string? GetNamespace(this ITypeSymbol symbol)
+    {
+        if (symbol.ContainingNamespace.IsGlobalNamespace)
+            return null;
+        var typeNamespace = symbol.ContainingNamespace.ToDisplayString();
+        return string.IsNullOrWhiteSpace(typeNamespace) ? null : typeNamespace;
+    }
 }

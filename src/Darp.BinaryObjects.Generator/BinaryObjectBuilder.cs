@@ -168,9 +168,7 @@ internal sealed class BinaryObjectBuilder(
 
     public void TryAddNamespace()
     {
-        if (_symbol.ContainingNamespace.IsGlobalNamespace)
-            return;
-        var typeNamespace = _symbol.ContainingNamespace.ToDisplayString();
+        var typeNamespace = _symbol.GetNamespace();
         if (string.IsNullOrWhiteSpace(typeNamespace))
             return;
         StringBuilder.AppendLine($"namespace {typeNamespace};");
@@ -200,11 +198,11 @@ internal sealed class BinaryObjectBuilder(
 """
         );
         // Add actual type. declaration
-        var structKeyword = _syntax is RecordDeclarationSyntax recordSyntax
-            ? recordSyntax.ClassOrStructKeyword.Text
+        var recordClassOrStruct = _syntax is RecordDeclarationSyntax recordSyntax
+            ? $" {recordSyntax.ClassOrStructKeyword}"
             : "";
         StringBuilder.AppendLine(
-            $"{_syntax.Modifiers} {_syntax.Keyword} {structKeyword} {_syntax.Identifier} : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<{_syntax.Identifier}>"
+            $"{_syntax.Modifiers} {_syntax.Keyword}{recordClassOrStruct} {_syntax.Identifier} : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<{_syntax.Identifier}>"
         );
         return true;
 

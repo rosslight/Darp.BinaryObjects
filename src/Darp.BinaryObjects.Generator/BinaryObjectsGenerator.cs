@@ -44,8 +44,11 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
             spc.ReportDiagnostic(diagnostic);
         if (!isCodeGenerated || builder.Diagnostics.Any(x => x.Severity >= DiagnosticSeverity.Error))
             return;
+        var typeNamespace = info.Symbol.GetNamespace();
+        if (!string.IsNullOrEmpty(typeNamespace))
+            typeNamespace += '.';
         spc.AddSource(
-            $"{info.Symbol.Name}.g.cs",
+            $"{typeNamespace}{info.Symbol.Name}.g.cs",
             SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256)
         );
     }
@@ -61,13 +64,13 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         builder.StringBuilder.AppendLine("{");
         builder.AddGetByteCountMethod();
         builder.StringBuilder.AppendLine();
-        builder.AddWriteImplementationMethod();
-        builder.StringBuilder.AppendLine();
         builder.AddWriteBoilerplate();
         builder.StringBuilder.AppendLine();
-        builder.AddReadImplementationMethod();
+        builder.AddWriteImplementationMethod();
         builder.StringBuilder.AppendLine();
         builder.AddReadBoilerplate();
+        builder.StringBuilder.AppendLine();
+        builder.AddReadImplementationMethod();
         builder.StringBuilder.AppendLine("}");
         return true;
     }
