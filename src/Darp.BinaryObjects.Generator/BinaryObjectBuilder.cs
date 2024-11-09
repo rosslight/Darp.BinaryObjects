@@ -271,4 +271,66 @@ internal sealed class BinaryObjectBuilder(
 """
         );
     }
+
+    public void AddReadImplementationMethod()
+    {
+        const string prefix = "___";
+        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+
+        var valueParameter = _symbol.IsValueType
+            ? $"out {_symbol.Name}"
+            : $"[global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out {_symbol.Name}?";
+        StringBuilder.AppendLine(
+            $$"""
+    private static bool TryRead(global::System.ReadOnlySpan<byte> source, {{valueParameter}} value, out int bytesRead, bool readLittleEndian)
+    {
+        if (source.Length < {{summedLength}})
+        {
+            value = default;
+            bytesRead = 0;
+            return false;
+        }
+"""
+        );
+        List<string> constructorParameters = [];
+        var currentByteIndex = 0;
+        foreach (BinaryMemberInfo memberInfo in _members)
+        {
+            var variableName = $"{prefix}read{memberInfo.Symbol.Name}";
+            constructorParameters.Add(variableName);
+            if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
+                continue;
+            var write = memberInfo.TypeSymbol.ToDisplayString() switch
+            {
+                "bool" => $"        var {variableName} = source[{currentByteIndex}] > 0;",
+                _ => null,
+            };
+            StringBuilder.AppendLine(write);
+            currentByteIndex += memberInfo.TypeByteLength;
+        }
+        StringBuilder.AppendLine(
+            $$"""
+        value = new {{_symbol.Name}}({{string.Join(", ", constructorParameters)}});
+        bytesRead = {{currentByteIndex}};
+        return true;
+    }
+"""
+        );
+    }
+
+    public void AddReadBoilerplate()
+    {
+        StringBuilder.AppendLine(
+            """
+    /// <inheritdoc />
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryRead(source, out value, out _, true);
+    /// <inheritdoc />
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead) => TryRead(source, out value, out bytesRead, true);
+    /// <inheritdoc />
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryRead(source, out value, out _, false);
+    /// <inheritdoc />
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead) => TryRead(source, out value, out bytesRead, false);
+"""
+        );
+    }
 }

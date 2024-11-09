@@ -59,7 +59,7 @@ public sealed partial record TwoUShorts : IWritable, ISpanReadable<Sources.TwoUS
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryRead(
         ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out Sources.TwoUShorts? value,
+        [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Sources.TwoUShorts? value,
         out int bytesRead,
         bool readLittleEndian
     )

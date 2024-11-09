@@ -32,4 +32,27 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable
     public bool TryWriteBigEndian(global::System.Span<byte> destination) => TryWrite(destination, out _, false);
     /// <inheritdoc />
     public bool TryWriteBigEndian(global::System.Span<byte> destination, out int bytesWritten) => TryWrite(destination, out bytesWritten, false);
+
+    private static bool TryRead(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead, bool readLittleEndian)
+    {
+        if (source.Length < 1)
+        {
+            value = default;
+            bytesRead = 0;
+            return false;
+        }
+        var ___readValue = source[0] > 0;
+        value = new OneBool(___readValue);
+        bytesRead = 1;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryRead(source, out value, out _, true);
+    /// <inheritdoc />
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead) => TryRead(source, out value, out bytesRead, true);
+    /// <inheritdoc />
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryRead(source, out value, out _, false);
+    /// <inheritdoc />
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead) => TryRead(source, out value, out bytesRead, false);
 }
