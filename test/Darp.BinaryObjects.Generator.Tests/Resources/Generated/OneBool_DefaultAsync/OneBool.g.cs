@@ -28,7 +28,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
             bytesWritten = 0;
             return false;
         }
-        destination[0] = Value ? (byte)0b1 : (byte)0b0;
+        destination[0] = this.Value ? (byte)0b1 : (byte)0b0;
         bytesWritten = 1;
         return true;
     }

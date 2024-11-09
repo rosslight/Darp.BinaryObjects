@@ -198,9 +198,11 @@ internal sealed class BinaryObjectBuilder(
 """
         );
         // Add actual type. declaration
-        var recordClassOrStruct = _syntax is RecordDeclarationSyntax recordSyntax
-            ? $" {recordSyntax.ClassOrStructKeyword}"
-            : "";
+        var recordClassOrStruct =
+            _syntax is RecordDeclarationSyntax recordSyntax
+            && !string.IsNullOrWhiteSpace(recordSyntax.ClassOrStructKeyword.Text)
+                ? $" {recordSyntax.ClassOrStructKeyword}"
+                : "";
         StringBuilder.AppendLine(
             $"{_syntax.Modifiers} {_syntax.Keyword}{recordClassOrStruct} {_syntax.Identifier} : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<{_syntax.Identifier}>"
         );
@@ -252,7 +254,7 @@ internal sealed class BinaryObjectBuilder(
             var write = memberInfo.TypeSymbol.ToDisplayString() switch
             {
                 "bool" =>
-                    $"        destination[{currentByteIndex}] = {memberInfo.Symbol.Name} ? (byte)0b1 : (byte)0b0;",
+                    $"        destination[{currentByteIndex}] = this.{memberInfo.Symbol.Name} ? (byte)0b1 : (byte)0b0;",
                 _ => null,
             };
             StringBuilder.AppendLine(write);

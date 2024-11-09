@@ -51,7 +51,7 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
 
         protected override string DefaultFileExt => "g.cs";
 
-        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp11;
 
         protected override CompilationOptions CreateCompilationOptions()
         {
