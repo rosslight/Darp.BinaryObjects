@@ -3,7 +3,6 @@ namespace Darp.BinaryObjects.Generator.Tests.Sources;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-[BinaryObject]
 public sealed partial record OneByte(byte Value);
 
 /// <remarks> <list type="table">

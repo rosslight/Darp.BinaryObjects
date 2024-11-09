@@ -55,6 +55,7 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         builder = BinaryObjectBuilder.Create(info.Symbol, info.Syntax);
         builder.AddFileHeader();
         builder.StringBuilder.AppendLine();
+        builder.TryAddNamespace();
         if (!builder.TryAddTypeDeclaration())
             return false;
         builder.StringBuilder.AppendLine("{");

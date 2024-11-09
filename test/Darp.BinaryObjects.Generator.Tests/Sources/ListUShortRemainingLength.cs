@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[BinaryObject]
 public sealed partial record ListUShortRemainingLength([property: BinaryReadRemaining(2)] IReadOnlyList<ushort> Value);
 
 /// <remarks> <list type="table">

@@ -3,7 +3,6 @@ namespace Darp.BinaryObjects.Generator.Tests.Sources;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-[BinaryObject]
 public sealed partial record ArrayByteFixedSize([property: BinaryArrayLength(2)] byte[] Value);
 
 /// <remarks> <list type="table">

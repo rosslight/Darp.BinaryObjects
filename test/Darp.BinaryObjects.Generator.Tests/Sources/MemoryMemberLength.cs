@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[BinaryObject]
 public sealed partial record MemoryMemberLengthSize(
     [property: BinaryByteLength(2)] int Length,
     [property: BinaryArrayLength("Length")] ReadOnlyMemory<byte> Value

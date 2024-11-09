@@ -9,7 +9,7 @@ internal class BinaryMemberInfo
     public required ITypeSymbol TypeSymbol { get; init; }
 }
 
-internal class BinaryArrayMemberInfo : BinaryMemberInfo
+internal sealed class BinaryArrayMemberInfo : BinaryMemberInfo
 {
     public required ArrayKind ArrayKind { get; init; }
     public required int? ArrayMinimumLength { get; init; }
