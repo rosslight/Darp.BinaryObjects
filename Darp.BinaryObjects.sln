@@ -17,12 +17,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darp.BinaryObjects", "src\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darp.BinaryObjects.Generator.Tests", "test\Darp.BinaryObjects.Generator.Tests\Darp.BinaryObjects.Generator.Tests.csproj", "{DBA86454-0E8D-47A2-83F1-1522966E542C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecutableProject", "ExecutableProject\ExecutableProject.csproj", "{F97D827E-E241-4E3E-8C73-75950B173BF7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecutableProject", "test\ExecutableProject\ExecutableProject.csproj", "{F97D827E-E241-4E3E-8C73-75950B173BF7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{3B2E89C4-51D4-4CF5-AC64-EBF6056E3463}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darp.BinaryObjects.Tests", "test\Darp.BinaryObjects.Tests\Darp.BinaryObjects.Tests.csproj", "{A0A0F6BB-B35E-4CF2-B680-A503127BC250}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,11 +48,16 @@ Global
 		{F97D827E-E241-4E3E-8C73-75950B173BF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F97D827E-E241-4E3E-8C73-75950B173BF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F97D827E-E241-4E3E-8C73-75950B173BF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0A0F6BB-B35E-4CF2-B680-A503127BC250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0A0F6BB-B35E-4CF2-B680-A503127BC250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0A0F6BB-B35E-4CF2-B680-A503127BC250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0A0F6BB-B35E-4CF2-B680-A503127BC250}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F9826C94-3BD7-438E-AF16-AB0D01B46FC1} = {D6A15359-4AEC-43D0-B82E-7464A138F213}
 		{A79F9DD7-B966-4D4D-9B8D-C0781E990FA7} = {D6A15359-4AEC-43D0-B82E-7464A138F213}
 		{DBA86454-0E8D-47A2-83F1-1522966E542C} = {34CB9937-9C1C-44BD-B81B-69D0353546B7}
 		{F97D827E-E241-4E3E-8C73-75950B173BF7} = {34CB9937-9C1C-44BD-B81B-69D0353546B7}
+		{A0A0F6BB-B35E-4CF2-B680-A503127BC250} = {34CB9937-9C1C-44BD-B81B-69D0353546B7}
 	EndGlobalSection
 EndGlobal

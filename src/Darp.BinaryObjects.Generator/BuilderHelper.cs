@@ -74,4 +74,14 @@ internal static class BuilderHelper
         length = default;
         return false;
     }
+
+    public static string GetWriteString(this BinaryMemberInfo info, string methodName, int currentIndex)
+    {
+        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], this.{info.Symbol.Name});";
+    }
+
+    public static string GetReadString(string variableName, string methodName, int currentIndex)
+    {
+        return $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentIndex}..]);";
+    }
 }

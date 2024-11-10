@@ -37,6 +37,37 @@ public class AllPrimitivesTests
         0,
         0
     )]
+    [InlineData(
+        "0100010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        true,
+        true,
+        0,
+        0,
+        0x0001,
+        0x0100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    )]
     public void TryRead_GoodInputShouldBeValid(
         string hexString,
         bool expectedValueBoolLE,
@@ -132,8 +163,8 @@ public class AllPrimitivesTests
         valueBE2.ValueDouble.Should().Be(expectedValueDoubleBE);
         valueBE2.ValueUInt.Should().Be(expectedValueUIntBE);
         valueBE2.ValueUShort.Should().Be(expectedValueUShortBE);
-        consumedLE.Should().Be(4);
-        consumedBE.Should().Be(4);
+        consumedLE.Should().Be(77);
+        consumedBE.Should().Be(77);
     }
 
     [Theory]

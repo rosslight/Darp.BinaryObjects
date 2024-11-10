@@ -18,15 +18,14 @@ public sealed partial record ArrayByteFixedSize : IWritable, ISpanReadable<Array
 
     private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
     {
-        if (destination.Length < GetByteCount())
+        if (destination.Length < 2)
         {
             bytesWritten = 0;
             return false;
         }
 
-        var valueLength = Math.Min(Value.Length, 2);
-        Value.AsSpan().Slice(0, valueLength).CopyTo(destination);
-        bytesWritten = valueLength;
+        BinaryHelpers.WriteUInt8Span(this.Value, 2, destination[0..]);
+        bytesWritten = 2;
         return true;
     }
 
@@ -52,13 +51,13 @@ public sealed partial record ArrayByteFixedSize : IWritable, ISpanReadable<Array
         bool readLittleEndian
     )
     {
-        if (source.Length < 1)
+        if (source.Length < 2)
         {
             value = default;
             bytesRead = 0;
             return false;
         }
-        var readValue = source[..2].ToArray();
+        var readValue = BinaryHelpers.ReadUInt8Array(source[0..2]);
         value = new ArrayByteFixedSize(readValue);
         bytesRead = 2;
         return true;
