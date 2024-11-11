@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 internal enum ArrayKind
 {
     None,
+    Memory,
     Array,
     MultiDimensionalArray,
     List,
@@ -29,9 +30,41 @@ internal static class BuilderHelper
             arrayKind = ArrayKind.Array;
             return true;
         }
-        underlyingTypeSymbol = null;
-        arrayKind = ArrayKind.None;
-        return false;
+        (ArrayKind Kind, ITypeSymbol? Symbol) x = symbol.OriginalDefinition.ToDisplayString() switch
+        {
+            "System.ReadOnlyMemory<T>" => (
+                ArrayKind.Memory,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.List<T>" => (
+                ArrayKind.List,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.IEnumerable<T>" => (
+                ArrayKind.Enumerable,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.IReadOnlyCollection<T>" => (
+                ArrayKind.Enumerable,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.ICollection<T>" => (
+                ArrayKind.Enumerable,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.IReadOnlyList<T>" => (
+                ArrayKind.Enumerable,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            "System.Collections.Generic.IList<T>" => (
+                ArrayKind.Enumerable,
+                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
+            ),
+            _ => (ArrayKind.None, null),
+        };
+        underlyingTypeSymbol = x.Symbol;
+        arrayKind = x.Kind;
+        return arrayKind is not ArrayKind.None && underlyingTypeSymbol is not null;
     }
 
     public static bool IsValidLengthInteger(this ITypeSymbol symbol) =>
@@ -50,9 +83,9 @@ internal static class BuilderHelper
         if (memberInfo is not BinaryArrayMemberInfo arrayMemberInfo)
             return memberInfo.TypeByteLength;
         if (arrayMemberInfo.ArrayAbsoluteLength is not null)
-            return arrayMemberInfo.ArrayAbsoluteLength.Value;
+            return memberInfo.TypeByteLength * arrayMemberInfo.ArrayAbsoluteLength.Value;
         var minLength = arrayMemberInfo.ArrayMinimumLength ?? 0;
-        return minLength;
+        return memberInfo.TypeByteLength * minLength;
     }
 
     public static int ComputeLength(this IEnumerable<BinaryMemberInfo> members)
@@ -94,10 +127,14 @@ internal static class BuilderHelper
         this BinaryArrayMemberInfo info,
         string methodName,
         int currentIndex,
-        int maxLength
+        int maxLength,
+        Func<string, string>? func = null
     )
     {
-        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], this.{info.Symbol.Name}, {maxLength});";
+        var memberName = $"this.{info.Symbol.Name}";
+        if (func is not null)
+            memberName = func(memberName);
+        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], {memberName}, {maxLength});";
     }
 
     public static string GetReadArrayString(string variableName, string methodName, int currentIndex, int maxLength)

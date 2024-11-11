@@ -268,19 +268,29 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
             if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
             {
                 var maxLength = arrayMemberInfo.ArrayAbsoluteLength ?? 0;
-                var methodName = (arrayMemberInfo.ArrayKind, arrayMemberInfo.TypeSymbol.ToString()) switch
+                (string MethodName, Func<string, string>? Func)? x = (
+                    arrayMemberInfo.ArrayKind,
+                    arrayMemberInfo.TypeSymbol.ToString()
+                ) switch
                 {
-                    (ArrayKind.Array, "byte") => "WriteUInt8Span",
-                    (ArrayKind.Array, "ushort") => $"WriteUInt16Span{methodNameEndianness}",
-                    (ArrayKind.List, "byte") => "WriteUInt8List",
-                    (ArrayKind.List, "ushort") => $"WriteUInt16List{methodNameEndianness}",
-                    (ArrayKind.Enumerable, "byte") => "WriteUInt8Enumerable",
-                    (ArrayKind.Enumerable, "ushort") => $"WriteUInt16Enumerable{methodNameEndianness}",
+                    (ArrayKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
+                    (ArrayKind.Memory, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", s => $"{s}.Span"),
+                    (ArrayKind.Array, "byte") => ("WriteUInt8Span", null),
+                    (ArrayKind.Array, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", null),
+                    (ArrayKind.List, "byte") => ("WriteUInt8List", null),
+                    (ArrayKind.List, "ushort") => ($"WriteUInt16List{methodNameEndianness}", null),
+                    (ArrayKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
+                    (ArrayKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{methodNameEndianness}", null),
                     _ => null,
                 };
-                if (methodName is null)
+                if (x is null)
                     continue;
-                write = arrayMemberInfo.GetWriteArrayString(methodName, currentByteIndex, maxLength);
+                write = arrayMemberInfo.GetWriteArrayString(
+                    x.Value.MethodName,
+                    currentByteIndex,
+                    maxLength,
+                    x.Value.Func
+                );
             }
             else
             {
@@ -359,15 +369,14 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
             string write;
             if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
             {
-                var maxLength = arrayMemberInfo.ArrayAbsoluteLength ?? 0;
+                var maxLength = arrayMemberInfo.ComputeLength();
                 var methodName = (arrayMemberInfo.ArrayKind, arrayMemberInfo.TypeSymbol.ToString()) switch
                 {
-                    (ArrayKind.Array, "byte") => "ReadUInt8Array",
-                    (ArrayKind.Array, "ushort") => $"ReadUInt16Array{methodNameEndianness}",
+                    (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
+                    (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "ushort") =>
+                        $"ReadUInt16Array{methodNameEndianness}",
                     (ArrayKind.List, "byte") => "ReadUInt8List",
                     (ArrayKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
-                    (ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
-                    (ArrayKind.Enumerable, "ushort") => $"ReadUInt16Array{methodNameEndianness}",
                     _ => null,
                 };
                 if (methodName is null)
