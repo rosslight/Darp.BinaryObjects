@@ -5,7 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-public sealed partial record ListUShortRemainingLength([property: BinaryReadRemaining(2)] IReadOnlyList<ushort> Value);
+public sealed partial record ListUShortRemainingLength(
+    [property: BinaryReadRemaining(MinElements = 2)] IReadOnlyList<ushort> Value
+);
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>

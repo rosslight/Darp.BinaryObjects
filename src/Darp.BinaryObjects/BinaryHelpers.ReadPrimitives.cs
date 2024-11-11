@@ -1,7 +1,9 @@
 namespace Darp.BinaryObjects;
 
 using System.Buffers.Binary;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -10,6 +12,14 @@ using System.Runtime.CompilerServices;
 )]
 public static partial class BinaryHelpers
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T ReadTLittleEndian<T>(ReadOnlySpan<byte> source, bool unsigned)
+        where T : IBinaryInteger<T> => T.ReadLittleEndian(source, unsigned);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T ReadTBigEndian<T>(ReadOnlySpan<byte> source, bool unsigned)
+        where T : IBinaryInteger<T> => T.ReadBigEndian(source, unsigned);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ReadBool(ReadOnlySpan<byte> source) => source[0] > 0;
 
@@ -47,6 +57,18 @@ public static partial class BinaryHelpers
     public static Half ReadHalfLittleEndian(ReadOnlySpan<byte> source)
     {
         return BinaryPrimitives.ReadHalfLittleEndian(source);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt128 ReadCharLittleEndian(ReadOnlySpan<byte> source)
+    {
+        return ReadTLittleEndian<char>(source, true);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UInt128 ReadCharBigEndian(ReadOnlySpan<byte> source)
+    {
+        return ReadTBigEndian<char>(source, true);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -69,7 +69,7 @@ public sealed partial record AllPrimitives(
 using Darp.BinaryObjects;
 
 [BinaryObject]
-public sealed partial record ArrayByteFixedSize([property: BinaryArrayLength(2)] byte[] Value);
+public sealed partial record ArrayByteFixedSize([property: BinaryElementCount(2)] byte[] Value);
 """;
         await new VerifyCS.Test { TestState = { Sources = { code } } }
             .AddGeneratedSources()

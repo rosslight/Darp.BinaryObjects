@@ -26,7 +26,7 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
 
         if (!this.Value.TryWriteLittleEndian(destination, out var ___valueBytesWritten))
         {
-            bytesWritten = ___valueBytesWritten;
+            bytesWritten += ___valueBytesWritten;
             return false;
         }
         bytesWritten += ___valueBytesWritten;
@@ -44,7 +44,7 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
 
         if (!this.Value.TryWriteBigEndian(destination, out var ___valueBytesWritten))
         {
-            bytesWritten = ___valueBytesWritten;
+            bytesWritten += ___valueBytesWritten;
             return false;
         }
         bytesWritten += ___valueBytesWritten;
@@ -64,12 +64,9 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
     )
     {
         bytesRead = 0;
-
+        value = default;
         if (!OneBool.TryReadLittleEndian(source, out var ___readValue, out var ___bytesReadValue))
-        {
-            value = default;
             return false;
-        }
         bytesRead += ___bytesReadValue;
 
         value = new OneBinaryObject(___readValue);
@@ -88,11 +85,10 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
     )
     {
         bytesRead = 0;
+        value = default;
+
         if (!OneBool.TryReadBigEndian(source, out var ___readValue, out var ___bytesReadValue))
-        {
-            value = default;
             return false;
-        }
         bytesRead += ___bytesReadValue;
 
         value = new OneBinaryObject(___readValue);

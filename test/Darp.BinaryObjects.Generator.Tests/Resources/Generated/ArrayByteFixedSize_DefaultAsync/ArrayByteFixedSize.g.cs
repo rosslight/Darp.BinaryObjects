@@ -24,7 +24,7 @@ public sealed partial record ArrayByteFixedSize : global::Darp.BinaryObjects.IWr
 
         if (destination.Length < 2)
             return false;
-        BinaryHelpers.WriteUInt8Span(this.Value, 2, destination[0..2]);
+        BinaryHelpers.WriteUInt8Span(destination[0..], this.Value, 2);
         bytesWritten += 2;
 
         return true;
@@ -38,7 +38,7 @@ public sealed partial record ArrayByteFixedSize : global::Darp.BinaryObjects.IWr
 
         if (destination.Length < 2)
             return false;
-        BinaryHelpers.WriteUInt8Span(this.Value, 2, destination[0..2]);
+        BinaryHelpers.WriteUInt8Span(destination[0..], this.Value, 2);
         bytesWritten += 2;
 
         return true;

@@ -45,6 +45,21 @@ internal static class BuilderHelper
             _ => false,
         };
 
+    public static int ComputeLength(this BinaryMemberInfo memberInfo)
+    {
+        if (memberInfo is not BinaryArrayMemberInfo arrayMemberInfo)
+            return memberInfo.TypeByteLength;
+        if (arrayMemberInfo.ArrayAbsoluteLength is not null)
+            return arrayMemberInfo.ArrayAbsoluteLength.Value;
+        var minLength = arrayMemberInfo.ArrayMinimumLength ?? 0;
+        return minLength;
+    }
+
+    public static int ComputeLength(this IEnumerable<BinaryMemberInfo> members)
+    {
+        return members.Sum(memberInfo => memberInfo.ComputeLength());
+    }
+
     public static bool TryGetLength(this ITypeSymbol symbol, out int length)
     {
         int? primitiveLength = symbol.ToDisplayString() switch
@@ -73,6 +88,21 @@ internal static class BuilderHelper
         }
         length = default;
         return false;
+    }
+
+    public static string GetWriteArrayString(
+        this BinaryArrayMemberInfo info,
+        string methodName,
+        int currentIndex,
+        int maxLength
+    )
+    {
+        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], this.{info.Symbol.Name}, {maxLength});";
+    }
+
+    public static string GetReadArrayString(string variableName, string methodName, int currentIndex, int maxLength)
+    {
+        return $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentIndex}..{currentIndex + maxLength}]);";
     }
 
     public static string GetWriteString(this BinaryMemberInfo info, string methodName, int currentIndex)

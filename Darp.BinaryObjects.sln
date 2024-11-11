@@ -22,6 +22,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{3B2E89C4-51D4-4CF5-AC64-EBF6056E3463}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darp.BinaryObjects.Tests", "test\Darp.BinaryObjects.Tests\Darp.BinaryObjects.Tests.csproj", "{A0A0F6BB-B35E-4CF2-B680-A503127BC250}"

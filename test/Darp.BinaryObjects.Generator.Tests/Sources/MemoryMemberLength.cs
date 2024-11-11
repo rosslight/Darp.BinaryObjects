@@ -6,8 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 public sealed partial record MemoryMemberLengthSize(
-    [property: BinaryByteLength(2)] int Length,
-    [property: BinaryArrayLength("Length")] ReadOnlyMemory<byte> Value
+    [property: BinaryLength(2)] int Length,
+    [property: BinaryElementCount("Length")] ReadOnlyMemory<byte> Value
 );
 
 /// <remarks> <list type="table">

@@ -60,11 +60,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength];
         var bufferEnumerable = new byte[maxLength];
 
-        BinaryHelpers.WriteUInt8Span(array, maxLength, bufferArray);
-        BinaryHelpers.WriteUInt8List(list, maxLength, bufferList);
-        BinaryHelpers.WriteUInt8Enumerable(array, maxLength, bufferEnumerableArray);
-        BinaryHelpers.WriteUInt8Enumerable(list, maxLength, bufferEnumerableList);
-        BinaryHelpers.WriteUInt8Enumerable(enumerable, maxLength, bufferEnumerable);
+        BinaryHelpers.WriteUInt8Span(bufferArray, array, maxLength);
+        BinaryHelpers.WriteUInt8List(bufferList, list, maxLength);
+        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerableArray, array, maxLength);
+        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerableList, list, maxLength);
+        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerable, enumerable, maxLength);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
@@ -90,11 +90,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength * 2];
         var bufferEnumerable = new byte[maxLength * 2];
 
-        BinaryHelpers.WriteUInt16SpanLittleEndian(array, maxLength, bufferArray);
-        BinaryHelpers.WriteUInt16ListLittleEndian(list, maxLength, bufferList);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(array, maxLength, bufferEnumerableArray);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(list, maxLength, bufferEnumerableList);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(enumerable, maxLength, bufferEnumerable);
+        BinaryHelpers.WriteUInt16SpanLittleEndian(bufferArray, array, maxLength);
+        BinaryHelpers.WriteUInt16ListLittleEndian(bufferList, list, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerableArray, array, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerableList, list, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerable, enumerable, maxLength);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
@@ -120,11 +120,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength * 2];
         var bufferEnumerable = new byte[maxLength * 2];
 
-        BinaryHelpers.WriteUInt16SpanBigEndian(array, maxLength, bufferArray);
-        BinaryHelpers.WriteUInt16ListBigEndian(list, maxLength, bufferList);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(array, maxLength, bufferEnumerableArray);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(list, maxLength, bufferEnumerableList);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(enumerable, maxLength, bufferEnumerable);
+        BinaryHelpers.WriteUInt16SpanBigEndian(bufferArray, array, maxLength);
+        BinaryHelpers.WriteUInt16ListBigEndian(bufferList, list, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerableArray, array, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerableList, list, maxLength);
+        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerable, enumerable, maxLength);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);

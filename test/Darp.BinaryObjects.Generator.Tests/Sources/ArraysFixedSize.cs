@@ -4,14 +4,14 @@ using BinaryHelpers = global::Darp.BinaryObjects.BinaryHelpers;
 using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 
 public partial record ArraysFixedSize(
-    [property: BinaryArrayLength(2)] ReadOnlyMemory<byte> ValueByteMemory,
-    [property: BinaryArrayLength(2)] byte[] ValueByteArray,
-    [property: BinaryArrayLength(2)] List<byte> ValueByteList,
-    [property: BinaryArrayLength(2)] IEnumerable<byte> ValueByteEnumerable,
-    [property: BinaryArrayLength(2)] ReadOnlyMemory<ushort> ValueUShortMemory,
-    [property: BinaryArrayLength(2)] ushort[] ValueUShortArray,
-    [property: BinaryArrayLength(2)] List<ushort> ValueUShortList,
-    [property: BinaryArrayLength(2)] IEnumerable<ushort> ValueUShortEnumerable
+    [property: BinaryLength(2)] ReadOnlyMemory<byte> ValueByteMemory,
+    [property: BinaryElementCount(2)] byte[] ValueByteArray,
+    [property: BinaryElementCount(2)] List<byte> ValueByteList,
+    [property: BinaryElementCount(2)] IEnumerable<byte> ValueByteEnumerable,
+    [property: BinaryLength(4)] ReadOnlyMemory<ushort> ValueUShortMemory,
+    [property: BinaryElementCount(2)] ushort[] ValueUShortArray,
+    [property: BinaryElementCount(2)] List<ushort> ValueUShortList,
+    [property: BinaryElementCount(2)] IEnumerable<ushort> ValueUShortEnumerable
 );
 
 /// <remarks> <list type="table">
@@ -46,14 +46,15 @@ public sealed partial record ArraysFixedSize
 
         if (destination.Length < 24)
             return false;
-        BinaryHelpers.WriteUInt8Span(this.ValueByteMemory.Span, 2, destination[0..]);
-        BinaryHelpers.WriteUInt8Span(this.ValueByteArray, 2, destination[2..]);
-        BinaryHelpers.WriteUInt8List(this.ValueByteList, 2, destination[4..]);
-        BinaryHelpers.WriteUInt8Enumerable(this.ValueByteList, 2, destination[6..]);
-        BinaryHelpers.WriteUInt16SpanLittleEndian(this.ValueUShortMemory.Span, 2, destination[8..]);
-        BinaryHelpers.WriteUInt16SpanLittleEndian(this.ValueUShortArray, 2, destination[12..]);
-        BinaryHelpers.WriteUInt16ListLittleEndian(this.ValueUShortList, 2, destination[16..]);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(this.ValueUShortEnumerable, 2, destination[20..]);
+        var x = new byte[3, 4];
+        BinaryHelpers.WriteUInt8Span(destination[0..], this.ValueByteMemory.Span, 2);
+        BinaryHelpers.WriteUInt8Span(destination[2..], this.ValueByteArray, 2);
+        BinaryHelpers.WriteUInt8List(destination[4..], this.ValueByteList, 2);
+        BinaryHelpers.WriteUInt8Enumerable(destination[6..], this.ValueByteEnumerable, 2);
+        BinaryHelpers.WriteUInt16SpanLittleEndian(destination[8..], this.ValueUShortMemory.Span, 2);
+        BinaryHelpers.WriteUInt16SpanLittleEndian(destination[12..], this.ValueUShortArray, 2);
+        BinaryHelpers.WriteUInt16ListLittleEndian(destination[16..], this.ValueUShortList, 2);
+        BinaryHelpers.WriteUInt16EnumerableLittleEndian(destination[20..], this.ValueUShortEnumerable, 2);
         bytesWritten += 24;
 
         return true;
@@ -69,14 +70,14 @@ public sealed partial record ArraysFixedSize
 
         if (destination.Length < 24)
             return false;
-        BinaryHelpers.WriteUInt8Span(this.ValueByteMemory.Span, 2, destination[0..]);
-        BinaryHelpers.WriteUInt8Span(this.ValueByteArray, 2, destination[2..]);
-        BinaryHelpers.WriteUInt8List(this.ValueByteList, 2, destination[4..]);
-        BinaryHelpers.WriteUInt8Enumerable(this.ValueByteList, 2, destination[6..]);
-        BinaryHelpers.WriteUInt16SpanBigEndian(this.ValueUShortMemory.Span, 2, destination[8..]);
-        BinaryHelpers.WriteUInt16SpanBigEndian(this.ValueUShortArray, 2, destination[12..]);
-        BinaryHelpers.WriteUInt16ListBigEndian(this.ValueUShortList, 2, destination[16..]);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(this.ValueUShortEnumerable, 2, destination[20..]);
+        BinaryHelpers.WriteUInt8Span(destination[0..], this.ValueByteMemory.Span, 2);
+        BinaryHelpers.WriteUInt8Span(destination[2..], this.ValueByteArray, 2);
+        BinaryHelpers.WriteUInt8List(destination[4..], this.ValueByteList, 2);
+        BinaryHelpers.WriteUInt8Enumerable(destination[6..], this.ValueByteEnumerable, 2);
+        BinaryHelpers.WriteUInt16SpanBigEndian(destination[8..], this.ValueUShortMemory.Span, 2);
+        BinaryHelpers.WriteUInt16SpanBigEndian(destination[12..], this.ValueUShortArray, 2);
+        BinaryHelpers.WriteUInt16ListBigEndian(destination[16..], this.ValueUShortList, 2);
+        BinaryHelpers.WriteUInt16EnumerableBigEndian(destination[20..], this.ValueUShortEnumerable, 2);
         bytesWritten += 24;
 
         return true;

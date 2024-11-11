@@ -80,7 +80,7 @@ internal sealed class BinaryObjectBuilder(
             {
                 case "Darp.BinaryObjects.BinaryIgnoreAttribute":
                     return false;
-                case "Darp.BinaryObjects.BinaryArrayLengthAttribute":
+                case "Darp.BinaryObjects.BinaryElementCountAttribute":
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
                     {
                         if (pair is { Key: "memberWithLength", Value.Value: string memberName })
@@ -191,7 +191,7 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
             };
             return $"""/// <item> <term><see cref="{memberInfo.Symbol.Name}"/></term> <description>{memberInfo.TypeByteLength}{length}</description> </item>""";
         });
-        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+        var summedLength = _members.ComputeLength();
         StringBuilder.AppendLine(
             $"""
 /// <remarks> <list type="table">
@@ -227,7 +227,7 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 
     public void AddGetByteCountMethod()
     {
-        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+        var summedLength = _members.ComputeLength();
         StringBuilder.AppendLine(
             $"""
     /// <inheritdoc />
@@ -253,7 +253,7 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 """
         );
         // Ensure length of destination
-        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+        var summedLength = _members.ComputeLength();
         StringBuilder.AppendLine(
             $"""
         if (destination.Length < {summedLength})
@@ -264,28 +264,51 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
         var currentByteIndex = 0;
         foreach (BinaryMemberInfo memberInfo in _members)
         {
+            string? write;
             if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
-                continue;
-            var write = memberInfo.TypeSymbol.ToDisplayString() switch
             {
-                "bool" => memberInfo.GetWriteString("WriteBool", currentByteIndex),
-                "sbyte" => memberInfo.GetWriteString("WriteInt8", currentByteIndex),
-                "byte" => memberInfo.GetWriteString("WriteUInt8", currentByteIndex),
-                "short" => memberInfo.GetWriteString($"WriteInt16{methodNameEndianness}", currentByteIndex),
-                "ushort" => memberInfo.GetWriteString($"WriteUInt16{methodNameEndianness}", currentByteIndex),
-                "System.Half" => memberInfo.GetWriteString($"WriteHalf{methodNameEndianness}", currentByteIndex),
-                "int" => memberInfo.GetWriteString($"WriteInt32{methodNameEndianness}", currentByteIndex),
-                "uint" => memberInfo.GetWriteString($"WriteUInt32{methodNameEndianness}", currentByteIndex),
-                "float" => memberInfo.GetWriteString($"WriteSingle{methodNameEndianness}", currentByteIndex),
-                "long" => memberInfo.GetWriteString($"WriteInt64{methodNameEndianness}", currentByteIndex),
-                "ulong" => memberInfo.GetWriteString($"WriteUInt64{methodNameEndianness}", currentByteIndex),
-                "double" => memberInfo.GetWriteString($"WriteDouble{methodNameEndianness}", currentByteIndex),
-                "System.Int128" => memberInfo.GetWriteString($"WriteInt128{methodNameEndianness}", currentByteIndex),
-                "System.UInt128" => memberInfo.GetWriteString($"WriteUInt128{methodNameEndianness}", currentByteIndex),
-                _ => null,
-            };
+                var maxLength = arrayMemberInfo.ArrayAbsoluteLength ?? 0;
+                var methodName = (arrayMemberInfo.ArrayKind, arrayMemberInfo.TypeSymbol.ToString()) switch
+                {
+                    (ArrayKind.Array, "byte") => "WriteUInt8Span",
+                    (ArrayKind.Array, "ushort") => $"WriteUInt16Span{methodNameEndianness}",
+                    (ArrayKind.List, "byte") => "WriteUInt8List",
+                    (ArrayKind.List, "ushort") => $"WriteUInt16List{methodNameEndianness}",
+                    (ArrayKind.Enumerable, "byte") => "WriteUInt8Enumerable",
+                    (ArrayKind.Enumerable, "ushort") => $"WriteUInt16Enumerable{methodNameEndianness}",
+                    _ => null,
+                };
+                if (methodName is null)
+                    continue;
+                write = arrayMemberInfo.GetWriteArrayString(methodName, currentByteIndex, maxLength);
+            }
+            else
+            {
+                var methodName = memberInfo.TypeSymbol.ToDisplayString() switch
+                {
+                    "bool" => "WriteBool",
+                    "sbyte" => "WriteInt8",
+                    "byte" => "WriteUInt8",
+                    "short" => $"WriteInt16{methodNameEndianness}",
+                    "ushort" => $"WriteUInt16{methodNameEndianness}",
+                    "System.Half" => $"WriteHalf{methodNameEndianness}",
+                    "char" => $"WriteChar{methodNameEndianness}",
+                    "int" => $"WriteInt32{methodNameEndianness}",
+                    "uint" => $"WriteUInt32{methodNameEndianness}",
+                    "float" => $"WriteSingle{methodNameEndianness}",
+                    "long" => $"WriteInt64{methodNameEndianness}",
+                    "ulong" => $"WriteUInt64{methodNameEndianness}",
+                    "double" => $"WriteDouble{methodNameEndianness}",
+                    "System.Int128" => $"WriteInt128{methodNameEndianness}",
+                    "System.UInt128" => $"WriteUInt128{methodNameEndianness}",
+                    _ => null,
+                };
+                if (methodName is null)
+                    continue;
+                write = memberInfo.GetWriteString(methodName, currentByteIndex);
+            }
             StringBuilder.AppendLine(write);
-            currentByteIndex += memberInfo.TypeByteLength;
+            currentByteIndex += memberInfo.ComputeLength();
         }
         StringBuilder.AppendLine($"        bytesWritten += {currentByteIndex};");
 
@@ -320,7 +343,7 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 """
         );
         // Ensure length of source
-        var summedLength = _members.Aggregate(0, (a, b) => a + b.TypeByteLength);
+        var summedLength = _members.ComputeLength();
         StringBuilder.AppendLine(
             $"""
         if (source.Length < {summedLength})
@@ -333,28 +356,51 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
         {
             var variableName = $"{prefix}read{memberInfo.Symbol.Name}";
             constructorParameters.Add(variableName);
+            string write;
             if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
-                continue;
-            var write = memberInfo.TypeSymbol.ToDisplayString() switch
             {
-                "bool" => GetReadString(variableName, "ReadBool", currentByteIndex),
-                "sbyte" => GetReadString(variableName, "ReadInt8", currentByteIndex),
-                "byte" => GetReadString(variableName, "ReadUInt8", currentByteIndex),
-                "short" => GetReadString(variableName, $"ReadInt16{methodNameEndianness}", currentByteIndex),
-                "ushort" => GetReadString(variableName, $"ReadUInt16{methodNameEndianness}", currentByteIndex),
-                "System.Half" => GetReadString(variableName, $"ReadHalf{methodNameEndianness}", currentByteIndex),
-                "int" => GetReadString(variableName, $"ReadInt32{methodNameEndianness}", currentByteIndex),
-                "uint" => GetReadString(variableName, $"ReadUInt32{methodNameEndianness}", currentByteIndex),
-                "float" => GetReadString(variableName, $"ReadSingle{methodNameEndianness}", currentByteIndex),
-                "long" => GetReadString(variableName, $"ReadInt64{methodNameEndianness}", currentByteIndex),
-                "ulong" => GetReadString(variableName, $"ReadUInt64{methodNameEndianness}", currentByteIndex),
-                "double" => GetReadString(variableName, $"ReadDouble{methodNameEndianness}", currentByteIndex),
-                "System.Int128" => GetReadString(variableName, $"ReadInt128{methodNameEndianness}", currentByteIndex),
-                "System.UInt128" => GetReadString(variableName, $"ReadUInt128{methodNameEndianness}", currentByteIndex),
-                _ => null,
-            };
+                var maxLength = arrayMemberInfo.ArrayAbsoluteLength ?? 0;
+                var methodName = (arrayMemberInfo.ArrayKind, arrayMemberInfo.TypeSymbol.ToString()) switch
+                {
+                    (ArrayKind.Array, "byte") => "ReadUInt8Array",
+                    (ArrayKind.Array, "ushort") => $"ReadUInt16Array{methodNameEndianness}",
+                    (ArrayKind.List, "byte") => "ReadUInt8List",
+                    (ArrayKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
+                    (ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
+                    (ArrayKind.Enumerable, "ushort") => $"ReadUInt16Array{methodNameEndianness}",
+                    _ => null,
+                };
+                if (methodName is null)
+                    continue;
+                write = GetReadArrayString(variableName, methodName, currentByteIndex, maxLength);
+            }
+            else
+            {
+                var methodName = memberInfo.TypeSymbol.ToDisplayString() switch
+                {
+                    "bool" => "ReadBool",
+                    "sbyte" => "ReadInt8",
+                    "byte" => "ReadUInt8",
+                    "short" => $"ReadInt16{methodNameEndianness}",
+                    "ushort" => $"ReadUInt16{methodNameEndianness}",
+                    "System.Half" => $"ReadHalf{methodNameEndianness}",
+                    "char" => $"ReadChar{methodNameEndianness}",
+                    "int" => $"ReadInt32{methodNameEndianness}",
+                    "uint" => $"ReadUInt32{methodNameEndianness}",
+                    "float" => $"ReadSingle{methodNameEndianness}",
+                    "long" => $"ReadInt64{methodNameEndianness}",
+                    "ulong" => $"ReadUInt64{methodNameEndianness}",
+                    "double" => $"ReadDouble{methodNameEndianness}",
+                    "System.Int128" => $"ReadInt128{methodNameEndianness}",
+                    "System.UInt128" => $"ReadUInt128{methodNameEndianness}",
+                    _ => null,
+                };
+                if (methodName is null)
+                    continue;
+                write = GetReadString(variableName, methodName, currentByteIndex);
+            }
             StringBuilder.AppendLine(write);
-            currentByteIndex += memberInfo.TypeByteLength;
+            currentByteIndex += memberInfo.ComputeLength();
         }
         StringBuilder.AppendLine($"        bytesRead += {currentByteIndex};");
 

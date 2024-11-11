@@ -1,12 +1,27 @@
 namespace Darp.BinaryObjects;
 
 using System.Buffers.Binary;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 public static partial class BinaryHelpers
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteTLittleEndian<T>(Span<byte> destination, T value)
+        where T : IBinaryInteger<T>
+    {
+        value.WriteLittleEndian(destination);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteTBigEndian<T>(Span<byte> destination, T value)
+        where T : IBinaryInteger<T>
+    {
+        value.WriteBigEndian(destination);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteBool(Span<byte> destination, bool value)
     {
@@ -59,6 +74,18 @@ public static partial class BinaryHelpers
     public static void WriteHalfBigEndian(Span<byte> destination, Half value)
     {
         BinaryPrimitives.WriteHalfBigEndian(destination, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteCharLittleEndian(Span<byte> destination, char value)
+    {
+        WriteTLittleEndian(destination, value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteCharBigEndian(Span<byte> destination, char value)
+    {
+        WriteTBigEndian(destination, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

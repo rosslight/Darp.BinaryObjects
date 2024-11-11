@@ -71,8 +71,8 @@ public class ArrayByteFixedSizeTests
     }
 
     [Theory]
-    [InlineData("", 2, 0, "0000")]
-    [InlineData("01", 2, 1, "0100")]
+    [InlineData("", 2, 2, "0000")]
+    [InlineData("01", 2, 2, "0100")]
     [InlineData("0000", 2, 2, "0000")]
     [InlineData("0103", 2, 2, "0103")]
     [InlineData("100101", 2, 2, "1001")]

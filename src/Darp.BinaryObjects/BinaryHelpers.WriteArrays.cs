@@ -11,28 +11,28 @@ using System.Runtime.InteropServices;
 public static partial class BinaryHelpers
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt8List(List<byte> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt8List(Span<byte> destination, List<byte> value, int maxLength)
     {
-        WriteUInt8Span(CollectionsMarshal.AsSpan(value), maxLength, destination);
+        WriteUInt8Span(destination, CollectionsMarshal.AsSpan(value), maxLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt8Span(ReadOnlySpan<byte> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt8Span(Span<byte> destination, ReadOnlySpan<byte> value, int maxLength)
     {
         var length = Math.Min(value.Length, maxLength);
         value.Slice(0, length).CopyTo(destination);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt8Enumerable(IEnumerable<byte> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt8Enumerable(Span<byte> destination, IEnumerable<byte> value, int maxLength)
     {
         switch (value)
         {
             case byte[] arrayValue:
-                WriteUInt8Span(arrayValue, maxLength, destination);
+                WriteUInt8Span(destination, arrayValue, maxLength);
                 return;
             case List<byte> listValue:
-                WriteUInt8List(listValue, maxLength, destination);
+                WriteUInt8List(destination, listValue, maxLength);
                 return;
         }
         var index = 0;
@@ -45,13 +45,13 @@ public static partial class BinaryHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt16ListLittleEndian(List<ushort> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt16ListLittleEndian(Span<byte> destination, List<ushort> value, int maxLength)
     {
-        WriteUInt16SpanLittleEndian(CollectionsMarshal.AsSpan(value), maxLength, destination);
+        WriteUInt16SpanLittleEndian(destination, CollectionsMarshal.AsSpan(value), maxLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt16SpanLittleEndian(ReadOnlySpan<ushort> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt16SpanLittleEndian(Span<byte> destination, ReadOnlySpan<ushort> value, int maxLength)
     {
         var length = Math.Min(value.Length, maxLength);
         if (!BitConverter.IsLittleEndian)
@@ -64,13 +64,13 @@ public static partial class BinaryHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt16ListBigEndian(List<ushort> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt16ListBigEndian(Span<byte> destination, List<ushort> value, int maxLength)
     {
-        WriteUInt16SpanBigEndian(CollectionsMarshal.AsSpan(value), maxLength, destination);
+        WriteUInt16SpanBigEndian(destination, CollectionsMarshal.AsSpan(value), maxLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt16SpanBigEndian(ReadOnlySpan<ushort> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt16SpanBigEndian(Span<byte> destination, ReadOnlySpan<ushort> value, int maxLength)
     {
         var length = Math.Min(value.Length, maxLength);
         if (BitConverter.IsLittleEndian)
@@ -84,9 +84,9 @@ public static partial class BinaryHelpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteUInt16EnumerableLittleEndian(
+        Span<byte> destination,
         IEnumerable<ushort> value,
-        int maxLength,
-        Span<byte> destination
+        int maxLength
     )
     {
         var index = 0;
@@ -99,7 +99,7 @@ public static partial class BinaryHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteUInt16EnumerableBigEndian(IEnumerable<ushort> value, int maxLength, Span<byte> destination)
+    public static void WriteUInt16EnumerableBigEndian(Span<byte> destination, IEnumerable<ushort> value, int maxLength)
     {
         var index = 0;
         foreach (var val in value)
