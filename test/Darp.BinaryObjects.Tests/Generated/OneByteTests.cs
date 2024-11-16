@@ -73,15 +73,15 @@ public class OneByteTests
         var successBE1 = writable.TryWriteBigEndian(bufferBE);
         var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        AssertionExtensions.Should((bool)successLE1).BeTrue();
-        AssertionExtensions.Should((bool)successLE2).BeTrue();
-        AssertionExtensions.Should((bool)successBE1).BeTrue();
-        AssertionExtensions.Should((bool)successBE2).BeTrue();
+        successLE1.Should().BeTrue();
+        successLE2.Should().BeTrue();
+        successBE1.Should().BeTrue();
+        successBE2.Should().BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        AssertionExtensions.Should((int)writtenLE).Be(1);
-        AssertionExtensions.Should((int)writtenBE).Be(1);
-        AssertionExtensions.Should((int)writable.GetByteCount()).Be(1);
+        writtenLE.Should().Be(1);
+        writtenBE.Should().Be(1);
+        writable.GetByteCount().Should().Be(1);
     }
 
     [Theory]
@@ -99,13 +99,13 @@ public class OneByteTests
         var successBE1 = writable.TryWriteBigEndian(bufferBE);
         var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        AssertionExtensions.Should((bool)successLE1).BeFalse();
-        AssertionExtensions.Should((bool)successLE2).BeFalse();
-        AssertionExtensions.Should((bool)successBE1).BeFalse();
-        AssertionExtensions.Should((bool)successBE2).BeFalse();
+        successLE1.Should().BeFalse();
+        successLE2.Should().BeFalse();
+        successBE1.Should().BeFalse();
+        successBE2.Should().BeFalse();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        AssertionExtensions.Should((int)writtenLE).Be(0);
-        AssertionExtensions.Should((int)writtenBE).Be(0);
+        writtenLE.Should().Be(0);
+        writtenBE.Should().Be(0);
     }
 }
