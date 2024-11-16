@@ -1,7 +1,9 @@
-namespace Darp.BinaryObjects.Generator.Tests.Unit;
+namespace Darp.BinaryObjects.Tests.Generated;
 
-using Darp.BinaryObjects.Generator.Tests.Sources;
 using FluentAssertions;
+
+[BinaryObject]
+public sealed partial record ArrayByteFixedSize([property: BinaryElementCount(2)] byte[] Value);
 
 public class ArrayByteFixedSizeTests
 {
@@ -94,15 +96,15 @@ public class ArrayByteFixedSizeTests
         var successBE1 = writable.TryWriteBigEndian(bufferBE);
         var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE1.Should().BeTrue();
-        successLE2.Should().BeTrue();
-        successBE1.Should().BeTrue();
-        successBE2.Should().BeTrue();
+        AssertionExtensions.Should((bool)successLE1).BeTrue();
+        AssertionExtensions.Should((bool)successLE2).BeTrue();
+        AssertionExtensions.Should((bool)successBE1).BeTrue();
+        AssertionExtensions.Should((bool)successBE2).BeTrue();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        writtenLE.Should().Be(expectedBytesWritten);
-        writtenBE.Should().Be(expectedBytesWritten);
-        writable.GetByteCount().Should().Be(2);
+        AssertionExtensions.Should((int)writtenLE).Be(expectedBytesWritten);
+        AssertionExtensions.Should((int)writtenBE).Be(expectedBytesWritten);
+        AssertionExtensions.Should((int)writable.GetByteCount()).Be(2);
     }
 
     [Theory]
@@ -121,13 +123,13 @@ public class ArrayByteFixedSizeTests
         var successBE1 = writable.TryWriteBigEndian(bufferBE);
         var successBE2 = writable.TryWriteBigEndian(bufferBE, out var writtenBE);
 
-        successLE1.Should().BeFalse();
-        successLE2.Should().BeFalse();
-        successBE1.Should().BeFalse();
-        successBE2.Should().BeFalse();
+        AssertionExtensions.Should((bool)successLE1).BeFalse();
+        AssertionExtensions.Should((bool)successLE2).BeFalse();
+        AssertionExtensions.Should((bool)successBE1).BeFalse();
+        AssertionExtensions.Should((bool)successBE2).BeFalse();
         bufferLE.Should().BeEquivalentTo(expectedHexBytes);
         bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        writtenLE.Should().Be(0);
-        writtenBE.Should().Be(0);
+        AssertionExtensions.Should((int)writtenLE).Be(0);
+        AssertionExtensions.Should((int)writtenBE).Be(0);
     }
 }

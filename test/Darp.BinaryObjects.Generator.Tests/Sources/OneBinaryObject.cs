@@ -3,7 +3,7 @@ namespace Darp.BinaryObjects.Generator.Tests.Sources;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-public sealed partial record OneBinaryObject(OneBool Value);
+public sealed partial record OneBinaryObject(ArrayByteMemberLength Value);
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
@@ -65,7 +65,7 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
     {
         bytesRead = 0;
         value = default;
-        if (!OneBool.TryReadLittleEndian(source, out var ___readValue, out var ___bytesReadValue))
+        if (!ArrayByteMemberLength.TryReadLittleEndian(source, out var ___readValue, out var ___bytesReadValue))
             return false;
         bytesRead += ___bytesReadValue;
 
@@ -87,7 +87,7 @@ public sealed partial record OneBinaryObject : IWritable, ISpanReadable<OneBinar
         bytesRead = 0;
         value = default;
 
-        if (!OneBool.TryReadBigEndian(source, out var ___readValue, out var ___bytesReadValue))
+        if (!ArrayByteMemberLength.TryReadBigEndian(source, out var ___readValue, out var ___bytesReadValue))
             return false;
         bytesRead += ___bytesReadValue;
 

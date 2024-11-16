@@ -6,7 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Darp.BinaryObjects\Darp.BinaryObjects.csproj" />
-      <ProjectReference Include="..\..\src\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj" OutputItemType="Analyzer"/>
+      <ProjectReference Include="..\..\src\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj" />
     </ItemGroup>
 
     <ItemGroup>
