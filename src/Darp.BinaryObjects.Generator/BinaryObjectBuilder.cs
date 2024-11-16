@@ -5,45 +5,49 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static BuilderHelper;
 
 internal sealed class BinaryObjectBuilder(
     INamedTypeSymbol symbol,
     TypeDeclarationSyntax syntax,
-    IReadOnlyList<BinaryMemberInfo> members,
+    IReadOnlyList<IGroup> members,
     List<Diagnostic> diagnostics
 )
 {
+    public const string Prefix = "___";
+
     public StringBuilder StringBuilder { get; } = new();
     private readonly INamedTypeSymbol _symbol = symbol;
     private readonly TypeDeclarationSyntax _syntax = syntax;
-    private readonly IReadOnlyList<BinaryMemberInfo> _members = members;
+    private readonly IReadOnlyList<IGroup> _members = members;
 
     public List<Diagnostic> Diagnostics { get; } = diagnostics;
 
     public static BinaryObjectBuilder Create(INamedTypeSymbol symbol, TypeDeclarationSyntax syntax)
     {
         List<Diagnostic> diagnostics = [];
-        List<BinaryMemberInfo> members = [];
+        List<IMember> members = [];
         foreach (
             ISymbol memberSymbol in symbol
                 .GetMembers()
                 .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
                 .Where(x => !x.IsImplicitlyDeclared)
+        // .Where(x => x is not IPropertySymbol { IsReadOnly: true } && x is not IFieldSymbol { IsReadOnly: true })
         )
         {
-            if (!TryGet(diagnostics, members, memberSymbol, out BinaryMemberInfo? info))
+            if (!TryGet(diagnostics, members, memberSymbol, out IMember? info))
                 continue;
             members.Add(info);
         }
-        return new BinaryObjectBuilder(symbol, syntax, members, diagnostics);
+
+        IGroup[] groupedMembers = members.GroupInfos().ToArray();
+        return new BinaryObjectBuilder(symbol, syntax, groupedMembers, diagnostics);
     }
 
     public static bool TryGet(
         List<Diagnostic> diagnostics,
-        IReadOnlyList<BinaryMemberInfo> previousMembers,
+        IReadOnlyList<IMember> previousMembers,
         ISymbol symbol,
-        [NotNullWhen(true)] out BinaryMemberInfo? info
+        [NotNullWhen(true)] out IMember? info
     )
     {
         info = null;
@@ -69,7 +73,7 @@ internal sealed class BinaryObjectBuilder(
         }
 
         int? arrayMinLength = null;
-        BinaryMemberInfo? arrayLengthMember = null;
+        IMember? arrayLengthMember = null;
         int? arrayLength = null;
         ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
         foreach (AttributeData attributeData in attributes)
@@ -85,8 +89,8 @@ internal sealed class BinaryObjectBuilder(
                     {
                         if (pair is { Key: "memberWithLength", Value.Value: string memberName })
                         {
-                            BinaryMemberInfo? previousMember = previousMembers.FirstOrDefault(x =>
-                                x.Symbol.Name.Equals(memberName, StringComparison.Ordinal)
+                            IMember? previousMember = previousMembers.FirstOrDefault(x =>
+                                x.TypeSymbol.Name.Equals(memberName, StringComparison.Ordinal)
                             );
                             if (previousMember is null)
                             {
@@ -103,7 +107,7 @@ internal sealed class BinaryObjectBuilder(
                             {
                                 var diagnostic = Diagnostic.Create(
                                     descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
-                                    location: previousMember.Symbol.GetSourceLocation(),
+                                    location: previousMember.TypeSymbol.GetSourceLocation(),
                                     messageArgs: [memberName, symbol.Name]
                                 );
                                 diagnostics.Add(diagnostic);
@@ -132,27 +136,34 @@ internal sealed class BinaryObjectBuilder(
                     continue;
             }
         }
-
-        if (arrayKind is ArrayKind.None)
+        info = (arrayKind, arrayLength, arrayMinLength, arrayLengthMember) switch
         {
-            info = new BinaryMemberInfo
+            (not ArrayKind.None, _, not null, not null) => new VariableArrayMemberGroup
             {
-                Symbol = symbol,
+                MemberSymbol = symbol,
+                TypeSymbol = typeSymbol,
+                TypeByteLength = length,
+                ArrayTypeSymbol = arrayTypeSymbol,
+                ArrayKind = arrayKind,
+                ArrayMinLength = arrayMinLength.Value,
+                ArrayLengthMemberName = arrayLengthMember.TypeSymbol.Name,
+            },
+            (not ArrayKind.None, not null, _, _) => new ConstantArrayMember
+            {
+                MemberSymbol = symbol,
+                TypeSymbol = typeSymbol,
+                TypeByteLength = length,
+                ArrayTypeSymbol = arrayTypeSymbol,
+                ArrayKind = arrayKind,
+                ArrayLength = arrayLength.Value,
+            },
+            (ArrayKind.None, _, _, _) => new ConstantPrimitiveMember
+            {
+                MemberSymbol = symbol,
                 TypeByteLength = length,
                 TypeSymbol = typeSymbol,
-            };
-            return true;
-        }
-        info = new BinaryArrayMemberInfo
-        {
-            Symbol = symbol,
-            TypeByteLength = length,
-            TypeSymbol = typeSymbol,
-            ArrayTypeSymbol = arrayTypeSymbol,
-            ArrayKind = arrayKind,
-            ArrayMinimumLength = arrayMinLength,
-            ArrayLengthMember = arrayLengthMember,
-            ArrayAbsoluteLength = arrayLength,
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
         };
         return true;
     }
@@ -182,16 +193,19 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
     public bool TryAddTypeDeclaration()
     {
         // Add xml docs
-        IEnumerable<string> memberDocs = _members.Select(memberInfo =>
-        {
-            var length = memberInfo switch
-            {
-                BinaryArrayMemberInfo arrayInfo => GetLengthDoc(arrayInfo),
-                _ => "",
-            };
-            return $"""/// <item> <term><see cref="{memberInfo.Symbol.Name}"/></term> <description>{memberInfo.TypeByteLength}{length}</description> </item>""";
-        });
-        var summedLength = _members.ComputeLength();
+        IEnumerable<string> memberDocs = _members
+            .SelectMembers()
+            .Select(memberInfo =>
+                $"""/// <item> <term><see cref="{memberInfo.MemberSymbol.Name}"/></term> <description>{memberInfo.GetDocCommentLength()}</description> </item>"""
+            );
+        var summedConstantLength = _members.Sum(x => x.ConstantByteLength);
+        var variableLength = string.Join(
+            " + ",
+            _members.OfType<IVariableMemberGroup>().Select(x => x.GetVariableDocCommentLength())
+        );
+        var summedLength = string.IsNullOrEmpty(variableLength)
+            ? $"{summedConstantLength}"
+            : string.Join(" + ", summedConstantLength, variableLength);
         StringBuilder.AppendLine(
             $"""
 /// <remarks> <list type="table">
@@ -211,23 +225,20 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
             $"{_syntax.Modifiers} {_syntax.Keyword}{recordClassOrStruct} {_syntax.Identifier} : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<{_syntax.Identifier}>"
         );
         return true;
-
-        string GetLengthDoc(BinaryArrayMemberInfo info)
-        {
-            if (info.ArrayLengthMember is not null)
-                return $""" * <see cref="{info.ArrayLengthMember.Symbol.Name}"/>""";
-            if (info.ArrayAbsoluteLength is not null)
-                return $" * {info.ArrayAbsoluteLength}";
-            var minLength = info.ArrayMinimumLength ?? 0;
-            return minLength > 0 ? $" * ({minLength} + k)" : " * k";
-        }
     }
 
     public override string ToString() => StringBuilder.ToString().Replace("\r", "");
 
     public void AddGetByteCountMethod()
     {
-        var summedLength = _members.ComputeLength();
+        var constantLength = _members.Sum(x => x.ConstantByteLength);
+        var variableLength = string.Join(
+            "+",
+            _members.OfType<IVariableMemberGroup>().Select(x => x.GetVariableByteLength())
+        );
+        var summedLength = string.IsNullOrEmpty(variableLength)
+            ? $"{constantLength}"
+            : string.Join("+", constantLength, variableLength);
         StringBuilder.AppendLine(
             $"""
     /// <inheritdoc />
@@ -252,73 +263,43 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 
 """
         );
-        // Ensure length of destination
-        var summedLength = _members.ComputeLength();
-        StringBuilder.AppendLine(
-            $"""
-        if (destination.Length < {summedLength})
-            return false;
-"""
-        );
         // All the members in the group
         var currentByteIndex = 0;
-        foreach (BinaryMemberInfo memberInfo in _members)
+        foreach (IGroup memberInfoGroup in _members)
         {
-            string? write;
-            if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
+            // Ensure length of destination
+            var offsetString = currentByteIndex > 0 ? "- bytesWritten " : "";
+            var summedLength = memberInfoGroup.GetLengthCodeString();
+            StringBuilder.AppendLine(
+                $"""
+                        if (destination.Length {offsetString}< {summedLength})
+                            return false;
+                """
+            );
+            if (memberInfoGroup is IVariableMemberGroup variableGroup)
             {
-                var maxLength = arrayMemberInfo.ArrayAbsoluteLength ?? 0;
-                (string MethodName, Func<string, string>? Func)? x = (
-                    arrayMemberInfo.ArrayKind,
-                    arrayMemberInfo.TypeSymbol.ToString()
-                ) switch
-                {
-                    (ArrayKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
-                    (ArrayKind.Memory, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", s => $"{s}.Span"),
-                    (ArrayKind.Array, "byte") => ("WriteUInt8Span", null),
-                    (ArrayKind.Array, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", null),
-                    (ArrayKind.List, "byte") => ("WriteUInt8List", null),
-                    (ArrayKind.List, "ushort") => ($"WriteUInt16List{methodNameEndianness}", null),
-                    (ArrayKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
-                    (ArrayKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{methodNameEndianness}", null),
-                    _ => null,
-                };
-                if (x is null)
-                    continue;
-                write = arrayMemberInfo.GetWriteArrayString(
-                    x.Value.MethodName,
-                    currentByteIndex,
-                    maxLength,
-                    x.Value.Func
-                );
+                StringBuilder.AppendLine("");
+                //currentByteIndex += variableGroup.ComputeLength();
             }
-            else
+            else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
-                var methodName = memberInfo.TypeSymbol.ToDisplayString() switch
+                foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
-                    "bool" => "WriteBool",
-                    "sbyte" => "WriteInt8",
-                    "byte" => "WriteUInt8",
-                    "short" => $"WriteInt16{methodNameEndianness}",
-                    "ushort" => $"WriteUInt16{methodNameEndianness}",
-                    "System.Half" => $"WriteHalf{methodNameEndianness}",
-                    "char" => $"WriteChar{methodNameEndianness}",
-                    "int" => $"WriteInt32{methodNameEndianness}",
-                    "uint" => $"WriteUInt32{methodNameEndianness}",
-                    "float" => $"WriteSingle{methodNameEndianness}",
-                    "long" => $"WriteInt64{methodNameEndianness}",
-                    "ulong" => $"WriteUInt64{methodNameEndianness}",
-                    "double" => $"WriteDouble{methodNameEndianness}",
-                    "System.Int128" => $"WriteInt128{methodNameEndianness}",
-                    "System.UInt128" => $"WriteUInt128{methodNameEndianness}",
-                    _ => null,
-                };
-                if (methodName is null)
-                    continue;
-                write = memberInfo.GetWriteString(methodName, currentByteIndex);
+                    if (
+                        !memberInfo.TryGetWriteString(
+                            methodNameEndianness,
+                            currentByteIndex,
+                            out var writeString,
+                            out var bytesWritten
+                        )
+                    )
+                    {
+                        continue;
+                    }
+                    StringBuilder.AppendLine(writeString);
+                    currentByteIndex += bytesWritten;
+                }
             }
-            StringBuilder.AppendLine(write);
-            currentByteIndex += memberInfo.ComputeLength();
         }
         StringBuilder.AppendLine($"        bytesWritten += {currentByteIndex};");
 
@@ -334,8 +315,6 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 
     public void AddReadImplementationMethod(bool littleEndian)
     {
-        const string prefix = "___";
-
         // Method start
         var methodNameEndianness = littleEndian ? "LittleEndian" : "BigEndian";
 
@@ -352,64 +331,41 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
 
 """
         );
-        // Ensure length of source
-        var summedLength = _members.ComputeLength();
-        StringBuilder.AppendLine(
-            $"""
-        if (source.Length < {summedLength})
-            return false;
-"""
-        );
         List<string> constructorParameters = [];
         var currentByteIndex = 0;
-        foreach (BinaryMemberInfo memberInfo in _members)
+        foreach (IGroup memberInfoGroup in _members)
         {
-            var variableName = $"{prefix}read{memberInfo.Symbol.Name}";
-            constructorParameters.Add(variableName);
-            string write;
-            if (memberInfo is BinaryArrayMemberInfo arrayMemberInfo)
+            // Ensure length of source
+            var summedLength = memberInfoGroup.GetLengthCodeString();
+            StringBuilder.AppendLine(
+                $"""
+                        if (source.Length < {summedLength})
+                            return false;
+                """
+            );
+
+            if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo) { }
+            else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
-                var maxLength = arrayMemberInfo.ComputeLength();
-                var methodName = (arrayMemberInfo.ArrayKind, arrayMemberInfo.TypeSymbol.ToString()) switch
+                foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
-                    (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
-                    (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "ushort") =>
-                        $"ReadUInt16Array{methodNameEndianness}",
-                    (ArrayKind.List, "byte") => "ReadUInt8List",
-                    (ArrayKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
-                    _ => null,
-                };
-                if (methodName is null)
-                    continue;
-                write = GetReadArrayString(variableName, methodName, currentByteIndex, maxLength);
+                    var variableName = $"{Prefix}read{memberInfo.MemberSymbol.Name}";
+                    constructorParameters.Add(variableName);
+                    if (
+                        !memberInfo.TryGetReadString(
+                            methodNameEndianness,
+                            currentByteIndex,
+                            out var writeString,
+                            out var bytesRead
+                        )
+                    )
+                    {
+                        continue;
+                    }
+                    StringBuilder.AppendLine(writeString);
+                    currentByteIndex += bytesRead;
+                }
             }
-            else
-            {
-                var methodName = memberInfo.TypeSymbol.ToDisplayString() switch
-                {
-                    "bool" => "ReadBool",
-                    "sbyte" => "ReadInt8",
-                    "byte" => "ReadUInt8",
-                    "short" => $"ReadInt16{methodNameEndianness}",
-                    "ushort" => $"ReadUInt16{methodNameEndianness}",
-                    "System.Half" => $"ReadHalf{methodNameEndianness}",
-                    "char" => $"ReadChar{methodNameEndianness}",
-                    "int" => $"ReadInt32{methodNameEndianness}",
-                    "uint" => $"ReadUInt32{methodNameEndianness}",
-                    "float" => $"ReadSingle{methodNameEndianness}",
-                    "long" => $"ReadInt64{methodNameEndianness}",
-                    "ulong" => $"ReadUInt64{methodNameEndianness}",
-                    "double" => $"ReadDouble{methodNameEndianness}",
-                    "System.Int128" => $"ReadInt128{methodNameEndianness}",
-                    "System.UInt128" => $"ReadUInt128{methodNameEndianness}",
-                    _ => null,
-                };
-                if (methodName is null)
-                    continue;
-                write = GetReadString(variableName, methodName, currentByteIndex);
-            }
-            StringBuilder.AppendLine(write);
-            currentByteIndex += memberInfo.ComputeLength();
         }
         StringBuilder.AppendLine($"        bytesRead += {currentByteIndex};");
 

@@ -78,21 +78,6 @@ internal static class BuilderHelper
             _ => false,
         };
 
-    public static int ComputeLength(this BinaryMemberInfo memberInfo)
-    {
-        if (memberInfo is not BinaryArrayMemberInfo arrayMemberInfo)
-            return memberInfo.TypeByteLength;
-        if (arrayMemberInfo.ArrayAbsoluteLength is not null)
-            return memberInfo.TypeByteLength * arrayMemberInfo.ArrayAbsoluteLength.Value;
-        var minLength = arrayMemberInfo.ArrayMinimumLength ?? 0;
-        return memberInfo.TypeByteLength * minLength;
-    }
-
-    public static int ComputeLength(this IEnumerable<BinaryMemberInfo> members)
-    {
-        return members.Sum(memberInfo => memberInfo.ComputeLength());
-    }
-
     public static bool TryGetLength(this ITypeSymbol symbol, out int length)
     {
         int? primitiveLength = symbol.ToDisplayString() switch
@@ -123,32 +108,44 @@ internal static class BuilderHelper
         return false;
     }
 
-    public static string GetWriteArrayString(
-        this BinaryArrayMemberInfo info,
-        string methodName,
-        int currentIndex,
-        int maxLength,
-        Func<string, string>? func = null
-    )
+    public static IEnumerable<IGroup> GroupInfos(this IEnumerable<IMember> enumerable)
     {
-        var memberName = $"this.{info.Symbol.Name}";
-        if (func is not null)
-            memberName = func(memberName);
-        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], {memberName}, {maxLength});";
+        List<IConstantMember>? list = null;
+        foreach (IMember member in enumerable)
+        {
+            if (member is IVariableMemberGroup groupInfo)
+            {
+                if (list is not null)
+                {
+                    yield return new ConstantBinaryMemberGroup(list.ToArray());
+                    list = null;
+                }
+                yield return groupInfo;
+                continue;
+            }
+
+            if (member is not IConstantMember constantMember)
+            {
+                throw new ArgumentOutOfRangeException(nameof(enumerable));
+            }
+            list ??= [];
+            list.Add(constantMember);
+        }
+        if (list is not null)
+        {
+            yield return new ConstantBinaryMemberGroup(list.ToArray());
+        }
     }
 
-    public static string GetReadArrayString(string variableName, string methodName, int currentIndex, int maxLength)
+    public static IEnumerable<IMember> SelectMembers(this IEnumerable<IGroup> groups)
     {
-        return $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentIndex}..{currentIndex + maxLength}]);";
-    }
-
-    public static string GetWriteString(this BinaryMemberInfo info, string methodName, int currentIndex)
-    {
-        return $"        BinaryHelpers.{methodName}(destination[{currentIndex}..], this.{info.Symbol.Name});";
-    }
-
-    public static string GetReadString(string variableName, string methodName, int currentIndex)
-    {
-        return $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentIndex}..]);";
+        return groups.SelectMany<IGroup, IMember>(x =>
+            x switch
+            {
+                ConstantBinaryMemberGroup c => c.Members,
+                IMember m => [m],
+                _ => [],
+            }
+        );
     }
 }
