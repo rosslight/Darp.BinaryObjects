@@ -1,8 +1,9 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
+using System.Text.RegularExpressions;
 using static VerifyHelper;
 
-public sealed class IntegrationTest
+public sealed partial class IntegrationTest
 {
     [Fact]
     public async Task OneBool_DefaultAsync()
@@ -90,4 +91,31 @@ public partial record ArraysFixedSize(
 """;
         await VerifyBinaryObjectsGenerator(code);
     }
+
+    [GeneratedRegex("A1")]
+    public partial Regex A1();
+
+    [GeneratedRegex("A2")]
+    public partial Regex A2();
+
+    [GeneratedRegex("A3")]
+    public partial Regex A3();
+
+    [GeneratedRegex("A4")]
+    public partial Regex A4();
+
+    [GeneratedRegex("A5")]
+    public partial Regex A5();
+
+    [GeneratedRegex("A6")]
+    public partial Regex A6();
+
+    [GeneratedRegex("A7")]
+    public partial Regex A7();
+
+    [GeneratedRegex("A8")]
+    public partial Regex A8();
+
+    [GeneratedRegex("A9")]
+    public partial Regex A9();
 }

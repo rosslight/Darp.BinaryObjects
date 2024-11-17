@@ -161,3 +161,15 @@ public partial record struct YourStruct : global::Darp.BinaryObjects.IWritable, 
 }
 ```
 </details>
+
+## Development
+
+After cloning the repository, you will find the following project structure:
+
+- `src/Darp.BinaryObjects` contains public APIs and Attributes
+- `src/Darp.BinaryObjects.Generator` contains the actual source generator
+- `test/Darp.BinaryObjects.Tests` contains unit tests ensuring the generated files actually build and read/write as expected
+- `test/Darp.BInaryObjects.Generator.Tests` contains snapshot tests to ensure the source generator generates valid files
+
+Snapshot tests are done using Verify. If you want to run them in your local IDE, you might adjust some settings.
+Please, check your local configuration in the [VerifyDocs](https://github.com/VerifyTests/Verify/blob/main/docs/wiz/readme.md)

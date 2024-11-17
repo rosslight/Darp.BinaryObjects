@@ -1,15 +1,38 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-public static class VerifyHelper
+public static partial class VerifyHelper
 {
-    public static Task VerifyBinaryObjectsGenerator(params string[] sources) =>
-        VerifyGenerator<BinaryObjectsGenerator>(sources);
+    [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
+    private static partial Regex GetGeneratedCodeRegex();
 
-    private static async Task VerifyGenerator<TGenerator>(params string[] sources)
+    public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
+        VerifyGenerator<BinaryObjectsGenerator>(sources).ScrubGeneratedCodeAttribute();
+
+    public static SettingsTask ScrubGeneratedCodeAttribute(
+        this SettingsTask settingsTask,
+        string scrubbedVersionName = "GeneratorVersion"
+    )
+    {
+        return settingsTask.ScrubLinesWithReplace(line =>
+        {
+            Regex regex = GetGeneratedCodeRegex();
+            return regex.Replace(
+                line,
+                match =>
+                {
+                    var versionToReplace = match.Groups["version"].Value;
+                    return match.Value.Replace(versionToReplace, scrubbedVersionName);
+                }
+            );
+        });
+    }
+
+    private static SettingsTask VerifyGenerator<TGenerator>(params string[] sources)
         where TGenerator : IIncrementalGenerator, new()
     {
         SyntaxTree[] syntaxTrees = sources.Select(x => CSharpSyntaxTree.ParseText(x)).ToArray();
@@ -33,6 +56,6 @@ public static class VerifyHelper
         var generator = new TGenerator();
 
         var driver = CSharpGeneratorDriver.Create(generator);
-        await Verify(driver.RunGenerators(compilation)).UseDirectory("Snapshots");
+        return Verify(driver.RunGenerators(compilation)).UseDirectory("Snapshots");
     }
 }

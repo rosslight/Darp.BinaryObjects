@@ -21,11 +21,14 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 24;
 
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public bool TryWriteLittleEndian(global::System.Span<byte> destination) => TryWriteLittleEndian(destination, out _);
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public bool TryWriteLittleEndian(global::System.Span<byte> destination, out int bytesWritten)
     {
         bytesWritten = 0;
@@ -45,8 +48,10 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
         return true;
     }
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public bool TryWriteBigEndian(global::System.Span<byte> destination) => TryWriteBigEndian(destination, out _);
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public bool TryWriteBigEndian(global::System.Span<byte> destination, out int bytesWritten)
     {
         bytesWritten = 0;
@@ -67,8 +72,10 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
     }
 
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out ArraysFixedSize? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out ArraysFixedSize? value, out int bytesRead)
     {
         bytesRead = 0;
@@ -90,8 +97,10 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
         return true;
     }
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out ArraysFixedSize? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [NotNullWhen(true)] out ArraysFixedSize? value, out int bytesRead)
     {
         bytesRead = 0;

@@ -243,6 +243,7 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
             $"""
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    {RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}
     public int GetByteCount() => {summedLength};
 """
         );
@@ -255,8 +256,10 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
         StringBuilder.AppendLine(
             $$"""
     /// <inheritdoc />
+    {{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}}
     public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destination) => TryWrite{{methodNameEndianness}}(destination, out _);
     /// <inheritdoc />
+    {{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}}
     public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destination, out int bytesWritten)
     {
         bytesWritten = 0;
@@ -322,8 +325,10 @@ using NotNullWhenAttribute = global::System.Diagnostics.CodeAnalysis.NotNullWhen
         StringBuilder.AppendLine(
             $$"""
     /// <inheritdoc />
+    {{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}}
     public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<byte> source, {{valueParameter}} value) => TryRead{{methodNameEndianness}}(source, out value, out _);
     /// <inheritdoc />
+    {{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}}
     public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<byte> source, {{valueParameter}} value, out int bytesRead)
     {
         bytesRead = 0;

@@ -36,4 +36,15 @@ internal static class RoslynHelper
         var typeNamespace = symbol.ContainingNamespace.ToDisplayString();
         return string.IsNullOrWhiteSpace(typeNamespace) ? null : typeNamespace;
     }
+
+    public static string GetGeneratedVersionAttribute(bool fullNamespace)
+    {
+        Version assemblyVersion = typeof(BinaryObjectsGenerator).Assembly.GetName().Version;
+        return fullNamespace switch
+        {
+            true =>
+                $"""[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "{assemblyVersion}")]""",
+            false => $"""[GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "{assemblyVersion}")]""",
+        };
+    }
 }
