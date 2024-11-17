@@ -10,7 +10,7 @@ internal sealed class BinaryObjectBuilder(
     INamedTypeSymbol symbol,
     TypeDeclarationSyntax syntax,
     IReadOnlyList<IGroup> members,
-    List<Diagnostic> diagnostics
+    List<DiagnosticData> diagnostics
 )
 {
     public const string Prefix = "___";
@@ -20,11 +20,11 @@ internal sealed class BinaryObjectBuilder(
     private readonly TypeDeclarationSyntax _syntax = syntax;
     private readonly IReadOnlyList<IGroup> _members = members;
 
-    public List<Diagnostic> Diagnostics { get; } = diagnostics;
+    public List<DiagnosticData> Diagnostics { get; } = diagnostics;
 
     public static BinaryObjectBuilder Create(INamedTypeSymbol symbol, TypeDeclarationSyntax syntax)
     {
-        List<Diagnostic> diagnostics = [];
+        List<DiagnosticData> diagnostics = [];
         List<IMember> members = [];
         foreach (
             ISymbol memberSymbol in symbol
@@ -44,7 +44,7 @@ internal sealed class BinaryObjectBuilder(
     }
 
     public static bool TryGet(
-        List<Diagnostic> diagnostics,
+        List<DiagnosticData> diagnostics,
         IReadOnlyList<IMember> previousMembers,
         ISymbol symbol,
         [NotNullWhen(true)] out IMember? info
@@ -64,7 +64,7 @@ internal sealed class BinaryObjectBuilder(
             typeSymbol = underlyingTypeSymbol;
         if (!typeSymbol.TryGetLength(out var length))
         {
-            var diagnostic = Diagnostic.Create(
+            var diagnostic = DiagnosticData.Create(
                 descriptor: DiagnosticDescriptors.MemberTypeNotSupported,
                 location: symbol.GetSourceLocation()
             );
@@ -94,7 +94,7 @@ internal sealed class BinaryObjectBuilder(
                             );
                             if (previousMember is null)
                             {
-                                var diagnostic = Diagnostic.Create(
+                                var diagnostic = DiagnosticData.Create(
                                     descriptor: DiagnosticDescriptors.MemberDefiningLengthNotFound,
                                     location: attributeData.GetLocationOfConstructorArgument(0)
                                         ?? symbol.GetSourceLocation(),
@@ -105,7 +105,7 @@ internal sealed class BinaryObjectBuilder(
                             }
                             if (!previousMember.TypeSymbol.IsValidLengthInteger())
                             {
-                                var diagnostic = Diagnostic.Create(
+                                var diagnostic = DiagnosticData.Create(
                                     descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
                                     location: previousMember.TypeSymbol.GetSourceLocation(),
                                     messageArgs: [memberName, symbol.Name]

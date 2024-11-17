@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.CSharp;
 
 public static partial class VerifyHelper
 {
-    [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
-    private static partial Regex GetGeneratedCodeRegex();
-
     public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
         VerifyGenerator<BinaryObjectsGenerator>(sources).ScrubGeneratedCodeAttribute();
+
+    [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
+    private static partial Regex GetGeneratedCodeRegex();
 
     public static SettingsTask ScrubGeneratedCodeAttribute(
         this SettingsTask settingsTask,
@@ -50,7 +50,7 @@ public static partial class VerifyHelper
             references: references
         );
 
-        // Verify that there are no compilation errors (except for CS5001 which informs about a missing program entry)
+        // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)
         Assert.Empty(compilation.GetDiagnostics().Where(x => x.Id is not "CS5001"));
 
         var generator = new TGenerator();

@@ -39,12 +39,13 @@ internal static class RoslynHelper
 
     public static string GetGeneratedVersionAttribute(bool fullNamespace)
     {
-        Version assemblyVersion = typeof(BinaryObjectsGenerator).Assembly.GetName().Version;
+        var generatorName = typeof(BinaryObjectsGenerator).Assembly.GetName().Name;
+        Version generatorVersion = typeof(BinaryObjectsGenerator).Assembly.GetName().Version;
         return fullNamespace switch
         {
             true =>
-                $"""[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "{assemblyVersion}")]""",
-            false => $"""[GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "{assemblyVersion}")]""",
+                $"""[global::System.CodeDom.Compiler.GeneratedCodeAttribute("{generatorName}", "{generatorVersion}")]""",
+            false => $"""[GeneratedCodeAttribute("{generatorName}", "{generatorVersion}")]""",
         };
     }
 }
