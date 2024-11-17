@@ -89,6 +89,9 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
 
         var sw = new StringWriter();
         using var writer = new IndentedTextWriter(sw);
+
+        BinaryObjectBuilder.AddFileHeader(writer);
+
         foreach (BinaryObjectStruct info in infos)
         {
             writer.Write(info.Code);
@@ -123,9 +126,8 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
     private static bool TryGenerateSourceCode(TargetTypeInfo info, out BinaryObjectBuilder builder)
     {
         builder = BinaryObjectBuilder.Create(info.Symbol, info.Syntax);
-        builder.AddFileHeader();
         builder.StringBuilder.AppendLine();
-        builder.TryAddNamespace();
+        builder.AddOptionalNamespaceStart();
         if (!builder.TryAddTypeDeclaration())
             return false;
         builder.StringBuilder.AppendLine("{");
@@ -137,6 +139,7 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         builder.AddReadImplementationMethod(true);
         builder.AddReadImplementationMethod(false);
         builder.StringBuilder.AppendLine("}");
+        builder.AddOptionalNamespaceEnd();
         return true;
     }
 }
