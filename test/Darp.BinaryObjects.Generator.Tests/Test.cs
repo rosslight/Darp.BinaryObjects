@@ -1,8 +1,8 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
-using VerifyCS = Verifier.CSharpSourceGeneratorVerifier<BinaryObjectsGenerator>;
+using static VerifyHelper;
 
-public class IntegrationTest
+public sealed class IntegrationTest
 {
     [Fact]
     public async Task OneBool_DefaultAsync()
@@ -13,9 +13,7 @@ using Darp.BinaryObjects;
 [BinaryObject]
 public sealed partial record OneBool(bool Value);
 """;
-        await new VerifyCS.Test { TestState = { Sources = { code } } }
-            .AddGeneratedSources()
-            .RunAsync();
+        await VerifyBinaryObjectsGenerator(code);
     }
 
     [Fact]
@@ -27,9 +25,7 @@ using Darp.BinaryObjects;
 [BinaryObject]
 public sealed partial record TwoUShorts(ushort ValueOne, ushort ValueTwo);
 """;
-        await new VerifyCS.Test { TestState = { Sources = { code } } }
-            .AddGeneratedSources()
-            .RunAsync();
+        await VerifyBinaryObjectsGenerator(code);
     }
 
     [Fact]
@@ -57,9 +53,7 @@ public sealed partial record AllPrimitives(
     byte ValueByte
 );
 """;
-        await new VerifyCS.Test { TestState = { Sources = { code } } }
-            .AddGeneratedSources()
-            .RunAsync();
+        await VerifyBinaryObjectsGenerator(code);
     }
 
     [Fact]
@@ -71,9 +65,7 @@ using Darp.BinaryObjects;
 [BinaryObject]
 public sealed partial record ArrayByteFixedSize([property: BinaryElementCount(2)] byte[] Value);
 """;
-        await new VerifyCS.Test { TestState = { Sources = { code } } }
-            .AddGeneratedSources()
-            .RunAsync();
+        await VerifyBinaryObjectsGenerator(code);
     }
 
     [Fact]
@@ -96,8 +88,6 @@ public partial record ArraysFixedSize(
     [property: BinaryElementCount(2)] IEnumerable<ushort> ValueUShortEnumerable
 );
 """;
-        await new VerifyCS.Test { TestState = { Sources = { code } } }
-            .AddGeneratedSources()
-            .RunAsync();
+        await VerifyBinaryObjectsGenerator(code);
     }
 }
