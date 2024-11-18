@@ -254,7 +254,7 @@ value = default;
                 {
                     if (
                         !memberInfo.TryGetReadString(
-                            methodNameEndianness,
+                            littleEndian,
                             currentByteIndex,
                             out var writeString,
                             out var bytesRead
@@ -315,6 +315,8 @@ namespace Darp.BinaryObjects.Generated
         {
             EmitWriteUtility(writer, collectionKind, typeKind, true);
             EmitWriteUtility(writer, collectionKind, typeKind, false);
+            EmitReadUtility(writer, collectionKind, typeKind, true);
+            EmitReadUtility(writer, collectionKind, typeKind, false);
         }
         writer.Indent--;
         writer.WriteLine("}");

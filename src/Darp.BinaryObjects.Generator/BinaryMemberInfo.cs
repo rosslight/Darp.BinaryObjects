@@ -24,14 +24,14 @@ internal interface IConstantMember : IMember
 {
     public int TypeByteLength { get; }
     public bool TryGetWriteString(
-        bool methodNameEndianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
     );
 
     public bool TryGetReadString(
-        string methodNameEndianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesRead
@@ -59,13 +59,13 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
     public string GetDocCommentLength() => $"{TypeByteLength}";
 
     public bool TryGetWriteString(
-        bool endianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
     )
     {
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, endianness);
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
         writeString =
             $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], this.{MemberSymbol.Name});";
         bytesWritten = ConstantByteLength;
@@ -73,38 +73,14 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
     }
 
     public bool TryGetReadString(
-        string methodNameEndianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesRead
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = TypeSymbol.ToDisplayString() switch
-        {
-            "bool" => "ReadBool",
-            "sbyte" => "ReadInt8",
-            "byte" => "ReadUInt8",
-            "short" => $"ReadInt16{methodNameEndianness}",
-            "ushort" => $"ReadUInt16{methodNameEndianness}",
-            "System.Half" => $"ReadHalf{methodNameEndianness}",
-            "char" => $"ReadChar{methodNameEndianness}",
-            "int" => $"ReadInt32{methodNameEndianness}",
-            "uint" => $"ReadUInt32{methodNameEndianness}",
-            "float" => $"ReadSingle{methodNameEndianness}",
-            "long" => $"ReadInt64{methodNameEndianness}",
-            "ulong" => $"ReadUInt64{methodNameEndianness}",
-            "double" => $"ReadDouble{methodNameEndianness}",
-            "System.Int128" => $"ReadInt128{methodNameEndianness}",
-            "System.UInt128" => $"ReadUInt128{methodNameEndianness}",
-            _ => null,
-        };
-        if (methodName is null)
-        {
-            writeString = null;
-            bytesRead = default;
-            return false;
-        }
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         writeString =
             $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..]);";
         bytesRead = ConstantByteLength;
@@ -129,7 +105,7 @@ internal sealed class ConstantArrayMember : IConstantMember
     public string GetDocCommentLength() => $"{TypeByteLength} * {ArrayLength}";
 
     public bool TryGetWriteString(
-        bool methodNameEndianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
@@ -141,13 +117,13 @@ internal sealed class ConstantArrayMember : IConstantMember
         ) switch
         {
             (WellKnownCollectionKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
-            (WellKnownCollectionKind.Memory, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", s => $"{s}.Span"),
+            (WellKnownCollectionKind.Memory, "ushort") => ($"WriteUInt16Span{isLittleEndian}", s => $"{s}.Span"),
             (WellKnownCollectionKind.Array, "byte") => ("WriteUInt8Span", null),
-            (WellKnownCollectionKind.Array, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", null),
+            (WellKnownCollectionKind.Array, "ushort") => ($"WriteUInt16Span{isLittleEndian}", null),
             (WellKnownCollectionKind.List, "byte") => ("WriteUInt8List", null),
-            (WellKnownCollectionKind.List, "ushort") => ($"WriteUInt16List{methodNameEndianness}", null),
+            (WellKnownCollectionKind.List, "ushort") => ($"WriteUInt16List{isLittleEndian}", null),
             (WellKnownCollectionKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
-            (WellKnownCollectionKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{methodNameEndianness}", null),
+            (WellKnownCollectionKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{isLittleEndian}", null),
             _ => null,
         };
         if (match is null)
@@ -166,7 +142,7 @@ internal sealed class ConstantArrayMember : IConstantMember
     }
 
     public bool TryGetReadString(
-        string methodNameEndianness,
+        bool isLittleEndian,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesRead
@@ -186,9 +162,9 @@ internal sealed class ConstantArrayMember : IConstantMember
                     or WellKnownCollectionKind.Memory
                     or WellKnownCollectionKind.Enumerable,
                 "ushort"
-            ) => $"ReadUInt16Array{methodNameEndianness}",
+            ) => $"ReadUInt16Array{isLittleEndian}",
             (WellKnownCollectionKind.List, "byte") => "ReadUInt8List",
-            (WellKnownCollectionKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
+            (WellKnownCollectionKind.List, "ushort") => $"ReadUInt16List{isLittleEndian}",
             _ => null,
         };
         if (methodName is null)
@@ -314,14 +290,28 @@ partial class BinaryObjectsGenerator
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
+    ) => GetMethodName(false, collectionKind, typeKind, isLittleEndian);
+
+    internal static string GetReadMethodName(
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    ) => GetMethodName(true, collectionKind, typeKind, isLittleEndian);
+
+    private static string GetMethodName(
+        bool isRead,
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
     )
     {
         var typeName = GetWellKnownName(typeKind);
+        var prefix = isRead ? "Read" : "Write";
         var endianness = isLittleEndian ? "LittleEndian" : "BigEndian";
         return (collectionKind, typeKind) switch
         {
-            (WellKnownCollectionKind.None, WellKnownTypeKind.Bool) => $"Write{typeName}",
-            (WellKnownCollectionKind.None, _) => $"Write{typeName}{endianness}",
+            (WellKnownCollectionKind.None, WellKnownTypeKind.Bool) => $"{prefix}{typeName}",
+            (WellKnownCollectionKind.None, _) => $"{prefix}{typeName}{endianness}",
             _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
         };
     }
@@ -373,6 +363,57 @@ partial class BinaryObjectsGenerator
         writer.WriteLine("{");
         writer.Indent++;
         writer.WriteLine($"return BinaryPrimitives.{methodName}(destination, value);");
+        writer.Indent--;
+        writer.WriteLine("}");
+    }
+
+    private static void EmitReadUtility(
+        IndentedTextWriter writer,
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        switch (collectionKind, typeKind)
+        {
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
+                if (isLittleEndian)
+                    return;
+                EmitReadBoolUtility(writer);
+                break;
+            case (WellKnownCollectionKind.None, _):
+                EmitReadBinaryPrimitivesUtility(writer, typeKind, isLittleEndian);
+                break;
+        }
+    }
+
+    private static void EmitReadBoolUtility(IndentedTextWriter writer)
+    {
+        var methodName = GetReadMethodName(WellKnownCollectionKind.None, WellKnownTypeKind.Bool, default);
+        writer.WriteLine("/// <summary> Reads a <c>bool</c> from the given source </summary>");
+        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        writer.WriteLine($"public static bool {methodName}(ReadOnlySpan<byte> source)");
+        writer.WriteLine("{");
+        writer.Indent++;
+        writer.WriteLine("return source[0] > 0;");
+        writer.Indent--;
+        writer.WriteLine("}");
+    }
+
+    private static void EmitReadBinaryPrimitivesUtility(
+        IndentedTextWriter writer,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        var typeName = GetWellKnownDisplayName(typeKind);
+        var methodName = GetReadMethodName(WellKnownCollectionKind.None, typeKind, isLittleEndian);
+        writer.WriteLine($"/// <summary> Reads a <c>{typeName}</c> from the given source </summary>");
+        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        writer.WriteLine($"public static {typeName} {methodName}(ReadOnlySpan<byte> source)");
+        writer.WriteLine("{");
+        writer.Indent++;
+        writer.WriteLine($"return BinaryPrimitives.{methodName}(source);");
         writer.Indent--;
         writer.WriteLine("}");
     }
