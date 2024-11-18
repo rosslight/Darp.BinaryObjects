@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects.Generator;
 
+using System.CodeDom.Compiler;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
@@ -7,6 +8,8 @@ internal interface IMember
 {
     public ISymbol MemberSymbol { get; }
     public ITypeSymbol TypeSymbol { get; }
+    public WellKnownCollectionKind CollectionKind { get; }
+    public WellKnownTypeKind TypeKind { get; }
     public int ConstantByteLength { get; }
     public string GetDocCommentLength();
 }
@@ -21,7 +24,7 @@ internal interface IConstantMember : IMember
 {
     public int TypeByteLength { get; }
     public bool TryGetWriteString(
-        string methodNameEndianness,
+        bool methodNameEndianness,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
@@ -45,6 +48,8 @@ internal sealed class ConstantBinaryMemberGroup(IReadOnlyList<IConstantMember> m
 
 internal sealed class ConstantPrimitiveMember : IConstantMember
 {
+    public WellKnownCollectionKind CollectionKind => WellKnownCollectionKind.None;
+    public required WellKnownTypeKind TypeKind { get; init; }
     public required ISymbol MemberSymbol { get; init; }
     public required ITypeSymbol TypeSymbol { get; init; }
     public required int TypeByteLength { get; init; }
@@ -54,37 +59,13 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
     public string GetDocCommentLength() => $"{TypeByteLength}";
 
     public bool TryGetWriteString(
-        string methodNameEndianness,
+        bool endianness,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
     )
     {
-        var methodName = TypeSymbol.ToDisplayString() switch
-        {
-            "bool" => "WriteBool",
-            "sbyte" => "WriteInt8",
-            "byte" => "WriteUInt8",
-            "short" => $"WriteInt16{methodNameEndianness}",
-            "ushort" => $"WriteUInt16{methodNameEndianness}",
-            "System.Half" => $"WriteHalf{methodNameEndianness}",
-            "char" => $"WriteChar{methodNameEndianness}",
-            "int" => $"WriteInt32{methodNameEndianness}",
-            "uint" => $"WriteUInt32{methodNameEndianness}",
-            "float" => $"WriteSingle{methodNameEndianness}",
-            "long" => $"WriteInt64{methodNameEndianness}",
-            "ulong" => $"WriteUInt64{methodNameEndianness}",
-            "double" => $"WriteDouble{methodNameEndianness}",
-            "System.Int128" => $"WriteInt128{methodNameEndianness}",
-            "System.UInt128" => $"WriteUInt128{methodNameEndianness}",
-            _ => null,
-        };
-        if (methodName is null)
-        {
-            writeString = null;
-            bytesWritten = default;
-            return false;
-        }
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, endianness);
         writeString =
             $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], this.{MemberSymbol.Name});";
         bytesWritten = ConstantByteLength;
@@ -133,11 +114,13 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
 
 internal sealed class ConstantArrayMember : IConstantMember
 {
+    public required WellKnownCollectionKind CollectionKind { get; init; }
+    public required WellKnownTypeKind TypeKind { get; init; }
     public required ISymbol MemberSymbol { get; init; }
     public required ITypeSymbol TypeSymbol { get; init; }
     public required int TypeByteLength { get; init; }
 
-    public required ArrayKind ArrayKind { get; init; }
+    public required WellKnownCollectionKind WellKnownCollectionKind { get; init; }
     public required int ArrayLength { get; init; }
     public required ITypeSymbol ArrayTypeSymbol { get; init; }
 
@@ -146,22 +129,25 @@ internal sealed class ConstantArrayMember : IConstantMember
     public string GetDocCommentLength() => $"{TypeByteLength} * {ArrayLength}";
 
     public bool TryGetWriteString(
-        string methodNameEndianness,
+        bool methodNameEndianness,
         int currentByteIndex,
         [NotNullWhen(true)] out string? writeString,
         out int bytesWritten
     )
     {
-        (string MethodName, Func<string, string>? Func)? match = (ArrayKind, TypeSymbol.ToDisplayString()) switch
+        (string MethodName, Func<string, string>? Func)? match = (
+            ArrayKind: WellKnownCollectionKind,
+            TypeSymbol.ToDisplayString()
+        ) switch
         {
-            (ArrayKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
-            (ArrayKind.Memory, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", s => $"{s}.Span"),
-            (ArrayKind.Array, "byte") => ("WriteUInt8Span", null),
-            (ArrayKind.Array, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", null),
-            (ArrayKind.List, "byte") => ("WriteUInt8List", null),
-            (ArrayKind.List, "ushort") => ($"WriteUInt16List{methodNameEndianness}", null),
-            (ArrayKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
-            (ArrayKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{methodNameEndianness}", null),
+            (WellKnownCollectionKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
+            (WellKnownCollectionKind.Memory, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", s => $"{s}.Span"),
+            (WellKnownCollectionKind.Array, "byte") => ("WriteUInt8Span", null),
+            (WellKnownCollectionKind.Array, "ushort") => ($"WriteUInt16Span{methodNameEndianness}", null),
+            (WellKnownCollectionKind.List, "byte") => ("WriteUInt8List", null),
+            (WellKnownCollectionKind.List, "ushort") => ($"WriteUInt16List{methodNameEndianness}", null),
+            (WellKnownCollectionKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
+            (WellKnownCollectionKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{methodNameEndianness}", null),
             _ => null,
         };
         if (match is null)
@@ -187,13 +173,22 @@ internal sealed class ConstantArrayMember : IConstantMember
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = (ArrayKind, TypeSymbol.ToString()) switch
+        var methodName = (ArrayKind: WellKnownCollectionKind, TypeSymbol.ToString()) switch
         {
-            (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
-            (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "ushort") =>
-                $"ReadUInt16Array{methodNameEndianness}",
-            (ArrayKind.List, "byte") => "ReadUInt8List",
-            (ArrayKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
+            (
+                WellKnownCollectionKind.Array
+                    or WellKnownCollectionKind.Memory
+                    or WellKnownCollectionKind.Enumerable,
+                "byte"
+            ) => "ReadUInt8Array",
+            (
+                WellKnownCollectionKind.Array
+                    or WellKnownCollectionKind.Memory
+                    or WellKnownCollectionKind.Enumerable,
+                "ushort"
+            ) => $"ReadUInt16Array{methodNameEndianness}",
+            (WellKnownCollectionKind.List, "byte") => "ReadUInt8List",
+            (WellKnownCollectionKind.List, "ushort") => $"ReadUInt16List{methodNameEndianness}",
             _ => null,
         };
         if (methodName is null)
@@ -211,6 +206,7 @@ internal sealed class ConstantArrayMember : IConstantMember
 
 internal interface IVariableMemberGroup : IMember, IGroup
 {
+    public new int ConstantByteLength { get; }
     public int TypeByteLength { get; }
     public string GetVariableByteLength();
     public string GetVariableDocCommentLength();
@@ -218,11 +214,13 @@ internal interface IVariableMemberGroup : IMember, IGroup
 
 internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
 {
+    public required WellKnownCollectionKind CollectionKind { get; init; }
+    public required WellKnownTypeKind TypeKind { get; init; }
     public required ISymbol MemberSymbol { get; init; }
     public required ITypeSymbol TypeSymbol { get; init; }
     public required int TypeByteLength { get; init; }
 
-    public required ArrayKind ArrayKind { get; init; }
+    public required WellKnownCollectionKind WellKnownCollectionKind { get; init; }
     public required string ArrayLengthMemberName { get; init; }
     public required int ArrayMinLength { get; init; }
     public required ITypeSymbol ArrayTypeSymbol { get; init; }
@@ -241,4 +239,160 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public string GetDocCommentLength() => $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
 
     public string GetLengthCodeString() => $"{TypeByteLength} * this.{ArrayLengthMemberName}";
+}
+
+partial class BinaryObjectsGenerator
+{
+    internal static WellKnownTypeKind GetWellKnownTypeKind(ITypeSymbol symbol)
+    {
+        return symbol.ToDisplayString() switch
+        {
+            "bool" => WellKnownTypeKind.Bool,
+            "sbyte" => WellKnownTypeKind.SByte,
+            "byte" => WellKnownTypeKind.Byte,
+            "short" => WellKnownTypeKind.Short,
+            "ushort" => WellKnownTypeKind.UShort,
+            "System.Half" => WellKnownTypeKind.Half,
+            "char" => WellKnownTypeKind.Char,
+            "int" => WellKnownTypeKind.Int,
+            "uint" => WellKnownTypeKind.UInt,
+            "float" => WellKnownTypeKind.Float,
+            "long" => WellKnownTypeKind.Long,
+            "ulong" => WellKnownTypeKind.ULong,
+            "double" => WellKnownTypeKind.Double,
+            "System.Int128" => WellKnownTypeKind.Int128,
+            "System.UInt128" => WellKnownTypeKind.UInt128,
+            _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
+        };
+    }
+
+    private static string GetWellKnownName(WellKnownTypeKind wellKnownTypeKind)
+    {
+        return wellKnownTypeKind switch
+        {
+            WellKnownTypeKind.Bool => "Bool",
+            WellKnownTypeKind.Byte => "UInt8",
+            WellKnownTypeKind.SByte => "Int8",
+            WellKnownTypeKind.UShort => "UInt16",
+            WellKnownTypeKind.Short => "Int16",
+            WellKnownTypeKind.Half => "Half",
+            WellKnownTypeKind.UInt => "UInt32",
+            WellKnownTypeKind.Int => "Int32",
+            WellKnownTypeKind.Float => "Single",
+            WellKnownTypeKind.ULong => "UInt64",
+            WellKnownTypeKind.Long => "Int64",
+            WellKnownTypeKind.Double => "Double",
+            WellKnownTypeKind.UInt128 => "UInt128",
+            WellKnownTypeKind.Int128 => "Int128",
+            _ => throw new ArgumentOutOfRangeException(nameof(wellKnownTypeKind)),
+        };
+    }
+
+    private static string GetWellKnownDisplayName(WellKnownTypeKind wellKnownTypeKind)
+    {
+        return wellKnownTypeKind switch
+        {
+            WellKnownTypeKind.Bool => "bool",
+            WellKnownTypeKind.Byte => "byte",
+            WellKnownTypeKind.SByte => "sbyte",
+            WellKnownTypeKind.UShort => "ushort",
+            WellKnownTypeKind.Short => "short",
+            WellKnownTypeKind.Half => "System.Half",
+            WellKnownTypeKind.UInt => "uint",
+            WellKnownTypeKind.Int => "int",
+            WellKnownTypeKind.Float => "float",
+            WellKnownTypeKind.ULong => "ulong",
+            WellKnownTypeKind.Long => "long",
+            WellKnownTypeKind.Double => "double",
+            WellKnownTypeKind.UInt128 => "System.UInt128",
+            WellKnownTypeKind.Int128 => "System.Int128",
+            _ => throw new ArgumentOutOfRangeException(nameof(wellKnownTypeKind)),
+        };
+    }
+
+    internal static string GetWriteMethodName(
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        var typeName = GetWellKnownName(typeKind);
+        var endianness = isLittleEndian ? "LittleEndian" : "BigEndian";
+        return (collectionKind, typeKind) switch
+        {
+            (WellKnownCollectionKind.None, WellKnownTypeKind.Bool) => $"Write{typeName}",
+            (WellKnownCollectionKind.None, _) => $"Write{typeName}{endianness}",
+            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+        };
+    }
+
+    private static void EmitWriteUtility(
+        IndentedTextWriter writer,
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        switch (collectionKind, typeKind)
+        {
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
+                if (isLittleEndian)
+                    return;
+                EmitWriteBoolUtility(writer);
+                break;
+            case (WellKnownCollectionKind.None, _):
+                EmitWriteBinaryPrimitivesUtility(writer, typeKind, isLittleEndian);
+                break;
+        }
+    }
+
+    private static void EmitWriteBoolUtility(IndentedTextWriter writer)
+    {
+        var methodName = GetWriteMethodName(WellKnownCollectionKind.None, WellKnownTypeKind.Bool, default);
+        writer.WriteLine("/// <summary> Writes a <c>bool</c> to the destination </summary>");
+        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        writer.WriteLine($"public static void {methodName}(Span<byte> destination, bool value)");
+        writer.WriteLine("{");
+        writer.Indent++;
+        writer.WriteLine("return destination[0] = value ? 0b1 : 0b0;");
+        writer.Indent--;
+        writer.WriteLine("}");
+    }
+
+    private static void EmitWriteBinaryPrimitivesUtility(
+        IndentedTextWriter writer,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        var typeName = GetWellKnownDisplayName(typeKind);
+        var methodName = GetWriteMethodName(WellKnownCollectionKind.None, typeKind, isLittleEndian);
+        writer.WriteLine($"/// <summary> Writes a <c>{typeName}</c> to the destination </summary>");
+        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        writer.WriteLine($"public static void {methodName}(Span<byte> destination, {typeName} value)");
+        writer.WriteLine("{");
+        writer.Indent++;
+        writer.WriteLine($"return BinaryPrimitives.{methodName}(destination, value);");
+        writer.Indent--;
+        writer.WriteLine("}");
+    }
+}
+
+internal enum WellKnownTypeKind
+{
+    Bool,
+    Byte,
+    SByte,
+    UShort,
+    Short,
+    Half,
+    Char,
+    UInt,
+    Int,
+    Float,
+    ULong,
+    Long,
+    Double,
+    UInt128,
+    Int128,
 }

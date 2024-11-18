@@ -216,7 +216,12 @@ partial class BinaryObjectsGenerator
         if (typeSymbol is null)
             return false;
         ITypeSymbol arrayTypeSymbol = typeSymbol;
-        if (typeSymbol.TryGetArrayType(out ArrayKind arrayKind, out ITypeSymbol? underlyingTypeSymbol))
+        if (
+            typeSymbol.TryGetArrayType(
+                out WellKnownCollectionKind collectionKind,
+                out ITypeSymbol? underlyingTypeSymbol
+            )
+        )
             typeSymbol = underlyingTypeSymbol;
         if (!typeSymbol.TryGetLength(out var length))
         {
@@ -292,29 +297,36 @@ partial class BinaryObjectsGenerator
                     continue;
             }
         }
-        info = (arrayKind, arrayLength, arrayMinLength, arrayLengthMember) switch
+
+        WellKnownTypeKind typeKind = GetWellKnownTypeKind(typeSymbol);
+        info = (arrayKind: collectionKind, arrayLength, arrayMinLength, arrayLengthMember) switch
         {
-            (not ArrayKind.None, _, not null, not null) => new VariableArrayMemberGroup
+            (not WellKnownCollectionKind.None, _, not null, not null) => new VariableArrayMemberGroup
             {
+                TypeKind = typeKind,
+                CollectionKind = collectionKind,
                 MemberSymbol = symbol,
                 TypeSymbol = typeSymbol,
                 TypeByteLength = length,
                 ArrayTypeSymbol = arrayTypeSymbol,
-                ArrayKind = arrayKind,
+                WellKnownCollectionKind = collectionKind,
                 ArrayMinLength = arrayMinLength.Value,
                 ArrayLengthMemberName = arrayLengthMember.TypeSymbol.Name,
             },
-            (not ArrayKind.None, not null, _, _) => new ConstantArrayMember
+            (not WellKnownCollectionKind.None, not null, _, _) => new ConstantArrayMember
             {
+                TypeKind = typeKind,
+                CollectionKind = collectionKind,
                 MemberSymbol = symbol,
                 TypeSymbol = typeSymbol,
                 TypeByteLength = length,
                 ArrayTypeSymbol = arrayTypeSymbol,
-                ArrayKind = arrayKind,
+                WellKnownCollectionKind = collectionKind,
                 ArrayLength = arrayLength.Value,
             },
-            (ArrayKind.None, _, _, _) => new ConstantPrimitiveMember
+            (WellKnownCollectionKind.None, _, _, _) => new ConstantPrimitiveMember
             {
+                TypeKind = typeKind,
                 MemberSymbol = symbol,
                 TypeByteLength = length,
                 TypeSymbol = typeSymbol,

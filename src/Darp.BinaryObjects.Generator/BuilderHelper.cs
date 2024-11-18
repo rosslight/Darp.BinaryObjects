@@ -3,12 +3,11 @@ namespace Darp.BinaryObjects.Generator;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
-internal enum ArrayKind
+internal enum WellKnownCollectionKind
 {
     None,
     Memory,
     Array,
-    MultiDimensionalArray,
     List,
     Enumerable,
 }
@@ -20,51 +19,51 @@ internal static class BuilderHelper
     /// </summary>
     public static bool TryGetArrayType(
         this ITypeSymbol symbol,
-        out ArrayKind arrayKind,
+        out WellKnownCollectionKind collectionKind,
         [NotNullWhen(true)] out ITypeSymbol? underlyingTypeSymbol
     )
     {
         if (symbol is IArrayTypeSymbol { Rank: 1 } arrayTypeSymbol)
         {
             underlyingTypeSymbol = arrayTypeSymbol.ElementType;
-            arrayKind = ArrayKind.Array;
+            collectionKind = WellKnownCollectionKind.Array;
             return true;
         }
-        (ArrayKind Kind, ITypeSymbol? Symbol) x = symbol.OriginalDefinition.ToDisplayString() switch
+        (WellKnownCollectionKind Kind, ITypeSymbol? Symbol) x = symbol.OriginalDefinition.ToDisplayString() switch
         {
             "System.ReadOnlyMemory<T>" => (
-                ArrayKind.Memory,
+                WellKnownCollectionKind.Memory,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.List<T>" => (
-                ArrayKind.List,
+                WellKnownCollectionKind.List,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IEnumerable<T>" => (
-                ArrayKind.Enumerable,
+                WellKnownCollectionKind.Enumerable,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IReadOnlyCollection<T>" => (
-                ArrayKind.Enumerable,
+                WellKnownCollectionKind.Enumerable,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.ICollection<T>" => (
-                ArrayKind.Enumerable,
+                WellKnownCollectionKind.Enumerable,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IReadOnlyList<T>" => (
-                ArrayKind.Enumerable,
+                WellKnownCollectionKind.Enumerable,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IList<T>" => (
-                ArrayKind.Enumerable,
+                WellKnownCollectionKind.Enumerable,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
-            _ => (ArrayKind.None, null),
+            _ => (WellKnownCollectionKind.None, null),
         };
         underlyingTypeSymbol = x.Symbol;
-        arrayKind = x.Kind;
-        return arrayKind is not ArrayKind.None && underlyingTypeSymbol is not null;
+        collectionKind = x.Kind;
+        return collectionKind is not WellKnownCollectionKind.None && underlyingTypeSymbol is not null;
     }
 
     public static bool IsValidLengthInteger(this ITypeSymbol symbol) =>

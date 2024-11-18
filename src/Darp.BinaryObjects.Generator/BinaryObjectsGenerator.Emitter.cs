@@ -40,11 +40,11 @@ partial class BinaryObjectsGenerator
         writer.Indent++;
         EmitGetByteCountMethod(writer, memberGroups);
         writer.WriteEmptyLine();
-        EmitWriteImplementationMethod(writer, memberGroups, true);
-        EmitWriteImplementationMethod(writer, memberGroups, false);
+        EmitWriteImplementationMethod(writer, memberGroups, true, utilities);
+        EmitWriteImplementationMethod(writer, memberGroups, false, utilities);
         writer.WriteEmptyLine();
-        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, true);
-        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, false);
+        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, true, utilities);
+        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, false, utilities);
         writer.Indent--;
         writer.WriteLine("}");
         EmitOptionalNamespaceEnd(writer, info.Symbol);
@@ -138,7 +138,8 @@ public int GetByteCount() => {summedLength};
     private static void EmitWriteImplementationMethod(
         IndentedTextWriter writer,
         ImmutableArray<IGroup> memberGroups,
-        bool littleEndian
+        bool littleEndian,
+        List<UtilityData> utilities
     )
     {
         // Method start
@@ -179,7 +180,7 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                 {
                     if (
                         !memberInfo.TryGetWriteString(
-                            methodNameEndianness,
+                            littleEndian,
                             currentByteIndex,
                             out var writeString,
                             out var bytesWritten
@@ -207,7 +208,8 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
         INamedTypeSymbol symbol,
         ImmutableArray<IGroup> memberGroups,
         ImmutableHashSet<IMember> constructorParameters,
-        bool littleEndian
+        bool littleEndian,
+        List<UtilityData> utilities
     )
     {
         // Method start
@@ -288,5 +290,35 @@ return true;
             return;
         writer.WriteLine("}");
         writer.Indent--;
+    }
+
+    private static void EmitUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities)
+    {
+        writer.WriteEmptyLine();
+        writer.WriteLine(
+            $$"""
+namespace Darp.BinaryObjects.Generated
+{
+    using System;
+    using System.CodeDom.Compiler;
+    using System.Runtime.CompilerServices;
+
+    /// <summary>Helper methods used by generated BinaryObjects.</summary>
+    {{RoslynHelper.GetGeneratedVersionAttribute(false)}}
+    file static class Utilities
+    {
+"""
+        );
+        writer.Indent++;
+        writer.Indent++;
+        foreach ((WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind) in requestedUtilities)
+        {
+            EmitWriteUtility(writer, collectionKind, typeKind, true);
+            EmitWriteUtility(writer, collectionKind, typeKind, false);
+        }
+        writer.Indent--;
+        writer.WriteLine("}");
+        writer.Indent--;
+        writer.WriteLine("}");
     }
 }

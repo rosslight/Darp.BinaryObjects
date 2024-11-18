@@ -39,7 +39,7 @@ internal readonly record struct DiagnosticData(
     }
 }
 
-internal readonly record struct UtilityData(string Name);
+internal readonly record struct UtilityData(WellKnownCollectionKind CollectionKind, WellKnownTypeKind TypeKind);
 
 [Generator(LanguageNames.CSharp)]
 public partial class BinaryObjectsGenerator : IIncrementalGenerator
@@ -72,13 +72,19 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                         return new BinaryObjectStruct(
                             aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
                             null,
-                            aaa.Utilities.ToImmutableEquatableArray()
+                            ImmutableEquatableArray<UtilityData>.Empty
                         );
                     }
+
+                    var utilities = a
+                        .MemberGroups.SelectMembers()
+                        .Select(x => new UtilityData(x.CollectionKind, x.TypeKind))
+                        .Distinct()
+                        .ToImmutableEquatableArray();
                     return new BinaryObjectStruct(
                         aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
                         aaa.Code,
-                        aaa.Utilities.ToImmutableEquatableArray()
+                        utilities
                     );
                 }
             )
@@ -116,7 +122,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
         }
 
         IEnumerable<UtilityData> requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct();
-        WriteUtilityClass(writer, requestedUtilities);
+        EmitUtilityClass(writer, requestedUtilities);
 
         spc.AddSource(GeneratedFileName, SourceText.From(sw.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
     }
@@ -133,8 +139,6 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
         var node = (TypeDeclarationSyntax)context.TargetNode;
         return new TargetTypeInfo(type, node, languageVersion);
     }
-
-    private static void WriteUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities) { }
 }
 
 internal readonly record struct TargetTypeInfo(

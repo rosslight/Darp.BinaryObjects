@@ -90,17 +90,20 @@ namespace Darp.BinaryObjects.Generated
 {
     using System;
     using System.CodeDom.Compiler;
+    using System.Runtime.CompilerServices;
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
         /// <summary> Writes a <c>bool</c> to the destination </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteBool(Span<byte> destination, bool value)
         {
-            destination[0] = value ? 0b1 : 0b0;
+            return destination[0] = value ? 0b1 : 0b0;
         }
         /// <summary> Reads a <c>bool</c> from the given source </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ReadBool(ReadOnlySpan<byte> source)
         {
             return source[0] > 0;
