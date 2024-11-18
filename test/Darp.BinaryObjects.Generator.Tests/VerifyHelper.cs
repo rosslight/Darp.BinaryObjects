@@ -51,7 +51,10 @@ public static partial class VerifyHelper
         );
 
         // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)
-        Assert.Empty(compilation.GetDiagnostics().Where(x => x.Id is not "CS5001"));
+        Assert.DoesNotContain(
+            compilation.GetDiagnostics(),
+            x => x.Id is not "CS5001" && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError)
+        );
 
         var generator = new TGenerator();
 

@@ -10,6 +10,7 @@
 public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool>
 {
     /// <inheritdoc />
+    [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;

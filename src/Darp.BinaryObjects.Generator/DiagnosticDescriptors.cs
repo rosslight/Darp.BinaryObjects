@@ -58,4 +58,22 @@ internal static class DiagnosticDescriptors
             DiagnosticSeverity.Error,
             isEnabledByDefault: true
         );
+    public static readonly DiagnosticDescriptor MemberIgnoredReadonly =
+        new(
+            id: "DBO001",
+            title: "MemberDefiningLengthDataInvalidType",
+            messageFormat: "Member '{0}' is ignored. Cannot read types with readonly members.",
+            category: "DarpBinaryObjectsGenerator",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true
+        );
+    public static readonly DiagnosticDescriptor MemberConstructorParameterTypeMismatch =
+        new(
+            id: "DBO001",
+            title: "MemberDefiningLengthDataInvalidType",
+            messageFormat: "This parameter matches the name of Member '{0}'. However, parameter type '{1}' does not match member type '{2}'.",
+            category: "DarpBinaryObjectsGenerator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
 }

@@ -4,6 +4,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -40,28 +41,33 @@ internal readonly record struct DiagnosticData(
 
 internal readonly record struct UtilityData(string Name);
 
-[Generator]
-public class BinaryObjectsGenerator : IIncrementalGenerator
+[Generator(LanguageNames.CSharp)]
+public partial class BinaryObjectsGenerator : IIncrementalGenerator
 {
-    public const string GeneratedFileName = "BinaryObjectsGenerator.g.cs";
+    private const string BinaryObjectAttributeName = "Darp.BinaryObjects.BinaryObjectAttribute";
+    private const string GeneratedFileName = "BinaryObjectsGenerator.g.cs";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValueProvider<ImmutableArray<BinaryObjectStruct>> attributes = context
+            // Only target specific attributes
             .SyntaxProvider.ForAttributeWithMetadataName(
-                "Darp.BinaryObjects.BinaryObjectAttribute",
+                BinaryObjectAttributeName,
                 static (node, _) => node is TypeDeclarationSyntax,
                 GetTypeInfo
             )
             .Select(
                 static (info, _) =>
                 {
-                    var wasCodeGenerated = TryGenerateSourceCode(info, out BinaryObjectBuilder builder);
-                    return new BinaryObjectStruct(
-                        builder.Diagnostics.ToImmutableEquatableArray(),
-                        wasCodeGenerated ? builder.StringBuilder.ToString() : null,
-                        ImmutableEquatableArray<UtilityData>.Empty
-                    );
+                    if (!TryParseType(info.Symbol, out Aaa a))
+                    {
+                        return new BinaryObjectStruct(
+                            a.Diagnostics.ToImmutableEquatableArray(),
+                            null,
+                            ImmutableEquatableArray<UtilityData>.Empty
+                        );
+                    }
+                    return EmitBinaryObjectData(info);
                 }
             )
             .Collect();
@@ -108,17 +114,12 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
         CancellationToken cancellationToken
     )
     {
-        // if (
-        //     context.SemanticModel.Compilation
-        //     is not CSharpCompilation { LanguageVersion: var version, Options: { } options }
-        // )
-        // {
-        //     throw;
-        // }
+        var compilation = context.SemanticModel.Compilation as CSharpCompilation;
+        LanguageVersion languageVersion = compilation?.LanguageVersion ?? LanguageVersion.CSharp1;
 
         var type = (INamedTypeSymbol)context.TargetSymbol;
         var node = (TypeDeclarationSyntax)context.TargetNode;
-        return new TargetTypeInfo(type, node);
+        return new TargetTypeInfo(type, node, languageVersion);
     }
 
     private static void WriteUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities) { }
@@ -144,4 +145,8 @@ public class BinaryObjectsGenerator : IIncrementalGenerator
     }
 }
 
-internal sealed record TargetTypeInfo(INamedTypeSymbol Symbol, TypeDeclarationSyntax Syntax);
+internal readonly record struct TargetTypeInfo(
+    INamedTypeSymbol Symbol,
+    TypeDeclarationSyntax Syntax,
+    LanguageVersion LanguageVersion
+);

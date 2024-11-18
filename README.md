@@ -47,7 +47,42 @@ Unplanned:
 - Dictionaries: `Dictionary<TKey, TValue>`, `IDictionary<TKey, TValue>` and `IReadOnlyDictionary<TKey, TValue>`
 - Nullable value types: `Nullable<T>` or `T?`
 
+## What is serialized?
+
+- Any `real`, user-defined member in a `class` or `struct` declaration
+- Any `field` or `auto property` which is settable or has a parameter with matching type and name in the constructor
+
+- If there are multiple constructors defined the one with a `BinaryConstructorAttribute` is being used
+
+There are warnings if:
+- The constructor cannot be resolved
+- There are multiple constructors but none with a `BinaryConstructorAttribute`
+- A member is readonly and does not have a matching constructor argument or is explicitly ignored
+
+## How it's supposed to work
+
+Let's pretend we have a series of bytes:
+
+```csharp
+01020003040506
+
+A: 01
+B: 0200
+Data: 03040506
+```
+
+We now want to read an object from these bytes similar to how we would do with `BinaryPrimitives`:
+
+```csharp
+[BinaryObject]
+public readonly record struct SomeTestStruct(byte A, ushort B, ReadOnlyMemory<byte> Data);
+```
+
+Normally, you would have to write serialization methods for yourself. By adding the `BinaryObjectAttribute`, this is done automatically by the source generator.
+
+
 ## Usage
+
 ```csharp
 // Define your object
 [BinaryObject]
@@ -171,5 +206,19 @@ After cloning the repository, you will find the following project structure:
 - `test/Darp.BinaryObjects.Tests` contains unit tests ensuring the generated files actually build and read/write as expected
 - `test/Darp.BInaryObjects.Generator.Tests` contains snapshot tests to ensure the source generator generates valid files
 
-Snapshot tests are done using Verify. If you want to run them in your local IDE, you might adjust some settings.
+### Code formatting
+
+This repository uses [CSharpier](https://csharpier.com/) (inspired by prettier) for code formatting.
+CSharpier should be installed automatically when building the solution as a local dotnet tool.
+
+To run it, execute
+```shell
+dotnet csharpier .
+```
+
+If you want to format you code on save, check out available [Editor integration](https://csharpier.com/docs/Editors) for your IDE.
+
+### Testing
+
+Snapshot tests are done using [Verify](https://github.com/VerifyTests/Verify/). If you want to optimize running these tests in your local IDE, you might adjust some settings.
 Please, check your local configuration in the [VerifyDocs](https://github.com/VerifyTests/Verify/blob/main/docs/wiz/readme.md)

@@ -1,0 +1,64 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+    private byte valueEight;
+    public byte ValueTwo { get; } // Expecting warning
+                ^^^^^^^^
+    private readonly byte ValueThree; // Expecting warning
+*/
+ : (8,16)-(8,24),
+      Message: Member 'ValueTwo' is ignored. Cannot read types with readonly members.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthDataInvalidType,
+        MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    public byte ValueTwo { get; } // Expecting warning
+    private readonly byte ValueThree; // Expecting warning
+                          ^^^^^^^^^^
+    public byte ValueFour { get; set; }
+*/
+ : (9,26)-(9,36),
+      Message: Member 'ValueThree' is ignored. Cannot read types with readonly members.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthDataInvalidType,
+        MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    public byte ValueTwo { get; } // Expecting warning
+    private readonly byte ValueThree; // Expecting warning
+                          ^^^^^^^^^^
+    public byte ValueFour { get; set; }
+*/
+ : (22,26)-(22,36),
+      Message: Member 'ValueThree' is ignored. Cannot read types with readonly members.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthDataInvalidType,
+        MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}
