@@ -1,6 +1,7 @@
 namespace Darp.BinaryObjects.Generator;
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -50,7 +51,7 @@ partial class BinaryObjectsGenerator
             );
             if (!validity.IsValid)
                 continue;
-            if (!BinaryObjectBuilder.TryGet(diagnostics, members, memberSymbol, out IMember? info))
+            if (!TryGet(diagnostics, members, memberSymbol, out IMember? info))
                 continue;
             members.Add(info);
             if (validity.IsConstructorInitialized)
@@ -196,5 +197,130 @@ partial class BinaryObjectsGenerator
             }
             return (true, default);
         }
+    }
+
+    private static bool TryGet(
+        List<DiagnosticData> diagnostics,
+        IReadOnlyList<IMember> previousMembers,
+        ISymbol symbol,
+        [NotNullWhen(true)] out IMember? info
+    )
+    {
+        info = null;
+        ITypeSymbol? typeSymbol = symbol switch
+        {
+            IPropertySymbol s => s.Type,
+            IFieldSymbol s => s.Type,
+            _ => default,
+        };
+        if (typeSymbol is null)
+            return false;
+        ITypeSymbol arrayTypeSymbol = typeSymbol;
+        if (typeSymbol.TryGetArrayType(out ArrayKind arrayKind, out ITypeSymbol? underlyingTypeSymbol))
+            typeSymbol = underlyingTypeSymbol;
+        if (!typeSymbol.TryGetLength(out var length))
+        {
+            var diagnostic = DiagnosticData.Create(
+                descriptor: DiagnosticDescriptors.MemberTypeNotSupported,
+                location: symbol.GetSourceLocation()
+            );
+            diagnostics.Add(diagnostic);
+            return false;
+        }
+
+        int? arrayMinLength = null;
+        IMember? arrayLengthMember = null;
+        int? arrayLength = null;
+        ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
+        foreach (AttributeData attributeData in attributes)
+        {
+            if (attributeData.AttributeClass is null)
+                continue;
+            switch (attributeData.AttributeClass.ToDisplayString())
+            {
+                case "Darp.BinaryObjects.BinaryIgnoreAttribute":
+                    return false;
+                case "Darp.BinaryObjects.BinaryElementCountAttribute":
+                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
+                    {
+                        if (pair is { Key: "memberWithLength", Value.Value: string memberName })
+                        {
+                            IMember? previousMember = previousMembers.FirstOrDefault(x =>
+                                x.TypeSymbol.Name.Equals(memberName, StringComparison.Ordinal)
+                            );
+                            if (previousMember is null)
+                            {
+                                var diagnostic = DiagnosticData.Create(
+                                    descriptor: DiagnosticDescriptors.MemberDefiningLengthNotFound,
+                                    location: attributeData.GetLocationOfConstructorArgument(0)
+                                        ?? symbol.GetSourceLocation(),
+                                    messageArgs: [memberName, symbol.Name]
+                                );
+                                diagnostics.Add(diagnostic);
+                                return false;
+                            }
+                            if (!previousMember.TypeSymbol.IsValidLengthInteger())
+                            {
+                                var diagnostic = DiagnosticData.Create(
+                                    descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
+                                    location: previousMember.TypeSymbol.GetSourceLocation(),
+                                    messageArgs: [memberName, symbol.Name]
+                                );
+                                diagnostics.Add(diagnostic);
+                                return false;
+                            }
+                            arrayLengthMember = previousMember;
+                        }
+                        else if (pair is { Key: "length", Value.Value: int lengthValue })
+                        {
+                            arrayLength = lengthValue;
+                        }
+                    }
+                    continue;
+                case "Darp.BinaryObjects.BinaryReadRemainingAttribute":
+                    continue;
+                case "Darp.BinaryObjects.BinaryByteLengthAttribute":
+                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
+                    {
+                        if (pair is { Key: "byteLength", Value.Value: int value })
+                        {
+                            length = value;
+                        }
+                    }
+                    continue;
+                default:
+                    continue;
+            }
+        }
+        info = (arrayKind, arrayLength, arrayMinLength, arrayLengthMember) switch
+        {
+            (not ArrayKind.None, _, not null, not null) => new VariableArrayMemberGroup
+            {
+                MemberSymbol = symbol,
+                TypeSymbol = typeSymbol,
+                TypeByteLength = length,
+                ArrayTypeSymbol = arrayTypeSymbol,
+                ArrayKind = arrayKind,
+                ArrayMinLength = arrayMinLength.Value,
+                ArrayLengthMemberName = arrayLengthMember.TypeSymbol.Name,
+            },
+            (not ArrayKind.None, not null, _, _) => new ConstantArrayMember
+            {
+                MemberSymbol = symbol,
+                TypeSymbol = typeSymbol,
+                TypeByteLength = length,
+                ArrayTypeSymbol = arrayTypeSymbol,
+                ArrayKind = arrayKind,
+                ArrayLength = arrayLength.Value,
+            },
+            (ArrayKind.None, _, _, _) => new ConstantPrimitiveMember
+            {
+                MemberSymbol = symbol,
+                TypeByteLength = length,
+                TypeSymbol = typeSymbol,
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
+        };
+        return true;
     }
 }

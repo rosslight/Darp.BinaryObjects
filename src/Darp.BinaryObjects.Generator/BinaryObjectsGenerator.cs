@@ -67,7 +67,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                             ImmutableEquatableArray<UtilityData>.Empty
                         );
                     }
-                    if (!TryEmit(a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
+                    if (!TryEmit(info, a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
                     {
                         return new BinaryObjectStruct(
                             aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
@@ -108,7 +108,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
         var sw = new StringWriter();
         using var writer = new IndentedTextWriter(sw);
 
-        BinaryObjectBuilder.AddFileHeader(writer);
+        EmitFileHeader(writer);
 
         foreach (BinaryObjectStruct info in infos)
         {
@@ -135,26 +135,6 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
     }
 
     private static void WriteUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities) { }
-
-    private static bool TryGenerateSourceCode(TargetTypeInfo info, out BinaryObjectBuilder builder)
-    {
-        builder = BinaryObjectBuilder.Create(info.Symbol, info.Syntax);
-        builder.StringBuilder.AppendLine();
-        builder.AddOptionalNamespaceStart();
-        if (!builder.TryAddTypeDeclaration())
-            return false;
-        builder.StringBuilder.AppendLine("{");
-        builder.AddGetByteCountMethod();
-        builder.StringBuilder.AppendLine();
-        builder.AddWriteImplementationMethod(true);
-        builder.AddWriteImplementationMethod(false);
-        builder.StringBuilder.AppendLine();
-        builder.AddReadImplementationMethod(true);
-        builder.AddReadImplementationMethod(false);
-        builder.StringBuilder.AppendLine("}");
-        builder.AddOptionalNamespaceEnd();
-        return true;
-    }
 }
 
 internal readonly record struct TargetTypeInfo(

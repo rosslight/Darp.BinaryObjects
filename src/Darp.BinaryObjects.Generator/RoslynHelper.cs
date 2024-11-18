@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects.Generator;
 
+using System.CodeDom.Compiler;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -47,5 +48,18 @@ internal static class RoslynHelper
                 $"""[global::System.CodeDom.Compiler.GeneratedCodeAttribute("{generatorName}", "{generatorVersion}")]""",
             false => $"""[GeneratedCodeAttribute("{generatorName}", "{generatorVersion}")]""",
         };
+    }
+
+    public static void WriteMultiLine(this IndentedTextWriter writer, string multiLineString)
+    {
+        foreach (var se in multiLineString.Split(["\r\n", "\n"], StringSplitOptions.None))
+        {
+            writer.WriteLine(se);
+        }
+    }
+
+    public static void WriteEmptyLine(this IndentedTextWriter writer)
+    {
+        writer.WriteLineNoTabs(string.Empty);
     }
 }

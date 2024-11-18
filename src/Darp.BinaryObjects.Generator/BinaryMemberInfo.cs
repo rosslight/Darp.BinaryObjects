@@ -86,7 +86,7 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
             return false;
         }
         writeString =
-            $"        BinaryHelpers.{methodName}(destination[{currentByteIndex}..], this.{MemberSymbol.Name});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], this.{MemberSymbol.Name});";
         bytesWritten = ConstantByteLength;
         return true;
     }
@@ -98,7 +98,7 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
         out int bytesRead
     )
     {
-        var variableName = $"{BinaryObjectBuilder.Prefix}read{MemberSymbol.Name}";
+        var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = TypeSymbol.ToDisplayString() switch
         {
             "bool" => "ReadBool",
@@ -124,7 +124,8 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
             bytesRead = default;
             return false;
         }
-        writeString = $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentByteIndex}..]);";
+        writeString =
+            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..]);";
         bytesRead = ConstantByteLength;
         return true;
     }
@@ -173,7 +174,7 @@ internal sealed class ConstantArrayMember : IConstantMember
         if (match.Value.Func is not null)
             memberName = match.Value.Func(memberName);
         writeString =
-            $"        BinaryHelpers.{match.Value.MethodName}(destination[{currentByteIndex}..], {memberName}, {ConstantByteLength / TypeByteLength});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{match.Value.MethodName}(destination[{currentByteIndex}..], {memberName}, {ConstantByteLength / TypeByteLength});";
         bytesWritten = ConstantByteLength;
         return true;
     }
@@ -185,7 +186,7 @@ internal sealed class ConstantArrayMember : IConstantMember
         out int bytesRead
     )
     {
-        var variableName = $"{BinaryObjectBuilder.Prefix}read{MemberSymbol.Name}";
+        var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = (ArrayKind, TypeSymbol.ToString()) switch
         {
             (ArrayKind.Array or ArrayKind.Memory or ArrayKind.Enumerable, "byte") => "ReadUInt8Array",
@@ -202,7 +203,7 @@ internal sealed class ConstantArrayMember : IConstantMember
             return false;
         }
         writeString =
-            $"        var {variableName} = BinaryHelpers.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
+            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
         bytesRead = ConstantByteLength;
         return true;
     }
