@@ -119,6 +119,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
         foreach (BinaryObjectStruct info in infos)
         {
             writer.Write(info.Code);
+            writer.WriteEmptyLine();
         }
 
         IEnumerable<UtilityData> requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct();

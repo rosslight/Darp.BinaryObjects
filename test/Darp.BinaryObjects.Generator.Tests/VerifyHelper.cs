@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -58,7 +59,17 @@ public static partial class VerifyHelper
 
         var generator = new TGenerator();
 
-        var driver = CSharpGeneratorDriver.Create(generator);
-        return Verify(driver.RunGenerators(compilation)).UseDirectory("Snapshots");
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out Compilation _,
+            out ImmutableArray<Diagnostic> diagnostics
+        );
+        // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)
+        Assert.DoesNotContain(
+            diagnostics,
+            x => x.Id is not "CS5001" && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError)
+        );
+        return Verify(driver).UseDirectory("Snapshots");
     }
 }

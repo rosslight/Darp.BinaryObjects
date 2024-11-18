@@ -25,7 +25,7 @@ partial class BinaryObjectsGenerator
     private static bool TryEmit(
         TargetTypeInfo info,
         ImmutableArray<IGroup> memberGroups,
-        ImmutableHashSet<IMember> constructorParameters,
+        ImmutableArray<IMember> constructorParameters,
         out Aaa2 aaa2
     )
     {
@@ -207,7 +207,7 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
         IndentedTextWriter writer,
         INamedTypeSymbol symbol,
         ImmutableArray<IGroup> memberGroups,
-        ImmutableHashSet<IMember> constructorParameters,
+        ImmutableArray<IMember> constructorParameters,
         bool littleEndian,
         List<UtilityData> utilities
     )
@@ -288,18 +288,18 @@ return true;
         var typeNamespace = symbol.GetNamespace();
         if (string.IsNullOrWhiteSpace(typeNamespace))
             return;
-        writer.WriteLine("}");
         writer.Indent--;
+        writer.WriteLine("}");
     }
 
     private static void EmitUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities)
     {
-        writer.WriteEmptyLine();
         writer.WriteLine(
             $$"""
 namespace Darp.BinaryObjects.Generated
 {
     using System;
+    using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
 
@@ -311,7 +311,11 @@ namespace Darp.BinaryObjects.Generated
         );
         writer.Indent++;
         writer.Indent++;
-        foreach ((WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind) in requestedUtilities)
+        foreach (
+            (WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind) in requestedUtilities
+                .OrderBy(x => x.CollectionKind)
+                .ThenBy(x => x.TypeKind)
+        )
         {
             EmitWriteUtility(writer, collectionKind, typeKind, true);
             EmitWriteUtility(writer, collectionKind, typeKind, false);

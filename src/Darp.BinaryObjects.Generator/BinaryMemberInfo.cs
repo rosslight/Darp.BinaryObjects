@@ -310,7 +310,12 @@ partial class BinaryObjectsGenerator
         var endianness = isLittleEndian ? "LittleEndian" : "BigEndian";
         return (collectionKind, typeKind) switch
         {
-            (WellKnownCollectionKind.None, WellKnownTypeKind.Bool) => $"{prefix}{typeName}",
+            (
+                WellKnownCollectionKind.None,
+                WellKnownTypeKind.Bool
+                    or WellKnownTypeKind.SByte
+                    or WellKnownTypeKind.Byte
+            ) => $"{prefix}{typeName}",
             (WellKnownCollectionKind.None, _) => $"{prefix}{typeName}{endianness}",
             _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
         };
@@ -328,29 +333,37 @@ partial class BinaryObjectsGenerator
             case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
                 if (isLittleEndian)
                     return;
-                EmitWriteBoolUtility(writer);
+                EmitWriteAnyUtility(
+                    writer,
+                    _ => "destination[0] = value ? (byte)0b1 : (byte)0b0;",
+                    typeKind,
+                    isLittleEndian
+                );
+                break;
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.SByte):
+                if (isLittleEndian)
+                    return;
+                EmitWriteAnyUtility(writer, _ => "destination[0] = (byte)value;", typeKind, isLittleEndian);
+                break;
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.Byte):
+                if (isLittleEndian)
+                    return;
+                EmitWriteAnyUtility(writer, _ => "destination[0] = value;", typeKind, isLittleEndian);
                 break;
             case (WellKnownCollectionKind.None, _):
-                EmitWriteBinaryPrimitivesUtility(writer, typeKind, isLittleEndian);
+                EmitWriteAnyUtility(
+                    writer,
+                    methodName => $"BinaryPrimitives.{methodName}(destination, value);",
+                    typeKind,
+                    isLittleEndian
+                );
                 break;
         }
     }
 
-    private static void EmitWriteBoolUtility(IndentedTextWriter writer)
-    {
-        var methodName = GetWriteMethodName(WellKnownCollectionKind.None, WellKnownTypeKind.Bool, default);
-        writer.WriteLine("/// <summary> Writes a <c>bool</c> to the destination </summary>");
-        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static void {methodName}(Span<byte> destination, bool value)");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.WriteLine("return destination[0] = value ? 0b1 : 0b0;");
-        writer.Indent--;
-        writer.WriteLine("}");
-    }
-
-    private static void EmitWriteBinaryPrimitivesUtility(
+    private static void EmitWriteAnyUtility(
         IndentedTextWriter writer,
+        Func<string, string> getter,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
@@ -362,7 +375,7 @@ partial class BinaryObjectsGenerator
         writer.WriteLine($"public static void {methodName}(Span<byte> destination, {typeName} value)");
         writer.WriteLine("{");
         writer.Indent++;
-        writer.WriteLine($"return BinaryPrimitives.{methodName}(destination, value);");
+        writer.WriteLine(getter(methodName));
         writer.Indent--;
         writer.WriteLine("}");
     }
@@ -379,29 +392,32 @@ partial class BinaryObjectsGenerator
             case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
                 if (isLittleEndian)
                     return;
-                EmitReadBoolUtility(writer);
+                EmitReadAnyUtility(writer, _ => "return source[0] > 0;", typeKind, default);
+                break;
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.SByte):
+                if (isLittleEndian)
+                    return;
+                EmitReadAnyUtility(writer, _ => "return (sbyte)source[0];", typeKind, default);
+                break;
+            case (WellKnownCollectionKind.None, WellKnownTypeKind.Byte):
+                if (isLittleEndian)
+                    return;
+                EmitReadAnyUtility(writer, _ => "return source[0];", typeKind, default);
                 break;
             case (WellKnownCollectionKind.None, _):
-                EmitReadBinaryPrimitivesUtility(writer, typeKind, isLittleEndian);
+                EmitReadAnyUtility(
+                    writer,
+                    methodName => $"return BinaryPrimitives.{methodName}(source);",
+                    typeKind,
+                    isLittleEndian
+                );
                 break;
         }
     }
 
-    private static void EmitReadBoolUtility(IndentedTextWriter writer)
-    {
-        var methodName = GetReadMethodName(WellKnownCollectionKind.None, WellKnownTypeKind.Bool, default);
-        writer.WriteLine("/// <summary> Reads a <c>bool</c> from the given source </summary>");
-        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static bool {methodName}(ReadOnlySpan<byte> source)");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.WriteLine("return source[0] > 0;");
-        writer.Indent--;
-        writer.WriteLine("}");
-    }
-
-    private static void EmitReadBinaryPrimitivesUtility(
+    private static void EmitReadAnyUtility(
         IndentedTextWriter writer,
+        Func<string, string> getter,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
@@ -413,10 +429,17 @@ partial class BinaryObjectsGenerator
         writer.WriteLine($"public static {typeName} {methodName}(ReadOnlySpan<byte> source)");
         writer.WriteLine("{");
         writer.Indent++;
-        writer.WriteLine($"return BinaryPrimitives.{methodName}(source);");
+        writer.WriteMultiLine(getter(methodName));
         writer.Indent--;
         writer.WriteLine("}");
     }
+}
+
+internal enum RequestedEndianness
+{
+    None,
+    Little,
+    Big,
 }
 
 internal enum WellKnownTypeKind

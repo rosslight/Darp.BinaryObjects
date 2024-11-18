@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis.CSharp;
 internal readonly record struct Aaa(
     ImmutableArray<DiagnosticData> Diagnostics,
     ImmutableArray<IGroup> MemberGroups,
-    ImmutableHashSet<IMember> MembersInitializedByConstructor
+    ImmutableArray<IMember> MembersInitializedByConstructor
 )
 {
     public static Aaa Fail(IEnumerable<DiagnosticData> diagnostics)
     {
-        return new Aaa(diagnostics.ToImmutableArray(), ImmutableArray<IGroup>.Empty, ImmutableHashSet<IMember>.Empty);
+        return new Aaa(diagnostics.ToImmutableArray(), ImmutableArray<IGroup>.Empty, ImmutableArray<IMember>.Empty);
     }
 }
 
@@ -30,7 +30,7 @@ partial class BinaryObjectsGenerator
 
     private static bool TryParseType(INamedTypeSymbol typeSymbol, out Aaa result)
     {
-        HashSet<IMember> membersInitializedByConstructor = [];
+        List<IMember> membersInitializedByConstructor = [];
 
         List<DiagnosticData> diagnostics = [];
         List<IMember> members = [];
@@ -72,7 +72,7 @@ partial class BinaryObjectsGenerator
         result = new Aaa(
             diagnostics.ToImmutableArray(),
             groupedMembers,
-            membersInitializedByConstructor.ToImmutableHashSet()
+            membersInitializedByConstructor.ToImmutableArray()
         );
         return true;
     }

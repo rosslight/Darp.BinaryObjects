@@ -89,6 +89,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 namespace Darp.BinaryObjects.Generated
 {
     using System;
+    using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
 
@@ -100,7 +101,7 @@ namespace Darp.BinaryObjects.Generated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteBool(Span<byte> destination, bool value)
         {
-            return destination[0] = value ? 0b1 : 0b0;
+            destination[0] = value ? (byte)0b1 : (byte)0b0;
         }
         /// <summary> Reads a <c>bool</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
