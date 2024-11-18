@@ -67,7 +67,19 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                             ImmutableEquatableArray<UtilityData>.Empty
                         );
                     }
-                    return EmitBinaryObjectData(info);
+                    if (!TryEmit(a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
+                    {
+                        return new BinaryObjectStruct(
+                            aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
+                            null,
+                            aaa.Utilities.ToImmutableEquatableArray()
+                        );
+                    }
+                    return new BinaryObjectStruct(
+                        aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
+                        aaa.Code,
+                        aaa.Utilities.ToImmutableEquatableArray()
+                    );
                 }
             )
             .Collect();

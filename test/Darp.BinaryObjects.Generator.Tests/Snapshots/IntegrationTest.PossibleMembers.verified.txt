@@ -13,7 +13,7 @@
       WarningLevel: 1,
       Descriptor: {
         Id: DBO001,
-        Title: MemberDefiningLengthDataInvalidType,
+        Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
         Category: DarpBinaryObjectsGenerator,
         DefaultSeverity: Warning,
@@ -33,8 +33,28 @@
       WarningLevel: 1,
       Descriptor: {
         Id: DBO001,
-        Title: MemberDefiningLengthDataInvalidType,
+        Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    private readonly byte valueTwo;
+    public byte ValueTwo { get; } // Expecting warning
+                ^^^^^^^^
+    private readonly byte ValueThree; // Expecting warning
+*/
+ : (21,16)-(21,24),
+      Message: Member 'ValueTwo' is ignored. Cannot have two readonly members with an equal name.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberIgnoredDuplicateName,
+        MessageFormat: Member '{0}' is ignored. Cannot have two readonly members with an equal name.,
         Category: DarpBinaryObjectsGenerator,
         DefaultSeverity: Warning,
         IsEnabledByDefault: true
@@ -53,10 +73,29 @@
       WarningLevel: 1,
       Descriptor: {
         Id: DBO001,
-        Title: MemberDefiningLengthDataInvalidType,
+        Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
         Category: DarpBinaryObjectsGenerator,
         DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+
+    private Members2(bool valueSix, byte valueTwo, byte valueSeven) { } // Warning1: invalid type bool for valueSix, Warning2: Invalid parameter valueSeven
+                          ^^^^^^^^
+}
+*/
+ : (27,26)-(27,34),
+      Message: This parameter matches the name of Member 'ValueSix'. However, parameter type 'Boolean' does not match member type 'Byte'.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberConstructorParameterTypeMismatch,
+        MessageFormat: This parameter matches the name of Member '{0}'. However, parameter type '{1}' does not match member type '{2}'.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
         IsEnabledByDefault: true
       }
     }

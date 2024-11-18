@@ -45,6 +45,7 @@ partial class BinaryObjectsGenerator
                 memberSymbol,
                 constructor,
                 fieldsOrProperties,
+                members,
                 diagnostics
             );
             if (!validity.IsValid)
@@ -52,7 +53,8 @@ partial class BinaryObjectsGenerator
             if (!BinaryObjectBuilder.TryGet(diagnostics, members, memberSymbol, out IMember? info))
                 continue;
             members.Add(info);
-            membersInitializedByConstructor.Add(info);
+            if (validity.IsConstructorInitialized)
+                membersInitializedByConstructor.Add(info);
         }
 
         if (constructor.Parameters.Length != membersInitializedByConstructor.Count)
@@ -79,6 +81,7 @@ partial class BinaryObjectsGenerator
         ISymbol propertyOrFieldSymbol,
         IMethodSymbol constructor,
         ImmutableArray<ISymbol> typeMembers,
+        List<IMember> previousMembers,
         List<DiagnosticData> diagnostics
     )
     {
@@ -100,24 +103,58 @@ partial class BinaryObjectsGenerator
                     .Where(x => x.IsImplicitlyDeclared)
                     .OfType<IFieldSymbol>()
                     .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, propertySymbol));
+                (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
+                    propertySymbol,
+                    propertySymbol.Type
+                );
+                // If finding out about constructors failed, return
+                if (!constructorInit.IsValid)
+                    return (false, default);
+                // If the property is initialized via constructor assume everything else fine
+                if (constructorInit.IsConstructorInitialized)
+                    return (true, true);
                 // Ignore non auto properties without a warning
                 if (!isAutoProperty)
                     return (false, default);
                 if (!propertySymbol.IsReadOnly)
                     return (true, false);
-                return IsValidReadonlyMember(propertySymbol, propertySymbol.Type);
+                // Ignore readonly properties with a warning
+                var diagnostic = DiagnosticData.Create(
+                    DiagnosticDescriptors.MemberIgnoredReadonly,
+                    propertySymbol.GetSourceLocation(),
+                    [propertySymbol.Name]
+                );
+                diagnostics.Add(diagnostic);
+                return (false, default);
             }
             case IFieldSymbol fieldSymbol:
             {
+                (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
+                    fieldSymbol,
+                    fieldSymbol.Type
+                );
+                // If finding out about constructors failed, return
+                if (!constructorInit.IsValid)
+                    return (false, default);
+                // If the field is initialized via constructor assume everything else fine
+                if (constructorInit.IsConstructorInitialized)
+                    return (true, true);
                 if (!fieldSymbol.IsReadOnly)
                     return (true, false);
-                return IsValidReadonlyMember(fieldSymbol, fieldSymbol.Type);
+                // Ignore readonly properties with a warning
+                var diagnostic = DiagnosticData.Create(
+                    DiagnosticDescriptors.MemberIgnoredReadonly,
+                    fieldSymbol.GetSourceLocation(),
+                    [fieldSymbol.Name]
+                );
+                diagnostics.Add(diagnostic);
+                return (false, default);
             }
             default:
                 return (false, default);
         }
 
-        (bool IsValid, bool IsConstructorInitialized) IsValidReadonlyMember(ISymbol symbol, ITypeSymbol symbolType)
+        (bool IsValid, bool IsConstructorInitialized) IsConstructorInitialized(ISymbol symbol, ITypeSymbol symbolType)
         {
             IParameterSymbol? constructorParameter = constructor.Parameters.FirstOrDefault(c =>
                 c.Name.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase)
@@ -132,7 +169,21 @@ partial class BinaryObjectsGenerator
                     constructorParameter.Type.NullableAnnotation == NullableAnnotation.Annotated
                     && constructorParameter.Type.Equals(symbolType, SymbolEqualityComparer.Default);
                 if (isIdenticalType || isLessNullableType)
-                    return (true, true);
+                {
+                    var hasDuplicate = previousMembers.Any(x =>
+                        x.MemberSymbol.Name.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase)
+                    );
+                    if (!hasDuplicate)
+                        return (true, true);
+                    // Warning duplicate named readonly members
+                    var duplicateDiagnostic = DiagnosticData.Create(
+                        DiagnosticDescriptors.MemberIgnoredDuplicateName,
+                        symbol.GetSourceLocation(),
+                        [symbol.Name]
+                    );
+                    diagnostics.Add(duplicateDiagnostic);
+                    return (false, default);
+                }
 
                 // Throw error for invalid constructor parameters
                 var typeMismatchDiagnostic = DiagnosticData.Create(
@@ -143,14 +194,7 @@ partial class BinaryObjectsGenerator
                 diagnostics.Add(typeMismatchDiagnostic);
                 return (false, default);
             }
-            // Ignore readonly properties with a warning
-            var diagnostic = DiagnosticData.Create(
-                DiagnosticDescriptors.MemberIgnoredReadonly,
-                symbol.GetSourceLocation(),
-                [symbol.Name]
-            );
-            diagnostics.Add(diagnostic);
-            return (false, default);
+            return (true, default);
         }
     }
 }
