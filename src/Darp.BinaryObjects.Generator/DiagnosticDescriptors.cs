@@ -4,6 +4,15 @@ using Microsoft.CodeAnalysis;
 
 internal static class DiagnosticDescriptors
 {
+    public static readonly DiagnosticDescriptor GeneralError =
+        new(
+            id: "DBO001",
+            title: "GeneralError",
+            messageFormat: "Failed to generate code for this object because of {0}",
+            category: "DarpBinaryObjectsGenerator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
     public static readonly DiagnosticDescriptor PartialKeywordMissing =
         new(
             id: "DBO001",
@@ -81,6 +90,15 @@ internal static class DiagnosticDescriptors
             id: "DBO001",
             title: "MemberConstructorParameterTypeMismatch",
             messageFormat: "This parameter matches the name of Member '{0}'. However, parameter type '{1}' does not match member type '{2}'.",
+            category: "DarpBinaryObjectsGenerator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
+    public static readonly DiagnosticDescriptor MemberConstructorParameterUnknown =
+        new(
+            id: "DBO001",
+            title: "MemberConstructorParameterUnknown",
+            messageFormat: "This parameter '{0}' does not have a corresponding member with an equal name. However, this is an requirement for binary objects.",
             category: "DarpBinaryObjectsGenerator",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true

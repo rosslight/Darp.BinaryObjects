@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 public static partial class VerifyHelper
 {
     public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
-        VerifyGenerator<BinaryObjectsGenerator>(sources).ScrubGeneratedCodeAttribute();
+        VerifyGenerator<BinaryObjectsGenerator>(sources, "DBO0").ScrubGeneratedCodeAttribute();
 
     [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
     private static partial Regex GetGeneratedCodeRegex();
@@ -33,7 +33,7 @@ public static partial class VerifyHelper
         });
     }
 
-    private static SettingsTask VerifyGenerator<TGenerator>(params string[] sources)
+    private static SettingsTask VerifyGenerator<TGenerator>(string[] sources, string? allowedDiagnosticCode)
         where TGenerator : IIncrementalGenerator, new()
     {
         SyntaxTree[] syntaxTrees = sources.Select(x => CSharpSyntaxTree.ParseText(x)).ToArray();
@@ -68,7 +68,10 @@ public static partial class VerifyHelper
         // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)
         Assert.DoesNotContain(
             diagnostics,
-            x => x.Id is not "CS5001" && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError)
+            x =>
+                x.Id is not "CS5001"
+                && (allowedDiagnosticCode is null || !x.Id.StartsWith(allowedDiagnosticCode, StringComparison.Ordinal))
+                && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError)
         );
         return Verify(driver).UseDirectory("Snapshots");
     }

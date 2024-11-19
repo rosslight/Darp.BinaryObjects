@@ -35,7 +35,7 @@ partial class BinaryObjectsGenerator
         List<DiagnosticData> diagnostics = [];
         List<IMember> members = [];
 
-        IMethodSymbol constructor = typeSymbol.Constructors.First(x => !x.IsImplicitlyDeclared);
+        IMethodSymbol? constructor = typeSymbol.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
         var fieldsOrProperties = typeSymbol
             .GetMembers()
             .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
@@ -58,8 +58,24 @@ partial class BinaryObjectsGenerator
                 membersInitializedByConstructor.Add(info);
         }
 
-        if (constructor.Parameters.Length != membersInitializedByConstructor.Count)
+        if ((constructor?.Parameters.Length ?? 0) != membersInitializedByConstructor.Count)
         {
+            ImmutableArray<IParameterSymbol> parameters =
+                constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
+            IEnumerable<DiagnosticData> parameterDiagnostics = parameters
+                .Where(x =>
+                    !membersInitializedByConstructor
+                        .Select(m => m.MemberSymbol.Name)
+                        .Contains(x.Name, StringComparer.OrdinalIgnoreCase)
+                )
+                .Select(nonDefinedParameter =>
+                    DiagnosticData.Create(
+                        DiagnosticDescriptors.MemberConstructorParameterUnknown,
+                        nonDefinedParameter.GetSourceLocation(),
+                        [nonDefinedParameter.Name]
+                    )
+                );
+            diagnostics.AddRange(parameterDiagnostics);
             result = Aaa.Fail(diagnostics);
             return false;
         }
@@ -80,7 +96,7 @@ partial class BinaryObjectsGenerator
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
     private static (bool IsValid, bool IsConstructorInitialized) IsValidMember(
         ISymbol propertyOrFieldSymbol,
-        IMethodSymbol constructor,
+        IMethodSymbol? constructor,
         ImmutableArray<ISymbol> typeMembers,
         List<IMember> previousMembers,
         List<DiagnosticData> diagnostics
@@ -157,7 +173,7 @@ partial class BinaryObjectsGenerator
 
         (bool IsValid, bool IsConstructorInitialized) IsConstructorInitialized(ISymbol symbol, ITypeSymbol symbolType)
         {
-            IParameterSymbol? constructorParameter = constructor.Parameters.FirstOrDefault(c =>
+            IParameterSymbol? constructorParameter = constructor?.Parameters.FirstOrDefault(c =>
                 c.Name.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase)
             );
             if (constructorParameter is not null)

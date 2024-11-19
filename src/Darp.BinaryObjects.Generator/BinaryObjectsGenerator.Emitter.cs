@@ -193,9 +193,9 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     currentByteIndex += bytesWritten;
                 }
             }
+            writer.WriteLine($"bytesWritten += {currentByteIndex};");
+            writer.WriteEmptyLine();
         }
-        writer.WriteLine($"bytesWritten += {currentByteIndex};");
-        writer.WriteEmptyLine();
 
         // The end of the method
         writer.WriteLine("return true;");
@@ -230,12 +230,11 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
 """
         );
         writer.Indent++;
-        writer.WriteMultiLine(
-            """
-bytesRead = 0;
-value = default;
-"""
-        );
+        writer.WriteLine("bytesRead = 0;");
+        if (memberGroups.Length > 0)
+        {
+            writer.WriteLine("value = default;");
+        }
         writer.WriteEmptyLine();
         var currentByteIndex = 0;
         foreach (IGroup memberInfoGroup in memberGroups)
@@ -268,17 +267,21 @@ value = default;
                 }
             }
         }
-        writer.WriteLine($"bytesRead += {currentByteIndex};");
-        writer.WriteEmptyLine();
+
+        if (memberGroups.Length > 0)
+        {
+            writer.WriteLine($"bytesRead += {currentByteIndex};");
+            writer.WriteEmptyLine();
+        }
 
         // Method end
         IEnumerable<string> constructorNames = constructorParameters.Select(x => $"{Prefix}read{x.MemberSymbol.Name}");
-        writer.WriteMultiLine(
-            $"""
-value = new {symbol.Name}({string.Join(", ", constructorNames)});
-return true;
-"""
-        );
+        writer.WriteLine($"value = new {symbol.Name}({string.Join(", ", constructorNames)});");
+        foreach (IMember x in memberGroups.SelectMembers().Except(constructorParameters))
+        {
+            writer.WriteLine($"value.{x.MemberSymbol.Name} = {Prefix}read{x.MemberSymbol.Name};");
+        }
+        writer.WriteLine("return true;");
         writer.Indent--;
         writer.WriteLine("}");
     }
@@ -292,8 +295,12 @@ return true;
         writer.WriteLine("}");
     }
 
-    private static void EmitUtilityClass(IndentedTextWriter writer, IEnumerable<UtilityData> requestedUtilities)
+    private static void EmitUtilityClass(IndentedTextWriter writer, ImmutableArray<UtilityData> requestedUtilities)
     {
+        if (requestedUtilities.Length == 0)
+        {
+            return;
+        }
         writer.WriteLine(
             $$"""
 namespace Darp.BinaryObjects.Generated

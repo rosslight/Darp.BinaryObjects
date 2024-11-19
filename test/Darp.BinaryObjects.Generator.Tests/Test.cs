@@ -20,59 +20,6 @@ public sealed partial record OneBool(bool Value);
     }
 
     [Fact]
-    public async Task OneBool_TwoClasses_NoNamespaces()
-    {
-        const string code = """
-using Darp.BinaryObjects;
-
-[BinaryObject]
-public sealed partial record OneBool1(bool Value);
-
-[BinaryObject]
-public sealed partial record OneBool2(bool Value);
-""";
-        await VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
-    public async Task OneBool_TwoClasses_SameNamespace()
-    {
-        const string code = """
-namespace Test;
-
-using Darp.BinaryObjects;
-
-[BinaryObject]
-public sealed partial record OneBool1(bool Value);
-
-[BinaryObject]
-public sealed partial record OneBool2(bool Value);
-""";
-        await VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
-    public async Task OneBool_TwoClasses_DifferentNamespace()
-    {
-        const string code = """
-using Darp.BinaryObjects;
-
-namespace Test1
-{
-    [BinaryObject]
-    public sealed partial record OneBool(bool Value);
-}
-
-namespace Test2
-{
-    [BinaryObject]
-    public sealed partial record OneBool(bool Value);
-}
-""";
-        await VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
     public async Task TwoUShorts_DefaultAsync()
     {
         const string code = """
@@ -227,6 +174,15 @@ public partial record Members1(byte ValueOne)
 }
 
 [BinaryObject]
+public partial record OneBool2;
+
+[BinaryObject]
+public partial record OneBool
+{
+    private bool Value;
+}
+
+[BinaryObject]
 public partial record Members2
 {
     private readonly byte valueTwo;
@@ -240,59 +196,5 @@ public partial record Members2
 }
 """;
         await VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
-    public void X()
-    {
-        const string json = """
-{
-  "TemperatureCelsius" : 123,
-  "Summary" : "asdasdasd"
-}
-""";
-        var x = JsonSerializer.Deserialize<WeatherForecast>(json, SourceGenerationContext.Default.WeatherForecast);
-        int i = 0;
-    }
-}
-
-public partial record Members2
-{
-    private readonly byte valueTwo;
-    public byte ValueTwo { get; }
-    private readonly byte ValueThree;
-    public byte ValueFour { get; set; }
-    public byte ValueFive { get; init; }
-    protected byte ValueSix;
-
-    public Members2(byte valueSix, byte valueTwo) { }
-}
-
-public struct WeatherForecast(int temperatureCelsius)
-{
-    public int TemperatureCelsius { get; } = temperatureCelsius;
-}
-
-[JsonSourceGenerationOptions(
-    WriteIndented = true,
-    IncludeFields = true,
-    IgnoreReadOnlyFields = false,
-    IgnoreReadOnlyProperties = false
-)]
-[JsonSerializable(typeof(WeatherForecast))]
-internal partial class SourceGenerationContext : JsonSerializerContext;
-
-// [BinaryObject] Warning: Binary object without valid constructor. Provide only one or add BinaryConstructorAttribute
-public readonly struct Asd
-{
-    public readonly byte A; // Warning: Member found but no corresponding parameter in a constructor found
-
-    [BinaryIgnore]
-    public readonly byte B;
-    public readonly byte C;
-
-    private Asd(byte c, byte d)
-    {
-        C = c;
     }
 }

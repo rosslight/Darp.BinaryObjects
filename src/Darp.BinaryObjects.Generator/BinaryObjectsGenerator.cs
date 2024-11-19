@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+#pragma warning disable CA1031 // Do not catch general exception types - allow for source generator to avoid have it crashing on unexpected behavior
+
 internal readonly record struct BinaryObjectStruct(
     ImmutableEquatableArray<DiagnosticData> Diagnostics,
     string? Code,
@@ -59,33 +61,46 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
             .Select(
                 static (info, _) =>
                 {
-                    if (!TryParseType(info.Symbol, out Aaa a))
+                    try
                     {
-                        return new BinaryObjectStruct(
-                            a.Diagnostics.ToImmutableEquatableArray(),
-                            null,
-                            ImmutableEquatableArray<UtilityData>.Empty
-                        );
-                    }
-                    if (!TryEmit(info, a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
-                    {
+                        if (!TryParseType(info.Symbol, out Aaa a))
+                        {
+                            return new BinaryObjectStruct(
+                                a.Diagnostics.ToImmutableEquatableArray(),
+                                null,
+                                ImmutableEquatableArray<UtilityData>.Empty
+                            );
+                        }
+
+                        if (!TryEmit(info, a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
+                        {
+                            return new BinaryObjectStruct(
+                                aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
+                                null,
+                                ImmutableEquatableArray<UtilityData>.Empty
+                            );
+                        }
+
+                        var utilities = a
+                            .MemberGroups.SelectMembers()
+                            .Select(x => new UtilityData(x.CollectionKind, x.TypeKind))
+                            .Distinct()
+                            .ToImmutableEquatableArray();
                         return new BinaryObjectStruct(
                             aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
-                            null,
-                            ImmutableEquatableArray<UtilityData>.Empty
+                            aaa.Code,
+                            utilities
                         );
                     }
-
-                    var utilities = a
-                        .MemberGroups.SelectMembers()
-                        .Select(x => new UtilityData(x.CollectionKind, x.TypeKind))
-                        .Distinct()
-                        .ToImmutableEquatableArray();
-                    return new BinaryObjectStruct(
-                        aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
-                        aaa.Code,
-                        utilities
-                    );
+                    catch (Exception e)
+                    {
+                        var diagnostic = DiagnosticData.Create(
+                            DiagnosticDescriptors.GeneralError,
+                            info.Symbol.GetSourceLocation(),
+                            [e.Message]
+                        );
+                        return new BinaryObjectStruct([diagnostic], null, ImmutableEquatableArray<UtilityData>.Empty);
+                    }
                 }
             )
             .Collect();
@@ -118,11 +133,13 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
 
         foreach (BinaryObjectStruct info in infos)
         {
+            if (info.Code is null)
+                continue;
             writer.Write(info.Code);
             writer.WriteEmptyLine();
         }
 
-        IEnumerable<UtilityData> requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct();
+        var requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct().ToImmutableArray();
         EmitUtilityClass(writer, requestedUtilities);
 
         spc.AddSource(GeneratedFileName, SourceText.From(sw.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
