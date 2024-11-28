@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 internal enum WellKnownCollectionKind
 {
     None,
+    Span,
     Memory,
     Array,
     List,
