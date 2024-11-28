@@ -126,23 +126,31 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
             return;
         }
 
-        var sw = new StringWriter();
-        using var writer = new IndentedTextWriter(sw);
-
-        EmitFileHeader(writer);
-
-        foreach (BinaryObjectStruct info in infos)
+        try
         {
-            if (info.Code is null)
-                continue;
-            writer.Write(info.Code);
-            writer.WriteEmptyLine();
+            var sw = new StringWriter();
+            using var writer = new IndentedTextWriter(sw);
+
+            EmitFileHeader(writer);
+
+            foreach (BinaryObjectStruct info in infos)
+            {
+                if (info.Code is null)
+                    continue;
+                writer.Write(info.Code);
+                writer.WriteEmptyLine();
+            }
+
+            var requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct().ToImmutableArray();
+            EmitUtilityClass(writer, requestedUtilities);
+
+            spc.AddSource(GeneratedFileName, SourceText.From(sw.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
         }
-
-        var requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct().ToImmutableArray();
-        EmitUtilityClass(writer, requestedUtilities);
-
-        spc.AddSource(GeneratedFileName, SourceText.From(sw.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
+        catch (Exception e)
+        {
+            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.GeneralError, null, e.Message);
+            spc.ReportDiagnostic(diagnostic);
+        }
     }
 
     private static TargetTypeInfo GetTypeInfo(

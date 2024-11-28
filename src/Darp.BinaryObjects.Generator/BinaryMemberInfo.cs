@@ -320,31 +320,19 @@ partial class BinaryObjectsGenerator
     {
         var typeName = GetWellKnownName(typeKind);
         var prefix = isRead ? "Read" : "Write";
-        var endianness = isLittleEndian ? "LittleEndian" : "BigEndian";
-        return (isRead, collectionKind, typeKind) switch
+        var endianness = (typeKind, isLittleEndian) switch
         {
-            (
-                _,
-                WellKnownCollectionKind.None,
-                WellKnownTypeKind.Bool
-                    or WellKnownTypeKind.SByte
-                    or WellKnownTypeKind.Byte
-            ) => $"{prefix}{typeName}",
-            (_, WellKnownCollectionKind.None, _) => $"{prefix}{typeName}{endianness}",
-            (
-                false,
-                WellKnownCollectionKind.Span
-                    or WellKnownCollectionKind.Memory
-                    or WellKnownCollectionKind.Array,
-                WellKnownTypeKind.Byte
-            ) => $"{prefix}{typeName}Span",
-            (
-                true,
-                WellKnownCollectionKind.Span
-                    or WellKnownCollectionKind.Memory
-                    or WellKnownCollectionKind.Array,
-                WellKnownTypeKind.Byte
-            ) => $"{prefix}{typeName}Array",
+            (WellKnownTypeKind.Bool or WellKnownTypeKind.SByte or WellKnownTypeKind.Byte, _) => "",
+            (_, true) => "LittleEndian",
+            (_, false) => "BigEndian",
+        };
+        return (isRead, collectionKind) switch
+        {
+            (_, WellKnownCollectionKind.None) => $"{prefix}{typeName}{endianness}",
+            (false, WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array) =>
+                $"{prefix}{typeName}Span{endianness}",
+            (true, WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array) =>
+                $"{prefix}{typeName}Array{endianness}",
             _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
         };
     }
