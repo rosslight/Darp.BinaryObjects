@@ -268,7 +268,7 @@ partial class BinaryObjectsGenerator
                         if (pair is { Key: "memberWithLength", Value.Value: string memberName })
                         {
                             IMember? previousMember = previousMembers.FirstOrDefault(x =>
-                                x.TypeSymbol.Name.Equals(memberName, StringComparison.Ordinal)
+                                x.MemberSymbol.Name.Equals(memberName, StringComparison.Ordinal)
                             );
                             if (previousMember is null)
                             {
@@ -292,6 +292,7 @@ partial class BinaryObjectsGenerator
                                 return false;
                             }
                             arrayLengthMember = previousMember;
+                            arrayMinLength = 0;
                         }
                         else if (pair is { Key: "length", Value.Value: int lengthValue })
                         {
@@ -331,7 +332,7 @@ partial class BinaryObjectsGenerator
                 TypeByteLength = length,
                 ArrayTypeSymbol = arrayTypeSymbol,
                 ArrayMinLength = arrayMinLength.Value,
-                ArrayLengthMemberName = arrayLengthMember.TypeSymbol.Name,
+                ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
             },
             (not WellKnownCollectionKind.None, not null, _, _) => new ConstantArrayMember
             {

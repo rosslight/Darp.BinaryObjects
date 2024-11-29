@@ -89,7 +89,7 @@ partial class BinaryObjectsGenerator
         var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var variableLength = string.Join(
             " + ",
-            memberGroups.OfType<IGroup>().Select(x => x.GetVariableDocCommentLength())
+            memberGroups.OfType<IGroup>().Select(x => x.GetVariableDocCommentLength()).Where(x => x is not null)
         );
         var summedLength = string.IsNullOrEmpty(variableLength)
             ? $"{summedConstantLength}"
@@ -124,10 +124,12 @@ partial class BinaryObjectsGenerator
         var summedLength = string.IsNullOrEmpty(variableLength)
             ? $"{constantLength}"
             : string.Join(" + ", constantLength, variableLength);
+        writer.WriteLine("/// <inheritdoc />");
+        var isPure = memberGroups.SelectMembers().All(x => x is IConstantMember);
+        if (isPure)
+            writer.WriteLine("[global::System.Diagnostics.Contracts.Pure]");
         writer.WriteMultiLine(
             $"""
-/// <inheritdoc />
-[global::System.Diagnostics.Contracts.Pure]
 [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 {RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}
 public int GetByteCount() => {summedLength};
@@ -177,8 +179,12 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
             }
             else if (memberInfoGroup is IVariableMemberGroup variableGroup)
             {
-                writer.WriteLine("");
-                //currentByteIndex += variableGroup.ComputeLength();
+                if (!variableGroup.TryGetWriteString(littleEndian, currentByteIndex, out var writeString))
+                {
+                    continue;
+                }
+                writer.WriteMultiLine(writeString);
+                writer.WriteEmptyLine();
             }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
@@ -266,7 +272,15 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 writer.WriteLine($"bytesRead += {bytesReadVariable};");
                 writer.WriteEmptyLine();
             }
-            else if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo) { }
+            else if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo)
+            {
+                if (!arrayMemberInfo.TryGetReadString(littleEndian, currentByteIndex, out var readString))
+                {
+                    continue;
+                }
+                writer.WriteMultiLine(readString);
+                writer.WriteEmptyLine();
+            }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
                 // Ensure length of source

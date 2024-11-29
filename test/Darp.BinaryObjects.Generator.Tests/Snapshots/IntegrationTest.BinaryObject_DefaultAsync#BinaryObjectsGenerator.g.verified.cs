@@ -94,7 +94,6 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBinaryObject>
 {
     /// <inheritdoc />
-    [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 0 + this.Value.GetByteCount();
@@ -108,7 +107,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
     {
         bytesWritten = 0;
 
-        if (!this.Value.TryWriteLittleEndian(destination[0..], out ___bytesWrittenValue))
+        if (!this.Value.TryWriteLittleEndian(destination[0..], out var ___bytesWrittenValue))
             return false;
         bytesWritten += ___bytesWrittenValue;
 
@@ -123,7 +122,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
     {
         bytesWritten = 0;
 
-        if (!this.Value.TryWriteBigEndian(destination[0..], out ___bytesWrittenValue))
+        if (!this.Value.TryWriteBigEndian(destination[0..], out var ___bytesWrittenValue))
             return false;
         bytesWritten += ___bytesWrittenValue;
 
@@ -140,7 +139,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
         bytesRead = 0;
         value = default;
 
-        if (!OneBool.TryReadLittleEndian(source[0..], out var ___readValue, out ___bytesReadValue))
+        if (!OneBool.TryReadLittleEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
             return false;
         bytesRead += ___bytesReadValue;
 
@@ -157,7 +156,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
         bytesRead = 0;
         value = default;
 
-        if (!OneBool.TryReadBigEndian(source[0..], out var ___readValue, out ___bytesReadValue))
+        if (!OneBool.TryReadBigEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
             return false;
         bytesRead += ___bytesReadValue;
 

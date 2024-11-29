@@ -1,13 +1,10 @@
 namespace Darp.BinaryObjects.Tests.Generated;
 
-using System.Buffers.Binary;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using FluentAssertions;
 
+[BinaryObject]
 public sealed partial record MemoryMemberLengthSize(
-    [property: BinaryLength(2)] int Length,
+    [property: BinaryLength(2)] ushort Length,
     [property: BinaryElementCount("Length")] ReadOnlyMemory<byte> Value
 );
 
@@ -54,10 +51,10 @@ public class MemoryMemberLengthSizeTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("00")]
-    [InlineData("0100")]
-    public void TryRead_BadInputShouldBeValid(string hexString)
+    [InlineData("", 0)]
+    [InlineData("00", 0)]
+    [InlineData("0100", 2)]
+    public void TryRead_BadInputShouldBeValid(string hexString, int expectedBytesRead)
     {
         var buffer = Convert.FromHexString(hexString);
 
@@ -82,12 +79,12 @@ public class MemoryMemberLengthSizeTests
         valueLE2.Should().BeNull();
         valueBE1.Should().BeNull();
         valueBE2.Should().BeNull();
-        consumedLE.Should().Be(0);
-        consumedBE.Should().Be(0);
+        consumedLE.Should().Be(expectedBytesRead);
+        consumedBE.Should().Be(expectedBytesRead);
     }
 
     [Theory]
-    [InlineData(1, "", 3, 2, "010000", "000100")]
+    [InlineData(1, "", 3, 3, "010000", "000100")]
     [InlineData(1, "01", 3, 3, "010001", "000101")]
     [InlineData(3, "030201", 5, 5, "0300030201", "0003030201")]
     [InlineData(3, "0102030405", 5, 5, "0300010203", "0003010203")]
@@ -105,7 +102,7 @@ public class MemoryMemberLengthSizeTests
         var bufferBE = new byte[bufferSize];
         var expectedHexBytesLE = Convert.FromHexString(expectedHexStringLE);
         var expectedHexBytesBE = Convert.FromHexString(expectedHexStringBE);
-        var writable = new MemoryMemberLengthSize(length, Convert.FromHexString(valueHexString));
+        var writable = new MemoryMemberLengthSize((ushort)length, Convert.FromHexString(valueHexString));
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
@@ -124,21 +121,24 @@ public class MemoryMemberLengthSizeTests
     }
 
     [Theory]
-    [InlineData(1, "", 0, "")]
-    [InlineData(1, "", 2, "0000")]
-    [InlineData(1, "00", 1, "00")]
-    [InlineData(3, "0102", 3, "000000")]
+    [InlineData(1, "", 0, "", "", 0)]
+    [InlineData(1, "", 2, "0100", "0001", 2)]
+    [InlineData(1, "00", 1, "00", "00", 0)]
+    [InlineData(3, "0102", 3, "030000", "000300", 2)]
     public void TryWrite_BadInputShouldBeValid(
         int length,
         string valueHexString,
         int bufferSize,
-        string expectedHexString
+        string expectedLEHexString,
+        string expectedBEHexString,
+        int expectedBytesWritten
     )
     {
         var bufferLE = new byte[bufferSize];
         var bufferBE = new byte[bufferSize];
-        var expectedHexBytes = Convert.FromHexString(expectedHexString);
-        var writable = new MemoryMemberLengthSize(length, Convert.FromHexString(valueHexString));
+        var expectedLEHexBytes = Convert.FromHexString(expectedLEHexString);
+        var expectedBEHexBytes = Convert.FromHexString(expectedBEHexString);
+        var writable = new MemoryMemberLengthSize((ushort)length, Convert.FromHexString(valueHexString));
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
@@ -149,117 +149,9 @@ public class MemoryMemberLengthSizeTests
         successLE2.Should().BeFalse();
         successBE1.Should().BeFalse();
         successBE2.Should().BeFalse();
-        bufferLE.Should().BeEquivalentTo(expectedHexBytes);
-        bufferBE.Should().BeEquivalentTo(expectedHexBytes);
-        writtenLE.Should().Be(0);
-        writtenBE.Should().Be(0);
+        bufferLE.Should().BeEquivalentTo(expectedLEHexBytes);
+        bufferBE.Should().BeEquivalentTo(expectedBEHexBytes);
+        writtenLE.Should().Be(expectedBytesWritten);
+        writtenBE.Should().Be(expectedBytesWritten);
     }
-}
-
-/// <remarks> <list type="table">
-/// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Length"/></term> <description>2</description> </item>
-/// <item> <term><see cref="Value"/></term> <description>1 * <see cref="Length"/></description> </item>
-/// <item> <term> --- </term> <description>2 + <see cref="Length"/></description> </item>
-/// </list> </remarks>
-public sealed partial record MemoryMemberLengthSize : IWritable, ISpanReadable<MemoryMemberLengthSize>
-{
-    /// <inheritdoc />
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetByteCount() => 2 + Length;
-
-    private bool TryWrite(Span<byte> destination, out int bytesWritten, bool writeLittleEndian)
-    {
-        if (destination.Length < GetByteCount())
-        {
-            bytesWritten = 0;
-            return false;
-        }
-
-        if (BitConverter.IsLittleEndian != writeLittleEndian)
-        {
-            MemoryMarshal.Write(destination, BinaryPrimitives.ReverseEndianness((ushort)Length));
-        }
-        else
-        {
-            MemoryMarshal.Write(destination, (ushort)Length);
-        }
-
-        var valueLength = Math.Min(Value.Length, Length);
-        Value.Span.Slice(0, valueLength).CopyTo(destination[2..]);
-        bytesWritten = 2 + valueLength;
-        return true;
-    }
-
-    /// <inheritdoc />
-    public bool TryWriteLittleEndian(Span<byte> destination) => TryWrite(destination, out _, true);
-
-    /// <inheritdoc />
-    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) =>
-        TryWrite(destination, out bytesWritten, true);
-
-    /// <inheritdoc />
-    public bool TryWriteBigEndian(Span<byte> destination) => TryWrite(destination, out _, false);
-
-    /// <inheritdoc />
-    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
-        TryWrite(destination, out bytesWritten, false);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryRead(
-        ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out MemoryMemberLengthSize? value,
-        out int bytesRead,
-        bool readLittleEndian
-    )
-    {
-        if (source.Length < 2)
-        {
-            value = default;
-            bytesRead = 0;
-            return false;
-        }
-
-        var readLength = MemoryMarshal.Read<ushort>(source);
-        if (BitConverter.IsLittleEndian != readLittleEndian)
-        {
-            readLength = BinaryPrimitives.ReverseEndianness(readLength);
-        }
-        if (source.Length - 2 < readLength)
-        {
-            value = default;
-            bytesRead = 0;
-            return false;
-        }
-        var readValue = source.Slice(2, readLength).ToArray();
-        value = new MemoryMemberLengthSize(readLength, readValue);
-        bytesRead = 2 + readLength;
-        return true;
-    }
-
-    /// <inheritdoc />
-    public static bool TryReadLittleEndian(
-        ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out MemoryMemberLengthSize? value
-    ) => TryRead(source, out value, out _, true);
-
-    /// <inheritdoc />
-    public static bool TryReadLittleEndian(
-        ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out MemoryMemberLengthSize? value,
-        out int bytesRead
-    ) => TryRead(source, out value, out bytesRead, true);
-
-    /// <inheritdoc />
-    public static bool TryReadBigEndian(
-        ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out MemoryMemberLengthSize? value
-    ) => TryRead(source, out value, out _, false);
-
-    /// <inheritdoc />
-    public static bool TryReadBigEndian(
-        ReadOnlySpan<byte> source,
-        [NotNullWhen(true)] out MemoryMemberLengthSize? value,
-        out int bytesRead
-    ) => TryRead(source, out value, out bytesRead, false);
 }
