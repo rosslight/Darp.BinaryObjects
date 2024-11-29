@@ -115,7 +115,7 @@ internal static class BuilderHelper
         List<IConstantMember>? list = null;
         foreach (IMember member in enumerable)
         {
-            if (member is IVariableMemberGroup groupInfo)
+            if (member is IGroup groupInfo)
             {
                 if (list is not null)
                 {

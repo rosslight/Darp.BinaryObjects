@@ -240,7 +240,8 @@ partial class BinaryObjectsGenerator
         )
             typeSymbol = underlyingTypeSymbol;
         WellKnownTypeKind typeKind = GetWellKnownTypeKind(typeSymbol);
-        if (!typeKind.TryGetLength(out var length))
+        var length = 0;
+        if (typeKind is not WellKnownTypeKind.BinaryObject && !typeKind.TryGetLength(out length))
         {
             var diagnostic = DiagnosticData.Create(
                 descriptor: DiagnosticDescriptors.MemberTypeNotSupported,
@@ -249,7 +250,6 @@ partial class BinaryObjectsGenerator
             diagnostics.Add(diagnostic);
             return false;
         }
-
         int? arrayMinLength = null;
         IMember? arrayLengthMember = null;
         int? arrayLength = null;
@@ -315,6 +315,11 @@ partial class BinaryObjectsGenerator
             }
         }
 
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+        {
+            info = new BinaryObjectMemberGroup { MemberSymbol = symbol, TypeSymbol = typeSymbol };
+            return true;
+        }
         info = (arrayKind: collectionKind, arrayLength, arrayMinLength, arrayLengthMember) switch
         {
             (not WellKnownCollectionKind.None, _, not null, not null) => new VariableArrayMemberGroup

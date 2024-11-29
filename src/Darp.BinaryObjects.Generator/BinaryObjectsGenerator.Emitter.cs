@@ -89,7 +89,7 @@ partial class BinaryObjectsGenerator
         var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var variableLength = string.Join(
             " + ",
-            memberGroups.OfType<IVariableMemberGroup>().Select(x => x.GetVariableDocCommentLength())
+            memberGroups.OfType<IGroup>().Select(x => x.GetVariableDocCommentLength())
         );
         var summedLength = string.IsNullOrEmpty(variableLength)
             ? $"{summedConstantLength}"
@@ -118,12 +118,12 @@ partial class BinaryObjectsGenerator
     {
         var constantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var variableLength = string.Join(
-            "+",
-            memberGroups.OfType<IVariableMemberGroup>().Select(x => x.GetVariableByteLength())
+            " + ",
+            memberGroups.Select(x => x.GetVariableByteLength()).Where(x => x is not null)
         );
         var summedLength = string.IsNullOrEmpty(variableLength)
             ? $"{constantLength}"
-            : string.Join("+", constantLength, variableLength);
+            : string.Join(" + ", constantLength, variableLength);
         writer.WriteMultiLine(
             $"""
 /// <inheritdoc />
@@ -162,20 +162,33 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
         var currentByteIndex = 0;
         foreach (IGroup memberInfoGroup in memberGroups)
         {
-            // Ensure length of destination
-            var offsetString = currentByteIndex > 0 ? "- bytesWritten " : "";
-            var summedLength = memberInfoGroup.GetLengthCodeString();
-            writer.WriteLine($"if (destination.Length {offsetString}< {summedLength})");
-            writer.Indent++;
-            writer.WriteLine("return false;");
-            writer.Indent--;
-            if (memberInfoGroup is IVariableMemberGroup variableGroup)
+            if (memberInfoGroup is BinaryObjectMemberGroup binaryObjectsGroup)
+            {
+                var endianness = littleEndian ? "LittleEndian" : "BigEndian";
+                var bytesWrittenVariable = $"{Prefix}bytesWritten{binaryObjectsGroup.MemberSymbol.Name}";
+                writer.WriteLine(
+                    $"if (!this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out {bytesWrittenVariable}))"
+                );
+                writer.Indent++;
+                writer.WriteLine("return false;");
+                writer.Indent--;
+                writer.WriteLine($"bytesWritten += {bytesWrittenVariable};");
+                writer.WriteEmptyLine();
+            }
+            else if (memberInfoGroup is IVariableMemberGroup variableGroup)
             {
                 writer.WriteLine("");
                 //currentByteIndex += variableGroup.ComputeLength();
             }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
+                // Ensure length of destination
+                var offsetString = currentByteIndex > 0 ? "- bytesWritten " : "";
+                var summedLength = memberInfoGroup.GetLengthCodeString();
+                writer.WriteLine($"if (destination.Length {offsetString}< {summedLength})");
+                writer.Indent++;
+                writer.WriteLine("return false;");
+                writer.Indent--;
                 foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
                     if (
@@ -192,9 +205,9 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesWritten;
                 }
+                writer.WriteLine($"bytesWritten += {currentByteIndex};");
+                writer.WriteEmptyLine();
             }
-            writer.WriteLine($"bytesWritten += {currentByteIndex};");
-            writer.WriteEmptyLine();
         }
 
         // The end of the method
@@ -239,16 +252,29 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
         var currentByteIndex = 0;
         foreach (IGroup memberInfoGroup in memberGroups)
         {
-            // Ensure length of source
-            var summedLength = memberInfoGroup.GetLengthCodeString();
-            writer.WriteLine($"if (source.Length < {summedLength})");
-            writer.Indent++;
-            writer.WriteLine("return false;");
-            writer.Indent--;
-
-            if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo) { }
+            if (memberInfoGroup is BinaryObjectMemberGroup binaryObjectsGroup)
+            {
+                var endianness = littleEndian ? "LittleEndian" : "BigEndian";
+                var variableName = $"{Prefix}read{binaryObjectsGroup.MemberSymbol.Name}";
+                var bytesReadVariable = $"{Prefix}bytesRead{binaryObjectsGroup.MemberSymbol.Name}";
+                writer.WriteLine(
+                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[0..], out var {variableName}, out {bytesReadVariable}))"
+                );
+                writer.Indent++;
+                writer.WriteLine("return false;");
+                writer.Indent--;
+                writer.WriteLine($"bytesRead += {bytesReadVariable};");
+                writer.WriteEmptyLine();
+            }
+            else if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo) { }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
+                // Ensure length of source
+                var summedLength = memberInfoGroup.GetLengthCodeString();
+                writer.WriteLine($"if (source.Length < {summedLength})");
+                writer.Indent++;
+                writer.WriteLine("return false;");
+                writer.Indent--;
                 foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
                     if (
@@ -265,13 +291,12 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesRead;
                 }
+                if (constantGroup.Members.Count > 0)
+                {
+                    writer.WriteLine($"bytesRead += {currentByteIndex};");
+                    writer.WriteEmptyLine();
+                }
             }
-        }
-
-        if (memberGroups.Length > 0)
-        {
-            writer.WriteLine($"bytesRead += {currentByteIndex};");
-            writer.WriteEmptyLine();
         }
 
         // Method end

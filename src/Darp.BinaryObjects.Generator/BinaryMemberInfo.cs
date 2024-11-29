@@ -19,6 +19,8 @@ internal interface IGroup
 {
     public int ConstantByteLength { get; }
     public string GetLengthCodeString();
+    public string? GetVariableByteLength();
+    public string? GetVariableDocCommentLength();
 }
 
 internal interface IConstantMember : IMember
@@ -45,6 +47,10 @@ internal sealed class ConstantBinaryMemberGroup(IReadOnlyList<IConstantMember> m
     public int ConstantByteLength { get; } = members.Sum(x => x.ConstantByteLength);
 
     public string GetLengthCodeString() => $"{ConstantByteLength}";
+
+    public string? GetVariableByteLength() => null;
+
+    public string? GetVariableDocCommentLength() => null;
 }
 
 internal sealed class ConstantPrimitiveMember : IConstantMember
@@ -141,8 +147,6 @@ internal interface IVariableMemberGroup : IMember, IGroup
 {
     public new int ConstantByteLength { get; }
     public int TypeByteLength { get; }
-    public string GetVariableByteLength();
-    public string GetVariableDocCommentLength();
 }
 
 internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
@@ -173,10 +177,36 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public string GetLengthCodeString() => $"{TypeByteLength} * this.{ArrayLengthMemberName}";
 }
 
+internal sealed class BinaryObjectMemberGroup : IMember, IGroup
+{
+    public required ISymbol MemberSymbol { get; init; }
+    public required ITypeSymbol TypeSymbol { get; init; }
+
+    public WellKnownCollectionKind CollectionKind => WellKnownCollectionKind.None;
+    public WellKnownTypeKind TypeKind => WellKnownTypeKind.BinaryObject;
+    public int ConstantByteLength => 0;
+
+    public string GetLengthCodeString() => $"this.{TypeSymbol.ToDisplayString()}.GetByteCount()";
+
+    public string? GetVariableByteLength() => $"this.{MemberSymbol.Name}.GetByteCount()";
+
+    public string? GetVariableDocCommentLength() => $"""<see cref="{TypeSymbol.ToDisplayString()}.GetByteCount()"/>""";
+
+    public string GetDocCommentLength() => $"""<see cref="{TypeSymbol.ToDisplayString()}.GetByteCount()"/>""";
+}
+
 partial class BinaryObjectsGenerator
 {
     internal static WellKnownTypeKind GetWellKnownTypeKind(ITypeSymbol symbol)
     {
+        if (
+            symbol
+                .GetAttributes()
+                .Any(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryObjectAttribute")
+        )
+        {
+            return WellKnownTypeKind.BinaryObject;
+        }
         return symbol.ToDisplayString() switch
         {
             "bool" => WellKnownTypeKind.Bool,
@@ -303,6 +333,8 @@ partial class BinaryObjectsGenerator
 
     internal static UtilityData[] GetWriteUtilities(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)
     {
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+            return [];
         var emitLittleAndBigEndianMethods =
             typeKind is not WellKnownTypeKind.Bool and not WellKnownTypeKind.SByte and not WellKnownTypeKind.Byte;
         return collectionKind switch

@@ -23,5 +23,8 @@ int i = 0;
 namespace Test.Asd
 {
     [BinaryObject]
-    public sealed partial record ArrayByteFixedSize([property: BinaryElementCount(2)] byte[] Value);
+    public sealed partial record ArrayByteFixedSize(
+        [property: BinaryElementCount(2)] ushort[] Value,
+        [property: BinaryElementCount(2)] ulong[] Value2
+    );
 }
