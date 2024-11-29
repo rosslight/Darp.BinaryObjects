@@ -78,25 +78,27 @@ internal static class BuilderHelper
             _ => false,
         };
 
-    public static bool TryGetLength(this ITypeSymbol symbol, out int length)
+    public static int GetLength(this WellKnownTypeKind typeKind) =>
+        typeKind.TryGetLength(out var length) ? length : throw new ArgumentOutOfRangeException(nameof(typeKind));
+
+    public static bool TryGetLength(this WellKnownTypeKind typeKind, out int length)
     {
-        int? primitiveLength = symbol.ToDisplayString() switch
+        int? primitiveLength = typeKind switch
         {
-            "bool" => 1,
-            "byte" => 1,
-            "sbyte" => 1,
-            "ushort" => 2,
-            "short" => 2,
-            "System.Half" => 2,
-            "uint" => 4,
-            "int" => 4,
-            "float" => 4,
-            "ulong" => 8,
-            "long" => 8,
-            "double" => 8,
-            "System.UInt128" => 16,
-            "System.Int128" => 16,
-            "decimal" => 16,
+            WellKnownTypeKind.Bool => 1,
+            WellKnownTypeKind.Byte => 1,
+            WellKnownTypeKind.SByte => 1,
+            WellKnownTypeKind.UShort => 2,
+            WellKnownTypeKind.Short => 2,
+            WellKnownTypeKind.Half => 2,
+            WellKnownTypeKind.UInt => 4,
+            WellKnownTypeKind.Int => 4,
+            WellKnownTypeKind.Float => 4,
+            WellKnownTypeKind.ULong => 8,
+            WellKnownTypeKind.Long => 8,
+            WellKnownTypeKind.Double => 8,
+            WellKnownTypeKind.UInt128 => 16,
+            WellKnownTypeKind.Int128 => 16,
             _ => null,
         };
         if (primitiveLength is not null)

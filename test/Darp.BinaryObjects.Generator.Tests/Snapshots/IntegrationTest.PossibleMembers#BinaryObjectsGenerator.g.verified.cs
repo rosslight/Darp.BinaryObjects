@@ -268,6 +268,7 @@ namespace Darp.BinaryObjects.Generated
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

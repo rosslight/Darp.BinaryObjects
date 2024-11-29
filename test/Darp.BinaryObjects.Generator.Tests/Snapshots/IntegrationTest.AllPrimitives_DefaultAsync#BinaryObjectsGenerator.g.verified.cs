@@ -157,6 +157,7 @@ namespace Darp.BinaryObjects.Generated
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -210,13 +211,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteUInt16BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>ushort</c> from the given source </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadUInt16LittleEndian(source);
         }
-        /// <summary> Reads a <c>ushort</c> from the given source </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16BigEndian(ReadOnlySpan<byte> source)
         {
@@ -234,13 +235,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteInt16BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>short</c> from the given source </summary>
+        /// <summary> Reads a <c>short</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadInt16LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadInt16LittleEndian(source);
         }
-        /// <summary> Reads a <c>short</c> from the given source </summary>
+        /// <summary> Reads a <c>short</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadInt16BigEndian(ReadOnlySpan<byte> source)
         {
@@ -258,13 +259,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteHalfBigEndian(destination, value);
         }
-        /// <summary> Reads a <c>System.Half</c> from the given source </summary>
+        /// <summary> Reads a <c>System.Half</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Half ReadHalfLittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadHalfLittleEndian(source);
         }
-        /// <summary> Reads a <c>System.Half</c> from the given source </summary>
+        /// <summary> Reads a <c>System.Half</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Half ReadHalfBigEndian(ReadOnlySpan<byte> source)
         {
@@ -282,13 +283,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteUInt32BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>uint</c> from the given source </summary>
+        /// <summary> Reads a <c>uint</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadUInt32LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadUInt32LittleEndian(source);
         }
-        /// <summary> Reads a <c>uint</c> from the given source </summary>
+        /// <summary> Reads a <c>uint</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadUInt32BigEndian(ReadOnlySpan<byte> source)
         {
@@ -306,13 +307,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteInt32BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>int</c> from the given source </summary>
+        /// <summary> Reads a <c>int</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadInt32LittleEndian(source);
         }
-        /// <summary> Reads a <c>int</c> from the given source </summary>
+        /// <summary> Reads a <c>int</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32BigEndian(ReadOnlySpan<byte> source)
         {
@@ -330,13 +331,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteSingleBigEndian(destination, value);
         }
-        /// <summary> Reads a <c>float</c> from the given source </summary>
+        /// <summary> Reads a <c>float</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float ReadSingleLittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadSingleLittleEndian(source);
         }
-        /// <summary> Reads a <c>float</c> from the given source </summary>
+        /// <summary> Reads a <c>float</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float ReadSingleBigEndian(ReadOnlySpan<byte> source)
         {
@@ -354,13 +355,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteUInt64BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>ulong</c> from the given source </summary>
+        /// <summary> Reads a <c>ulong</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ReadUInt64LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadUInt64LittleEndian(source);
         }
-        /// <summary> Reads a <c>ulong</c> from the given source </summary>
+        /// <summary> Reads a <c>ulong</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ReadUInt64BigEndian(ReadOnlySpan<byte> source)
         {
@@ -378,13 +379,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteInt64BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>long</c> from the given source </summary>
+        /// <summary> Reads a <c>long</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadInt64LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadInt64LittleEndian(source);
         }
-        /// <summary> Reads a <c>long</c> from the given source </summary>
+        /// <summary> Reads a <c>long</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadInt64BigEndian(ReadOnlySpan<byte> source)
         {
@@ -402,13 +403,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteDoubleBigEndian(destination, value);
         }
-        /// <summary> Reads a <c>double</c> from the given source </summary>
+        /// <summary> Reads a <c>double</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double ReadDoubleLittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadDoubleLittleEndian(source);
         }
-        /// <summary> Reads a <c>double</c> from the given source </summary>
+        /// <summary> Reads a <c>double</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double ReadDoubleBigEndian(ReadOnlySpan<byte> source)
         {
@@ -426,13 +427,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteUInt128BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>System.UInt128</c> from the given source </summary>
+        /// <summary> Reads a <c>System.UInt128</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.UInt128 ReadUInt128LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadUInt128LittleEndian(source);
         }
-        /// <summary> Reads a <c>System.UInt128</c> from the given source </summary>
+        /// <summary> Reads a <c>System.UInt128</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.UInt128 ReadUInt128BigEndian(ReadOnlySpan<byte> source)
         {
@@ -450,13 +451,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteInt128BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>System.Int128</c> from the given source </summary>
+        /// <summary> Reads a <c>System.Int128</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Int128 ReadInt128LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadInt128LittleEndian(source);
         }
-        /// <summary> Reads a <c>System.Int128</c> from the given source </summary>
+        /// <summary> Reads a <c>System.Int128</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Int128 ReadInt128BigEndian(ReadOnlySpan<byte> source)
         {

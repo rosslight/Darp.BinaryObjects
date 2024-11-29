@@ -60,6 +60,21 @@ public sealed partial record AllPrimitives(
     }
 
     [Fact]
+    public async Task BinaryObject_DefaultAsync()
+    {
+        const string code = """
+using Darp.BinaryObjects;
+
+[BinaryObject]
+public sealed partial record OneBool(bool Value);
+
+[BinaryObject]
+public sealed partial record OneBinaryObject(OneBool Value);
+""";
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task ArrayByteFixedSize_DefaultAsync()
     {
         const string code = """

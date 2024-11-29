@@ -41,7 +41,12 @@ internal readonly record struct DiagnosticData(
     }
 }
 
-internal readonly record struct UtilityData(WellKnownCollectionKind CollectionKind, WellKnownTypeKind TypeKind);
+internal readonly record struct UtilityData(
+    bool IsReadUtility,
+    WellKnownCollectionKind CollectionKind,
+    WellKnownTypeKind TypeKind,
+    bool EmitLittleAndBigEndian
+);
 
 [Generator(LanguageNames.CSharp)]
 public partial class BinaryObjectsGenerator : IIncrementalGenerator
@@ -83,7 +88,10 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
 
                         var utilities = a
                             .MemberGroups.SelectMembers()
-                            .Select(x => new UtilityData(x.CollectionKind, x.TypeKind))
+                            .SelectMany(x =>
+                                GetWriteUtilities(x.CollectionKind, x.TypeKind)
+                                    .Concat(GetReadUtilities(x.CollectionKind, x.TypeKind))
+                            )
                             .Distinct()
                             .ToImmutableEquatableArray();
                         return new BinaryObjectStruct(

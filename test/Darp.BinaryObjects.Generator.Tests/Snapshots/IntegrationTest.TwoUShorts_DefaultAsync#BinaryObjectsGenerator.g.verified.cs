@@ -97,6 +97,7 @@ namespace Darp.BinaryObjects.Generated
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -114,13 +115,13 @@ namespace Darp.BinaryObjects.Generated
         {
             BinaryPrimitives.WriteUInt16BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>ushort</c> from the given source </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16LittleEndian(ReadOnlySpan<byte> source)
         {
             return BinaryPrimitives.ReadUInt16LittleEndian(source);
         }
-        /// <summary> Reads a <c>ushort</c> from the given source </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16BigEndian(ReadOnlySpan<byte> source)
         {

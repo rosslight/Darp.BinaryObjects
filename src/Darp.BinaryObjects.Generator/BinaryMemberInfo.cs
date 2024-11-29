@@ -97,7 +97,6 @@ internal sealed class ConstantArrayMember : IConstantMember
     public required ITypeSymbol TypeSymbol { get; init; }
     public required int TypeByteLength { get; init; }
 
-    public required WellKnownCollectionKind WellKnownCollectionKind { get; init; }
     public required int ArrayLength { get; init; }
     public required ITypeSymbol ArrayTypeSymbol { get; init; }
 
@@ -112,32 +111,12 @@ internal sealed class ConstantArrayMember : IConstantMember
         out int bytesWritten
     )
     {
-        (string MethodName, Func<string, string>? Func)? match = (
-            ArrayKind: WellKnownCollectionKind,
-            TypeSymbol.ToDisplayString()
-        ) switch
-        {
-            (WellKnownCollectionKind.Memory, "byte") => ("WriteUInt8Span", s => $"{s}.Span"),
-            (WellKnownCollectionKind.Memory, "ushort") => ($"WriteUInt16Span{isLittleEndian}", s => $"{s}.Span"),
-            (WellKnownCollectionKind.Array, "byte") => ("WriteUInt8Span", null),
-            (WellKnownCollectionKind.Array, "ushort") => ($"WriteUInt16Span{isLittleEndian}", null),
-            (WellKnownCollectionKind.List, "byte") => ("WriteUInt8List", null),
-            (WellKnownCollectionKind.List, "ushort") => ($"WriteUInt16List{isLittleEndian}", null),
-            (WellKnownCollectionKind.Enumerable, "byte") => ("WriteUInt8Enumerable", null),
-            (WellKnownCollectionKind.Enumerable, "ushort") => ($"WriteUInt16Enumerable{isLittleEndian}", null),
-            _ => null,
-        };
-        if (match is null)
-        {
-            writeString = null;
-            bytesWritten = default;
-            return false;
-        }
         var memberName = $"this.{MemberSymbol.Name}";
-        if (match.Value.Func is not null)
-            memberName = match.Value.Func(memberName);
+        if (CollectionKind is WellKnownCollectionKind.Memory)
+            memberName += ".Span";
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
         writeString =
-            $"global::Darp.BinaryObjects.Generated.Utilities.{match.Value.MethodName}(destination[{currentByteIndex}..], {memberName}, {ConstantByteLength / TypeByteLength});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], {memberName}, {ConstantByteLength / TypeByteLength});";
         bytesWritten = ConstantByteLength;
         return true;
     }
@@ -150,30 +129,7 @@ internal sealed class ConstantArrayMember : IConstantMember
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = (ArrayKind: WellKnownCollectionKind, TypeSymbol.ToString()) switch
-        {
-            (
-                WellKnownCollectionKind.Array
-                    or WellKnownCollectionKind.Memory
-                    or WellKnownCollectionKind.Enumerable,
-                "byte"
-            ) => "ReadUInt8Array",
-            (
-                WellKnownCollectionKind.Array
-                    or WellKnownCollectionKind.Memory
-                    or WellKnownCollectionKind.Enumerable,
-                "ushort"
-            ) => $"ReadUInt16Array{isLittleEndian}",
-            (WellKnownCollectionKind.List, "byte") => "ReadUInt8List",
-            (WellKnownCollectionKind.List, "ushort") => $"ReadUInt16List{isLittleEndian}",
-            _ => null,
-        };
-        if (methodName is null)
-        {
-            writeString = null;
-            bytesRead = default;
-            return false;
-        }
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         writeString =
             $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
         bytesRead = ConstantByteLength;
@@ -197,7 +153,6 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public required ITypeSymbol TypeSymbol { get; init; }
     public required int TypeByteLength { get; init; }
 
-    public required WellKnownCollectionKind WellKnownCollectionKind { get; init; }
     public required string ArrayLengthMemberName { get; init; }
     public required int ArrayMinLength { get; init; }
     public required ITypeSymbol ArrayTypeSymbol { get; init; }
@@ -299,40 +254,106 @@ partial class BinaryObjectsGenerator
         };
     }
 
+    private static string GetEndiannessName(WellKnownTypeKind typeKind, bool isLittleEndian)
+    {
+        return (typeKind, isLittleEndian) switch
+        {
+            (WellKnownTypeKind.Bool or WellKnownTypeKind.SByte or WellKnownTypeKind.Byte, _) => string.Empty,
+            (_, true) => "LittleEndian",
+            (_, false) => "BigEndian",
+        };
+    }
+
     internal static string GetWriteMethodName(
-        WellKnownCollectionKind collectionKind,
-        WellKnownTypeKind typeKind,
-        bool isLittleEndian
-    ) => GetMethodName(false, collectionKind, typeKind, isLittleEndian);
-
-    internal static string GetReadMethodName(
-        WellKnownCollectionKind collectionKind,
-        WellKnownTypeKind typeKind,
-        bool isLittleEndian
-    ) => GetMethodName(true, collectionKind, typeKind, isLittleEndian);
-
-    private static string GetMethodName(
-        bool isRead,
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
     {
         var typeName = GetWellKnownName(typeKind);
-        var prefix = isRead ? "Read" : "Write";
-        var endianness = (typeKind, isLittleEndian) switch
+        var endianness = GetEndiannessName(typeKind, isLittleEndian);
+        return collectionKind switch
         {
-            (WellKnownTypeKind.Bool or WellKnownTypeKind.SByte or WellKnownTypeKind.Byte, _) => "",
-            (_, true) => "LittleEndian",
-            (_, false) => "BigEndian",
+            WellKnownCollectionKind.None => $"Write{typeName}{endianness}",
+            WellKnownCollectionKind.List => $"Write{typeName}List{endianness}",
+            WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array =>
+                $"Write{typeName}Span{endianness}",
+            WellKnownCollectionKind.Enumerable => $"Write{typeName}Enumerable{endianness}",
+            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
         };
-        return (isRead, collectionKind) switch
+    }
+
+    internal static string GetReadMethodName(
+        WellKnownCollectionKind collectionKind,
+        WellKnownTypeKind typeKind,
+        bool isLittleEndian
+    )
+    {
+        var typeName = GetWellKnownName(typeKind);
+        var endianness = GetEndiannessName(typeKind, isLittleEndian);
+        return collectionKind switch
         {
-            (_, WellKnownCollectionKind.None) => $"{prefix}{typeName}{endianness}",
-            (false, WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array) =>
-                $"{prefix}{typeName}Span{endianness}",
-            (true, WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array) =>
-                $"{prefix}{typeName}Array{endianness}",
+            WellKnownCollectionKind.None => $"Read{typeName}{endianness}",
+            WellKnownCollectionKind.List => $"Read{typeName}List{endianness}",
+            WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable =>
+                $"Read{typeName}Array{endianness}",
+            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+        };
+    }
+
+    internal static UtilityData[] GetWriteUtilities(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)
+    {
+        var emitLittleAndBigEndianMethods =
+            typeKind is not WellKnownTypeKind.Bool and not WellKnownTypeKind.SByte and not WellKnownTypeKind.Byte;
+        return collectionKind switch
+        {
+            WellKnownCollectionKind.None =>
+            [
+                new UtilityData(false, collectionKind, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array =>
+            [
+                new UtilityData(false, WellKnownCollectionKind.Span, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.List =>
+            [
+                new UtilityData(false, WellKnownCollectionKind.Span, typeKind, emitLittleAndBigEndianMethods),
+                new UtilityData(false, WellKnownCollectionKind.List, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.Enumerable =>
+            [
+                new UtilityData(false, WellKnownCollectionKind.Span, typeKind, emitLittleAndBigEndianMethods),
+                new UtilityData(false, WellKnownCollectionKind.List, typeKind, emitLittleAndBigEndianMethods),
+                new UtilityData(false, WellKnownCollectionKind.Enumerable, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+        };
+    }
+
+    internal static UtilityData[] GetReadUtilities(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)
+    {
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+            return [];
+        var emitLittleAndBigEndianMethods =
+            typeKind is not WellKnownTypeKind.Bool and not WellKnownTypeKind.SByte and not WellKnownTypeKind.Byte;
+        return collectionKind switch
+        {
+            WellKnownCollectionKind.None =>
+            [
+                new UtilityData(true, collectionKind, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.Span =>
+            [
+                new UtilityData(true, WellKnownCollectionKind.Span, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable =>
+            [
+                new UtilityData(true, WellKnownCollectionKind.Array, typeKind, emitLittleAndBigEndianMethods),
+            ],
+            WellKnownCollectionKind.List =>
+            [
+                new UtilityData(true, WellKnownCollectionKind.List, typeKind, emitLittleAndBigEndianMethods),
+            ],
             _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
         };
     }
@@ -341,60 +362,130 @@ partial class BinaryObjectsGenerator
         IndentedTextWriter writer,
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
-        bool isLittleEndian
+        bool emitLittleAndBigEndian
     )
     {
-        switch (collectionKind, typeKind)
+        if (collectionKind is WellKnownCollectionKind.None)
         {
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
-                if (isLittleEndian)
-                    return;
-                EmitWriteAnyValueUtility(
-                    writer,
-                    _ => "destination[0] = value ? (byte)0b1 : (byte)0b0;",
-                    typeKind,
-                    isLittleEndian
-                );
-                break;
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.SByte):
-                if (isLittleEndian)
-                    return;
-                EmitWriteAnyValueUtility(writer, _ => "destination[0] = (byte)value;", typeKind, isLittleEndian);
-                break;
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.Byte):
-                if (isLittleEndian)
-                    return;
-                EmitWriteAnyValueUtility(writer, _ => "destination[0] = value;", typeKind, isLittleEndian);
-                break;
-            case (WellKnownCollectionKind.None, _):
-                EmitWriteAnyValueUtility(
-                    writer,
-                    methodName => $"BinaryPrimitives.{methodName}(destination, value);",
-                    typeKind,
-                    isLittleEndian
-                );
-                break;
-            case (WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array, WellKnownTypeKind.Byte):
-                if (isLittleEndian)
-                    return;
-                EmitWriteAnyCollectionUtility(
-                    writer,
-                    _ =>
-                        """
-var length = Math.Min(value.Length, maxElementLength);
-value.Slice(0, length).CopyTo(destination);
-""",
-                    WellKnownCollectionKind.Span,
-                    typeKind,
-                    isLittleEndian
-                );
-                break;
+            GetWriteMethodBody methodBodyGetter = typeKind switch
+            {
+                WellKnownTypeKind.Bool => (_, _, _) => "destination[0] = value ? (byte)0b1 : (byte)0b0;",
+                WellKnownTypeKind.SByte => (_, _, _) => "destination[0] = (byte)value;",
+                WellKnownTypeKind.Byte => (_, _, _) => "destination[0] = value;",
+                _ => (methodName, _, _) => $"BinaryPrimitives.{methodName}(destination, value);",
+            };
+            if (emitLittleAndBigEndian)
+            {
+                EmitWriteAnyValueUtility(writer, methodBodyGetter, typeKind, true);
+                EmitWriteAnyValueUtility(writer, methodBodyGetter, typeKind, false);
+            }
+            else
+            {
+                EmitWriteAnyValueUtility(writer, methodBodyGetter, typeKind, default);
+            }
+        }
+        else
+        {
+            GetWriteMethodBody methodBodyGetter = (collectionKind, typeKind) switch
+            {
+                (WellKnownCollectionKind.Span, WellKnownTypeKind.Byte) => (_, _, _) =>
+                    """
+                        var length = Math.Min(value.Length, maxElementLength);
+                        value.Slice(0, length).CopyTo(destination);
+                        """,
+                (WellKnownCollectionKind.Span, _) => (_, typeName, isLittleEndian) =>
+                    $$"""
+                        var length = Math.Min(value.Length, maxElementLength);
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            Span<{{typeName}}> reinterpretedDestination = MemoryMarshal.Cast<byte, {{typeName}}>(destination);
+                            BinaryPrimitives.ReverseEndianness(value[..length], reinterpretedDestination);
+                            return;
+                        }
+                        MemoryMarshal.Cast<{{typeName}}, byte>(value[..length]).CopyTo(destination);
+                        """,
+                (WellKnownCollectionKind.List, WellKnownTypeKind.Byte) => (_, _, _) =>
+                    "WriteUInt8Span(destination, CollectionsMarshal.AsSpan(value), maxElementLength);",
+                (WellKnownCollectionKind.List, _) => (_, _, isLittleEndian) =>
+                    $"{GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, isLittleEndian)}(destination, CollectionsMarshal.AsSpan(value), maxElementLength);",
+                (WellKnownCollectionKind.Enumerable, WellKnownTypeKind.Byte) => (_, _, isLittleEndian) =>
+                    $$"""
+                        switch (value)
+                        {
+                            case byte[] arrayValue:
+                                {{GetWriteMethodName(
+                            WellKnownCollectionKind.Span,
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination, arrayValue, maxElementLength);
+                                return;
+                            case List<byte> listValue:
+                                {{GetWriteMethodName(
+                            WellKnownCollectionKind.List,
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination, listValue, maxElementLength);
+                                return;
+                        }
+                        var index = 0;
+                        foreach (var val in value)
+                        {
+                            destination[index++] = val;
+                            if (index >= maxElementLength)
+                                return;
+                        }
+                        """,
+                (WellKnownCollectionKind.Enumerable, _) => (_, typeName, isLittleEndian) =>
+                    $$"""
+                        switch (value)
+                        {
+                            case {{typeName}}[] arrayValue:
+                                {{GetWriteMethodName(
+                            WellKnownCollectionKind.Span,
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination, arrayValue, maxElementLength);
+                                return;
+                            case List<{{typeName}}> listValue:
+                                {{GetWriteMethodName(
+                            WellKnownCollectionKind.List,
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination, listValue, maxElementLength);
+                                return;
+                        }
+                        var index = 0;
+                        foreach (var val in value)
+                        {
+                            BinaryPrimitives.{{GetWriteMethodName(
+                            WellKnownCollectionKind.None,
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination[({{typeKind.GetLength()}} * index++)..], val);
+                            if (index >= maxElementLength)
+                                return;
+                        }
+                        """,
+                _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            };
+            if (emitLittleAndBigEndian)
+            {
+                EmitWriteAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, true);
+                EmitWriteAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, false);
+            }
+            else
+            {
+                EmitWriteAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, default);
+            }
         }
     }
 
+    private delegate string GetWriteMethodBody(string methodName, string typeName, bool isLittleEndian);
+    private delegate string GetReadMethodBody(string methodName, string typeName, bool isLittleEndian);
+
     private static void EmitWriteAnyValueUtility(
         IndentedTextWriter writer,
-        Func<string, string> getter,
+        GetWriteMethodBody getter,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
@@ -408,32 +499,38 @@ value.Slice(0, length).CopyTo(destination);
         writer.WriteLine($"public static void {methodName}(Span<byte> destination, {typeName} value)");
         writer.WriteLine("{");
         writer.Indent++;
-        writer.WriteLine(getter(methodName));
+        writer.WriteLine(getter(methodName, typeName, isLittleEndian));
         writer.Indent--;
         writer.WriteLine("}");
     }
 
     private static void EmitWriteAnyCollectionUtility(
         IndentedTextWriter writer,
-        Func<string, string> getter,
+        GetWriteMethodBody getter,
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
     {
-        var typeName = GetWellKnownDisplayName(collectionKind, typeKind);
+        var collectionName = GetWellKnownDisplayName(collectionKind, typeKind);
+        var typeName = GetWellKnownDisplayName(WellKnownCollectionKind.None, typeKind);
         var methodName = GetWriteMethodName(collectionKind, typeKind, isLittleEndian);
 
+        var endiannessName = GetEndiannessName(typeKind, isLittleEndian);
+        if (!string.IsNullOrEmpty(endiannessName))
+        {
+            endiannessName = $", as {endiannessName}";
+        }
         writer.WriteLine(
-            $"/// <summary> Writes a <c>{HttpUtility.HtmlEncode(typeName)}</c> with a <c>maxElementLength</c> to the destination </summary>"
+            $"/// <summary> Writes a <c>{HttpUtility.HtmlEncode(collectionName)}</c> with a <c>maxElementLength</c> to the destination{endiannessName} </summary>"
         );
         writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
         writer.WriteLine(
-            $"public static void {methodName}(Span<byte> destination, {typeName} value, int maxElementLength)"
+            $"public static void {methodName}(Span<byte> destination, {collectionName} value, int maxElementLength)"
         );
         writer.WriteLine("{");
         writer.Indent++;
-        writer.WriteMultiLine(getter(methodName));
+        writer.WriteMultiLine(getter(methodName, typeName, isLittleEndian));
         writer.Indent--;
         writer.WriteLine("}");
     }
@@ -442,51 +539,87 @@ value.Slice(0, length).CopyTo(destination);
         IndentedTextWriter writer,
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
-        bool isLittleEndian
+        bool emitLittleAndBigEndian
     )
     {
-        switch (collectionKind, typeKind)
+        if (collectionKind is WellKnownCollectionKind.None)
         {
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.Bool):
-                if (isLittleEndian)
-                    return;
-                EmitReadAnyValueUtility(writer, _ => "return source[0] > 0;", typeKind, default);
-                break;
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.SByte):
-                if (isLittleEndian)
-                    return;
-                EmitReadAnyValueUtility(writer, _ => "return (sbyte)source[0];", typeKind, default);
-                break;
-            case (WellKnownCollectionKind.None, WellKnownTypeKind.Byte):
-                if (isLittleEndian)
-                    return;
-                EmitReadAnyValueUtility(writer, _ => "return source[0];", typeKind, default);
-                break;
-            case (WellKnownCollectionKind.None, _):
-                EmitReadAnyValueUtility(
-                    writer,
-                    methodName => $"return BinaryPrimitives.{methodName}(source);",
-                    typeKind,
-                    isLittleEndian
-                );
-                break;
-            case (WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array, _):
-                if (isLittleEndian)
-                    return;
-                EmitReadAnyCollectionUtility(
-                    writer,
-                    _ => "return source.ToArray();",
-                    WellKnownCollectionKind.Array,
-                    typeKind,
-                    isLittleEndian
-                );
-                break;
+            GetReadMethodBody methodBodyGetter = typeKind switch
+            {
+                WellKnownTypeKind.Bool => (_, _, _) => "return source[0] > 0;",
+                WellKnownTypeKind.SByte => (_, _, _) => "return (sbyte)source[0];",
+                WellKnownTypeKind.Byte => (_, _, _) => "return source[0];",
+                _ => (methodName, _, _) => $"return BinaryPrimitives.{methodName}(source);",
+            };
+            if (emitLittleAndBigEndian)
+            {
+                EmitReadAnyValueUtility(writer, methodBodyGetter, typeKind, true);
+                EmitReadAnyValueUtility(writer, methodBodyGetter, typeKind, false);
+            }
+            else
+            {
+                EmitReadAnyValueUtility(writer, methodBodyGetter, typeKind, default);
+            }
+        }
+        else
+        {
+            GetReadMethodBody methodBodyGetter = (collectionKind, typeKind) switch
+            {
+                (WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array, WellKnownTypeKind.Byte) => (
+                    _,
+                    _,
+                    _
+                ) => "return source.ToArray();",
+                (
+                    WellKnownCollectionKind.Memory
+                        or WellKnownCollectionKind.Array
+                        or WellKnownCollectionKind.Enumerable,
+                    _
+                ) => (_, typeName, isLittleEndian) =>
+                    $"""
+                        var array = MemoryMarshal.Cast<byte, {typeName}>(source).ToArray();
+                        if ({CheckForReverseEndianness(isLittleEndian)})
+                            BinaryPrimitives.ReverseEndianness(array, array);
+                        return array;
+                        """,
+                (WellKnownCollectionKind.List, WellKnownTypeKind.Byte) => (_, _, _) =>
+                    """
+                        var list = new List<byte>(source.Length);
+                        list.AddRange(source);
+                        return list;
+                        """,
+                (WellKnownCollectionKind.List, _) => (_, typeName, isLittleEndian) =>
+                    $$"""
+                        ReadOnlySpan<{{typeName}}> span = MemoryMarshal.Cast<byte, {{typeName}}>(source);
+                        var list = new List<{{typeName}}>(span.Length);
+                        list.AddRange(span);
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            Span<{{typeName}}> listSpan = CollectionsMarshal.AsSpan(list);
+                            BinaryPrimitives.ReverseEndianness(span, listSpan);
+                        }
+                        return list;
+                        """,
+                _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            };
+            if (emitLittleAndBigEndian)
+            {
+                EmitReadAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, true);
+                EmitReadAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, false);
+            }
+            else
+            {
+                EmitReadAnyCollectionUtility(writer, methodBodyGetter, collectionKind, typeKind, default);
+            }
         }
     }
 
+    private static string CheckForReverseEndianness(bool isLittleEndian) =>
+        isLittleEndian ? "!BitConverter.IsLittleEndian" : "BitConverter.IsLittleEndian";
+
     private static void EmitReadAnyValueUtility(
         IndentedTextWriter writer,
-        Func<string, string> getter,
+        GetReadMethodBody getter,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
@@ -496,22 +629,29 @@ value.Slice(0, length).CopyTo(destination);
 
     private static void EmitReadAnyCollectionUtility(
         IndentedTextWriter writer,
-        Func<string, string> getter,
+        GetReadMethodBody getter,
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
         bool isLittleEndian
     )
     {
-        var typeName = GetWellKnownDisplayName(collectionKind, typeKind);
+        var collectionName = GetWellKnownDisplayName(collectionKind, typeKind);
+        var typeName = GetWellKnownDisplayName(WellKnownCollectionKind.None, typeKind);
         var methodName = GetReadMethodName(collectionKind, typeKind, isLittleEndian);
+
+        var endiannessName = GetEndiannessName(typeKind, isLittleEndian);
+        if (!string.IsNullOrEmpty(endiannessName))
+        {
+            endiannessName = $", as {endiannessName}";
+        }
         writer.WriteLine(
-            $"/// <summary> Reads a <c>{HttpUtility.HtmlEncode(typeName)}</c> from the given source </summary>"
+            $"/// <summary> Reads a <c>{HttpUtility.HtmlEncode(collectionName)}</c> from the given source{endiannessName} </summary>"
         );
         writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static {typeName} {methodName}(ReadOnlySpan<byte> source)");
+        writer.WriteLine($"public static {collectionName} {methodName}(ReadOnlySpan<byte> source)");
         writer.WriteLine("{");
         writer.Indent++;
-        writer.WriteMultiLine(getter(methodName));
+        writer.WriteMultiLine(getter(methodName, typeName, isLittleEndian));
         writer.Indent--;
         writer.WriteLine("}");
     }
@@ -541,4 +681,5 @@ internal enum WellKnownTypeKind
     Double,
     UInt128,
     Int128,
+    BinaryObject,
 }

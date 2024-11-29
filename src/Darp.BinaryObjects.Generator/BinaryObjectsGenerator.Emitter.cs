@@ -309,6 +309,7 @@ namespace Darp.BinaryObjects.Generated
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     {{RoslynHelper.GetGeneratedVersionAttribute(false)}}
@@ -318,16 +319,22 @@ namespace Darp.BinaryObjects.Generated
         );
         writer.Indent++;
         writer.Indent++;
-        foreach (
-            (WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind) in requestedUtilities
-                .OrderBy(x => x.CollectionKind)
-                .ThenBy(x => x.TypeKind)
-        )
+        foreach (var utilityData in requestedUtilities.OrderBy(x => x.TypeKind).ThenBy(x => x.CollectionKind))
         {
-            EmitWriteUtility(writer, collectionKind, typeKind, true);
-            EmitWriteUtility(writer, collectionKind, typeKind, false);
-            EmitReadUtility(writer, collectionKind, typeKind, true);
-            EmitReadUtility(writer, collectionKind, typeKind, false);
+            (
+                var isReadUtility,
+                WellKnownCollectionKind collectionKind,
+                WellKnownTypeKind typeKind,
+                var emitLittleAndBigEndian
+            ) = utilityData;
+            if (isReadUtility)
+            {
+                EmitReadUtility(writer, collectionKind, typeKind, emitLittleAndBigEndian);
+            }
+            else
+            {
+                EmitWriteUtility(writer, collectionKind, typeKind, emitLittleAndBigEndian);
+            }
         }
         writer.Indent--;
         writer.WriteLine("}");
