@@ -167,7 +167,7 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                 var endianness = littleEndian ? "LittleEndian" : "BigEndian";
                 var bytesWrittenVariable = $"{Prefix}bytesWritten{binaryObjectsGroup.MemberSymbol.Name}";
                 writer.WriteLine(
-                    $"if (!this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out {bytesWrittenVariable}))"
+                    $"if (!this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out var {bytesWrittenVariable}))"
                 );
                 writer.Indent++;
                 writer.WriteLine("return false;");
@@ -258,7 +258,7 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 var variableName = $"{Prefix}read{binaryObjectsGroup.MemberSymbol.Name}";
                 var bytesReadVariable = $"{Prefix}bytesRead{binaryObjectsGroup.MemberSymbol.Name}";
                 writer.WriteLine(
-                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[0..], out var {variableName}, out {bytesReadVariable}))"
+                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[0..], out var {variableName}, out var {bytesReadVariable}))"
                 );
                 writer.Indent++;
                 writer.WriteLine("return false;");
