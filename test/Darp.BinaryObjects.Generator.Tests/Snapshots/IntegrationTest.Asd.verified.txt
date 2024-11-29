@@ -1,0 +1,24 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+{
+    public readonly bool Value;
+                         ^^^^^
+}
+*/
+ : (32,25)-(32,30),
+      Message: Member 'Value' is ignored. Cannot read types with readonly members.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberIgnoredReadonly,
+        MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

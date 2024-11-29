@@ -315,11 +315,21 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
 
         // Method end
         IEnumerable<string> constructorNames = constructorParameters.Select(x => $"{Prefix}read{x.MemberSymbol.Name}");
-        writer.WriteLine($"value = new {symbol.Name}({string.Join(", ", constructorNames)});");
-        foreach (IMember x in memberGroups.SelectMembers().Except(constructorParameters))
+        writer.Write($"value = new {symbol.Name}({string.Join(", ", constructorNames)})");
+        IMember[] objectInitializerMembers = memberGroups.SelectMembers().Except(constructorParameters).ToArray();
+        if (objectInitializerMembers.Length > 0)
         {
-            writer.WriteLine($"value.{x.MemberSymbol.Name} = {Prefix}read{x.MemberSymbol.Name};");
+            writer.WriteLine();
+            writer.WriteLine("{");
+            writer.Indent++;
+            foreach (IMember x in objectInitializerMembers)
+            {
+                writer.WriteLine($"{x.MemberSymbol.Name} = {Prefix}read{x.MemberSymbol.Name},");
+            }
+            writer.Indent--;
+            writer.Write("}");
         }
+        writer.WriteLine(";");
         writer.WriteLine("return true;");
         writer.Indent--;
         writer.WriteLine("}");

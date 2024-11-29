@@ -134,7 +134,7 @@ public sealed partial record OneBool1(bool Value);
 public sealed partial record OneBool2
 {
     public bool Value { get; set; }
-    public bool Value { get; init; }
+    public bool Value2 { get; init; }
 }
 
 [BinaryObject]
@@ -145,12 +145,10 @@ public sealed partial record OneBool3
         Value = value;
         Value3 = value3;
     }
-    public bool Value { get; }
     public bool Value2 { get; init; }
     public readonly bool Value3;
 }
 
-[BinaryObject]
 public sealed partial record OneBool3
 {
     public bool Value;
@@ -161,20 +159,6 @@ public sealed partial record OneBool4
 {
     public readonly bool Value;
 }
-
-[BinaryObject]
-public sealed partial record OneBool4
-{
-    public readonly bool Value;
-}
-
-[BinaryObject]
-public sealed partial record OneBool4
-{
-    public readonly bool Value;
-}
-
-
 """;
         await VerifyBinaryObjectsGenerator(code);
     }
