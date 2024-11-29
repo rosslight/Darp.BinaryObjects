@@ -24,7 +24,9 @@ namespace Test.Asd
 {
     [BinaryObject]
     public sealed partial record ArrayByteFixedSize(
-        [property: BinaryElementCount(2)] ushort[] Value,
-        [property: BinaryElementCount(2)] ulong[] Value2
+        int Asd,
+        [property: BinaryElementCount("Asd")] ushort[] Value,
+        [property: BinaryElementCount(2)] ulong[] Value2,
+        ArrayByteFixedSize Value3
     );
 }
