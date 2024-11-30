@@ -20,6 +20,8 @@ var success4 = value2!.TryWriteLittleEndian(destination: writeBuffer, out int by
 
 int i = 0;
 
+public enum TestEnum : ulong;
+
 namespace Test.Asd
 {
     [BinaryObject]
@@ -27,6 +29,7 @@ namespace Test.Asd
         int Asd,
         [property: BinaryElementCount("Asd")] ushort[] Value,
         [property: BinaryElementCount(2)] ulong[] Value2,
-        ArrayByteFixedSize Value3
+        ArrayByteFixedSize Value3,
+        TestEnum Value4
     );
 }

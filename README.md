@@ -25,7 +25,7 @@ Here is a list of the property types currently supported by the library:
 - [x] Unmanaged types: `bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`
 - [x] BinaryObjects implementing `IWritable` or `IReadable`
 - [ ] Blittable types
-- [ ] Enums
+- [x] Enums
 - [ ] Other .NET types: `BitArray`
 
 For all of these types, it should be possible to define as array types:

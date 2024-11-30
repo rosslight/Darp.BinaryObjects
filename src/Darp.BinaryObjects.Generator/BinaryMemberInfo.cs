@@ -73,8 +73,9 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
     )
     {
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
         writeString =
-            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], this.{MemberSymbol.Name});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], {optionalCast}this.{MemberSymbol.Name});";
         bytesWritten = ConstantByteLength;
         return true;
     }
@@ -88,8 +89,9 @@ internal sealed class ConstantPrimitiveMember : IConstantMember
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeSymbol);
         readString =
-            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..]);";
+            $"var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..]);";
         bytesRead = ConstantByteLength;
         return true;
     }
@@ -117,7 +119,8 @@ internal sealed class ConstantArrayMember : IConstantMember
         out int bytesWritten
     )
     {
-        var memberName = $"this.{MemberSymbol.Name}";
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
+        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -136,8 +139,9 @@ internal sealed class ConstantArrayMember : IConstantMember
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeSymbol);
         readString =
-            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
+            $"var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
         bytesRead = ConstantByteLength;
         return true;
     }
@@ -190,7 +194,8 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     )
     {
         var bytesWrittenOffset = currentByteIndex > 0 ? "bytesWritten + " : "";
-        var memberName = $"this.{MemberSymbol.Name}";
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
+        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -209,10 +214,11 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeSymbol);
         readString = $"""
             if (source.Length < {bytesReadOffset}{lengthVariableName})
                 return false;
-            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source.Slice({currentByteIndex}, {lengthVariableName}));
+            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source.Slice({currentByteIndex}, {lengthVariableName}));
             bytesRead += {lengthVariableName};
             """;
         return true;
@@ -239,6 +245,19 @@ internal sealed class BinaryObjectMemberGroup : IMember, IGroup
 
 partial class BinaryObjectsGenerator
 {
+    internal static string GetOptionalCastToEnum(ITypeSymbol symbol)
+    {
+        return symbol.TypeKind is TypeKind.Enum ? $"({symbol.Name}) " : string.Empty;
+    }
+
+    internal static string GetOptionalCastToUnderlyingEnumValue(ITypeSymbol symbol)
+    {
+        return
+            symbol.TypeKind is TypeKind.Enum && symbol is INamedTypeSymbol { EnumUnderlyingType: not null } namedSymbol
+            ? $"({namedSymbol.EnumUnderlyingType.ToDisplayString()}) "
+            : string.Empty;
+    }
+
     internal static WellKnownTypeKind GetWellKnownTypeKind(ITypeSymbol symbol)
     {
         if (
@@ -248,6 +267,11 @@ partial class BinaryObjectsGenerator
         )
         {
             return WellKnownTypeKind.BinaryObject;
+        }
+
+        if (symbol.TypeKind is TypeKind.Enum && symbol is INamedTypeSymbol { EnumUnderlyingType: not null } namedSymbol)
+        {
+            symbol = namedSymbol.EnumUnderlyingType;
         }
         return symbol.ToDisplayString() switch
         {

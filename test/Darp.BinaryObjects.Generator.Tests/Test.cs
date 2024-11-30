@@ -1,11 +1,8 @@
 namespace Darp.BinaryObjects.Generator.Tests;
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using static VerifyHelper;
 
-public sealed partial class IntegrationTest
+public sealed class IntegrationTest
 {
     [Fact]
     public async Task OneBool_DefaultAsync()
@@ -206,6 +203,24 @@ public partial record Members2
     private Members2(bool valueSix, byte valueTwo, byte valueSeven) { } // Warning1: invalid type bool for valueSix, Warning2: Invalid parameter valueSeven
 }
 """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task OneByteEnum_DefaultAsync()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            public enum DefaultEnum {}
+            public enum ByteEnum : byte {}
+            public enum LongEnum : long {}
+
+            [BinaryObject]
+            public sealed partial record OneByteEnum(DefaultEnum Value1,
+                ByteEnum Value2,
+                LongEnum Value3);
+            """;
         await VerifyBinaryObjectsGenerator(code);
     }
 }
