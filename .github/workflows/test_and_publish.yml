@@ -55,6 +55,7 @@ jobs:
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
         name: Pack and push to nuget.org
         run: |
+          dotnet clean
           dotnet pack src/Darp.BinaryObjects --configuration Release --artifacts-path build
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
