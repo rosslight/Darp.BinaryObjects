@@ -23,7 +23,7 @@ If these requirements do not meet your expectations, check out those other wonde
 Here is a list of the property types currently supported by the library:
 
 - [x] Unmanaged types: `bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`
-- [ ] BinaryObjects implementing `IWritable` or `IReadable`
+- [x] BinaryObjects implementing `IWritable` or `IReadable`
 - [ ] Blittable types
 - [ ] Enums
 - [ ] Other .NET types: `BitArray`

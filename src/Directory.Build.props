@@ -10,7 +10,12 @@
     <Authors>rosslight GmbH</Authors>
     <PackageProjectUrl>https://github.com/rosslight/Darp.BinaryObjects</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/rosslight/Darp.BinaryObjects.git</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/"/>
+  </ItemGroup>
 </Project>

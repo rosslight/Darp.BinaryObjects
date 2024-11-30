@@ -1,7 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 
+    <Title>BinaryObjects</Title>
+    <Description>A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions for binary serialization.</Description>
+    <PackageTags>Darp;Rosslight;BinaryObjects;SourceGenerator;BinarySerialization;Serialization;Deserialization;Endianness;LittleEndian;BigEndian;BinaryObject;BinaryPrimitives</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Darp.BinaryObjects.Generator\bin\$(Configuration)\netstandard2.0\Darp.BinaryObjects.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 </Project>
