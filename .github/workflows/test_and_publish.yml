@@ -46,14 +46,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
+      - name: Set .csproj versions
+        uses: vers-one/dotnet-project-version-updater@v1
+        with:
+          file: "src/**/*.csproj"
+          version: ${{ steps.semantic.outputs.new_release_version }}
+
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
         name: Pack and push to nuget.org
         run: |
-          dotnet build src/Darp.BinaryObjects --configuration Release /p:Version=${{ steps.semantic.outputs.new_release_version }}
-          dotnet build src/Darp.BinaryObjects.Generator --configuration Release /p:Version=${{ steps.semantic.outputs.new_release_version }}
-          dotnet pack src/Darp.BinaryObjects --no-build --artifacts-path build /p:Version=${{ steps.semantic.outputs.new_release_version }}
-          for pkg_name in ./build/package**/*.nupkg; do
-            dotnet nuget push $pkg_name --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-          done
+          dotnet pack src/Darp.BinaryObjects --configuration Release --artifacts-path build
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
         name: Semantic Release
