@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
-      - name: Set .csproj versions
+        name: Set .csproj versions
         uses: vers-one/dotnet-project-version-updater@v1
         with:
           file: "src/**/*.csproj"
