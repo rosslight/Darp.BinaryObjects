@@ -79,11 +79,13 @@ public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::D
         var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..]);
         bytesRead += 5;
 
-        value = new Members1(___readValueOne);
-        value.valueEight = ___readvalueEight;
-        value.ValueFour = ___readValueFour;
-        value.ValueFive = ___readValueFive;
-        value.ValueSix = ___readValueSix;
+        value = new Members1(___readValueOne)
+        {
+            valueEight = ___readvalueEight,
+            ValueFour = ___readValueFour,
+            ValueFive = ___readValueFive,
+            ValueSix = ___readValueSix,
+        };
         return true;
     }
     /// <inheritdoc />
@@ -105,11 +107,13 @@ public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::D
         var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..]);
         bytesRead += 5;
 
-        value = new Members1(___readValueOne);
-        value.valueEight = ___readvalueEight;
-        value.ValueFour = ___readValueFour;
-        value.ValueFive = ___readValueFive;
-        value.ValueSix = ___readValueSix;
+        value = new Members1(___readValueOne)
+        {
+            valueEight = ___readvalueEight,
+            ValueFour = ___readValueFour,
+            ValueFive = ___readValueFive,
+            ValueSix = ___readValueSix,
+        };
         return true;
     }
 }
@@ -237,8 +241,10 @@ public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Da
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
         bytesRead += 1;
 
-        value = new OneBool();
-        value.Value = ___readValue;
+        value = new OneBool()
+        {
+            Value = ___readValue,
+        };
         return true;
     }
     /// <inheritdoc />
@@ -256,8 +262,10 @@ public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Da
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
         bytesRead += 1;
 
-        value = new OneBool();
-        value.Value = ___readValue;
+        value = new OneBool()
+        {
+            Value = ___readValue,
+        };
         return true;
     }
 }
