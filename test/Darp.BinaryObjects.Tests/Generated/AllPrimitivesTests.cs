@@ -93,18 +93,18 @@ public class AllPrimitivesTests
         sbyte expectedValueSByteBE,
         short expectedValueShortLE,
         short expectedValueShortBE,
-        Half expectedValueHalfLE,
-        Half expectedValueHalfBE,
+        ushort expectedValueHalfLE,
+        ushort expectedValueHalfBE,
         int expectedValueIntLE,
         int expectedValueIntBE,
         float expectedValueFloatLE,
         float expectedValueFloatBE,
         long expectedValueLongLE,
         long expectedValueLongBE,
-        Int128 expectedValueInt128LE,
-        Int128 expectedValueInt128BE,
-        UInt128 expectedValueUInt128LE,
-        UInt128 expectedValueUInt128BE,
+        long expectedValueInt128LE,
+        long expectedValueInt128BE,
+        ulong expectedValueUInt128LE,
+        ulong expectedValueUInt128BE,
         ulong expectedValueULongLE,
         ulong expectedValueULongBE,
         double expectedValueDoubleLE,
@@ -131,7 +131,7 @@ public class AllPrimitivesTests
         valueLE1!.ValueBool.Should().Be(expectedValueBoolLE);
         valueLE1.ValueSByte.Should().Be(expectedValueSByteLE);
         valueLE1.ValueShort.Should().Be(expectedValueShortLE);
-        valueLE1.ValueHalf.Should().Be(expectedValueHalfLE);
+        valueLE1.ValueHalf.Should().Be((Half)expectedValueHalfLE);
         valueLE1.ValueInt.Should().Be(expectedValueIntLE);
         valueLE1.ValueFloat.Should().Be(expectedValueFloatLE);
         valueLE1.ValueLong.Should().Be(expectedValueLongLE);
@@ -141,10 +141,11 @@ public class AllPrimitivesTests
         valueLE1.ValueDouble.Should().Be(expectedValueDoubleLE);
         valueLE1.ValueUInt.Should().Be(expectedValueUIntLE);
         valueLE1.ValueUShort.Should().Be(expectedValueUShortLE);
+        valueLE1.ValueByte.Should().Be(expectedValueByteLE);
         valueLE2!.ValueBool.Should().Be(expectedValueBoolLE);
         valueLE2.ValueSByte.Should().Be(expectedValueSByteLE);
         valueLE2.ValueShort.Should().Be(expectedValueShortLE);
-        valueLE2.ValueHalf.Should().Be(expectedValueHalfLE);
+        valueLE2.ValueHalf.Should().Be((Half)expectedValueHalfLE);
         valueLE2.ValueInt.Should().Be(expectedValueIntLE);
         valueLE2.ValueFloat.Should().Be(expectedValueFloatLE);
         valueLE2.ValueLong.Should().Be(expectedValueLongLE);
@@ -154,10 +155,11 @@ public class AllPrimitivesTests
         valueLE2.ValueDouble.Should().Be(expectedValueDoubleLE);
         valueLE2.ValueUInt.Should().Be(expectedValueUIntLE);
         valueLE2.ValueUShort.Should().Be(expectedValueUShortLE);
+        valueLE2.ValueByte.Should().Be(expectedValueByteLE);
         valueBE1!.ValueBool.Should().Be(expectedValueBoolBE);
         valueBE1.ValueSByte.Should().Be(expectedValueSByteBE);
         valueBE1.ValueShort.Should().Be(expectedValueShortBE);
-        valueBE1.ValueHalf.Should().Be(expectedValueHalfBE);
+        valueBE1.ValueHalf.Should().Be((Half)expectedValueHalfBE);
         valueBE1.ValueInt.Should().Be(expectedValueIntBE);
         valueBE1.ValueFloat.Should().Be(expectedValueFloatBE);
         valueBE1.ValueLong.Should().Be(expectedValueLongBE);
@@ -167,10 +169,11 @@ public class AllPrimitivesTests
         valueBE1.ValueDouble.Should().Be(expectedValueDoubleBE);
         valueBE1.ValueUInt.Should().Be(expectedValueUIntBE);
         valueBE1.ValueUShort.Should().Be(expectedValueUShortBE);
+        valueBE1.ValueByte.Should().Be(expectedValueByteBE);
         valueBE2!.ValueBool.Should().Be(expectedValueBoolBE);
         valueBE2.ValueSByte.Should().Be(expectedValueSByteBE);
         valueBE2.ValueShort.Should().Be(expectedValueShortBE);
-        valueBE2.ValueHalf.Should().Be(expectedValueHalfBE);
+        valueBE2.ValueHalf.Should().Be((Half)expectedValueHalfBE);
         valueBE2.ValueInt.Should().Be(expectedValueIntBE);
         valueBE2.ValueFloat.Should().Be(expectedValueFloatBE);
         valueBE2.ValueLong.Should().Be(expectedValueLongBE);
@@ -180,6 +183,7 @@ public class AllPrimitivesTests
         valueBE2.ValueDouble.Should().Be(expectedValueDoubleBE);
         valueBE2.ValueUInt.Should().Be(expectedValueUIntBE);
         valueBE2.ValueUShort.Should().Be(expectedValueUShortBE);
+        valueBE2.ValueByte.Should().Be(expectedValueByteBE);
         consumedLE.Should().Be(77);
         consumedBE.Should().Be(77);
     }
@@ -252,12 +256,12 @@ public class AllPrimitivesTests
         bool valueBool,
         sbyte valueSByte,
         short valueShort,
-        Half valueHalf,
+        ushort valueHalf,
         int valueInt,
         float valueFloat,
         long valueLong,
-        Int128 valueInt128,
-        UInt128 valueUInt128,
+        long valueInt128,
+        ulong valueUInt128,
         ulong valueULong,
         double valueDouble,
         uint valueUInt,
@@ -276,7 +280,7 @@ public class AllPrimitivesTests
             valueBool,
             valueSByte,
             valueShort,
-            valueHalf,
+            (Half)valueHalf,
             valueInt,
             valueFloat,
             valueLong,
