@@ -219,8 +219,28 @@ public partial record Members2
             [BinaryObject]
             public sealed partial record OneByteEnum(DefaultEnum Value1,
                 ByteEnum Value2,
-                LongEnum Value3);
+                LongEnum Value3,
+                [property: BinaryElementCount(2)] System.ReadOnlyMemory<ByteEnum> Value4,
+                [property: BinaryElementCount(2)] System.ReadOnlyMemory<DefaultEnum> Value5);
             """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task BinaryObjectArray_DefaultAsync()
+    {
+        const string code = """
+using Darp.BinaryObjects;
+
+[BinaryObject]
+public sealed partial record OneBool(bool Value);
+
+[BinaryObject]
+public sealed partial record BinaryObjectArrays(
+    [property: BinaryElementCount(2)] System.ReadOnlyMemory<OneBool> Value1,
+    [property: BinaryElementCount(2)] OneBool[] Value2
+);
+""";
         await VerifyBinaryObjectsGenerator(code);
     }
 }

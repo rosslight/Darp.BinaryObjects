@@ -670,6 +670,12 @@ partial class BinaryObjectsGenerator
                 ) => "return source.ToArray();",
                 (
                     WellKnownCollectionKind.Memory
+                        or WellKnownCollectionKind.Array,
+                    WellKnownTypeKind.Bool
+                        or WellKnownTypeKind.SByte
+                ) => (_, typeName, _) => $"return MemoryMarshal.Cast<byte, {typeName}>(source).ToArray();",
+                (
+                    WellKnownCollectionKind.Memory
                         or WellKnownCollectionKind.Array
                         or WellKnownCollectionKind.Enumerable,
                     _
