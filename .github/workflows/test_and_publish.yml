@@ -29,13 +29,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget
 
-      - name: Restore dependencies
-        run:  dotnet restore
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-      - name: Test
-        run: dotnet test --no-build --configuration Release
-
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         name: Get release version
         id: semantic
@@ -52,10 +45,16 @@ jobs:
           file: "src/**/*.csproj"
           version: ${{ steps.semantic.outputs.new_release_version }}
 
+      - name: Restore dependencies
+        run:  dotnet restore
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --configuration Release
+
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
         name: Pack and push to nuget.org
         run: |
-          dotnet clean
           dotnet pack src/Darp.BinaryObjects --configuration Release --artifacts-path build
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.semantic.outputs.new_release_published == 'true'
