@@ -1,5 +1,10 @@
 # Darp.BinaryObjects
 
+[![.NET](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml/badge.svg)](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml)
+[![NuGet](https://img.shields.io/nuget/v/Darp.BinaryObjects.svg)](https://www.nuget.org/packages/Darp.BinaryObjects)
+[![Downloads](https://img.shields.io/nuget/dt/Darp.BinaryObjects)](https://www.nuget.org/packages/Darp.BinaryObjects)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+
 A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
 
 You should use the source generation when you want:
