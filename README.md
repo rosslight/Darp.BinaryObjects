@@ -7,6 +7,9 @@
 
 A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
 
+> [!IMPORTANT]  
+> This package is under heavy development. Anything is subject to change.
+
 You should use the source generation when you want:
  
 - Serialization to a buffer of bytes
