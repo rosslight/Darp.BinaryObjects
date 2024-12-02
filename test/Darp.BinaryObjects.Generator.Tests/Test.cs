@@ -66,7 +66,10 @@ using Darp.BinaryObjects;
 public sealed partial record OneBool(bool Value);
 
 [BinaryObject]
-public sealed partial record OneBinaryObject(OneBool Value);
+public sealed partial record OneArray([property: BinaryElementCount(2)] bool[] Value);
+
+[BinaryObject]
+public sealed partial record OneBinaryObject(OneBool Value, OneArray Array);
 """;
         await VerifyBinaryObjectsGenerator(code);
     }
