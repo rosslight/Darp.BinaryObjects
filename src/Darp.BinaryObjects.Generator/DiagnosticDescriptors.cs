@@ -30,7 +30,7 @@ internal static class DiagnosticDescriptors
     );
     public static readonly DiagnosticDescriptor MemberTypeNotSupported = new(
         id: "DBO001",
-        title: "PartialKeywordMissing",
+        title: "MemberTypeNotSupported",
         messageFormat: "The type {0} of member {1} is not supported. The member will be skipped.",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Warning,

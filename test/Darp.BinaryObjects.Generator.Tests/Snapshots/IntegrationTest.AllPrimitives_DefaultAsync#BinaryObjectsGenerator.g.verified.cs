@@ -99,20 +99,20 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IWritabl
 
         if (source.Length < 77)
             return false;
-        var ___readValueBool = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValueSByte = global::Darp.BinaryObjects.Generated.Utilities.ReadInt8(source[1..]);
-        var ___readValueShort = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16LittleEndian(source[2..]);
-        var ___readValueHalf = global::Darp.BinaryObjects.Generated.Utilities.ReadHalfLittleEndian(source[4..]);
-        var ___readValueInt = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[6..]);
-        var ___readValueFloat = global::Darp.BinaryObjects.Generated.Utilities.ReadSingleLittleEndian(source[10..]);
-        var ___readValueLong = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64LittleEndian(source[14..]);
-        var ___readValueInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt128LittleEndian(source[22..]);
-        var ___readValueUInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt128LittleEndian(source[38..]);
-        var ___readValueULong = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt64LittleEndian(source[54..]);
-        var ___readValueDouble = global::Darp.BinaryObjects.Generated.Utilities.ReadDoubleLittleEndian(source[62..]);
-        var ___readValueUInt = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32LittleEndian(source[70..]);
-        var ___readValueUShort = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[74..]);
-        var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..]);
+        var ___readValueBool = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValueSByte = global::Darp.BinaryObjects.Generated.Utilities.ReadInt8(source[1..2]);
+        var ___readValueShort = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16LittleEndian(source[2..4]);
+        var ___readValueHalf = global::Darp.BinaryObjects.Generated.Utilities.ReadHalfLittleEndian(source[4..6]);
+        var ___readValueInt = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[6..10]);
+        var ___readValueFloat = global::Darp.BinaryObjects.Generated.Utilities.ReadSingleLittleEndian(source[10..14]);
+        var ___readValueLong = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64LittleEndian(source[14..22]);
+        var ___readValueInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt128LittleEndian(source[22..38]);
+        var ___readValueUInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt128LittleEndian(source[38..54]);
+        var ___readValueULong = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt64LittleEndian(source[54..62]);
+        var ___readValueDouble = global::Darp.BinaryObjects.Generated.Utilities.ReadDoubleLittleEndian(source[62..70]);
+        var ___readValueUInt = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32LittleEndian(source[70..74]);
+        var ___readValueUShort = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[74..76]);
+        var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..77]);
         bytesRead += 77;
 
         value = new AllPrimitives(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);
@@ -130,20 +130,20 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IWritabl
 
         if (source.Length < 77)
             return false;
-        var ___readValueBool = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValueSByte = global::Darp.BinaryObjects.Generated.Utilities.ReadInt8(source[1..]);
-        var ___readValueShort = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16BigEndian(source[2..]);
-        var ___readValueHalf = global::Darp.BinaryObjects.Generated.Utilities.ReadHalfBigEndian(source[4..]);
-        var ___readValueInt = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[6..]);
-        var ___readValueFloat = global::Darp.BinaryObjects.Generated.Utilities.ReadSingleBigEndian(source[10..]);
-        var ___readValueLong = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64BigEndian(source[14..]);
-        var ___readValueInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt128BigEndian(source[22..]);
-        var ___readValueUInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt128BigEndian(source[38..]);
-        var ___readValueULong = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt64BigEndian(source[54..]);
-        var ___readValueDouble = global::Darp.BinaryObjects.Generated.Utilities.ReadDoubleBigEndian(source[62..]);
-        var ___readValueUInt = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32BigEndian(source[70..]);
-        var ___readValueUShort = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[74..]);
-        var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..]);
+        var ___readValueBool = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValueSByte = global::Darp.BinaryObjects.Generated.Utilities.ReadInt8(source[1..2]);
+        var ___readValueShort = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16BigEndian(source[2..4]);
+        var ___readValueHalf = global::Darp.BinaryObjects.Generated.Utilities.ReadHalfBigEndian(source[4..6]);
+        var ___readValueInt = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[6..10]);
+        var ___readValueFloat = global::Darp.BinaryObjects.Generated.Utilities.ReadSingleBigEndian(source[10..14]);
+        var ___readValueLong = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64BigEndian(source[14..22]);
+        var ___readValueInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt128BigEndian(source[22..38]);
+        var ___readValueUInt128 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt128BigEndian(source[38..54]);
+        var ___readValueULong = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt64BigEndian(source[54..62]);
+        var ___readValueDouble = global::Darp.BinaryObjects.Generated.Utilities.ReadDoubleBigEndian(source[62..70]);
+        var ___readValueUInt = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32BigEndian(source[70..74]);
+        var ___readValueUShort = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[74..76]);
+        var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..77]);
         bytesRead += 77;
 
         value = new AllPrimitives(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);

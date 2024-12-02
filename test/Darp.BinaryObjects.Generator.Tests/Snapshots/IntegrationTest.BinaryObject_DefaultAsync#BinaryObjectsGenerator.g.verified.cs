@@ -60,7 +60,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);
@@ -78,7 +78,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);
@@ -236,7 +236,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<OneBool>(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<OneBool>(source[0..1]);
         bytesRead += 1;
 
         if (!OneArray.TryReadLittleEndian(source[1..], out var ___readArray, out var ___bytesReadArray))
@@ -258,7 +258,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<OneBool>(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<OneBool>(source[0..1]);
         bytesRead += 1;
 
         if (!OneArray.TryReadBigEndian(source[1..], out var ___readArray, out var ___bytesReadArray))

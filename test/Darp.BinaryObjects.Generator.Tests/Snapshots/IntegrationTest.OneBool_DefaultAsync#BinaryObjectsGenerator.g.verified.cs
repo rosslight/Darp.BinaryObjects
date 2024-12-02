@@ -60,7 +60,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);
@@ -78,7 +78,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);

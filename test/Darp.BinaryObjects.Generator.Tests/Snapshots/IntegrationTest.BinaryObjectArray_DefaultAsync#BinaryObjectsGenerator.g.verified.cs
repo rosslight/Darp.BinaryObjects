@@ -60,7 +60,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);
@@ -78,7 +78,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool(___readValue);
@@ -111,8 +111,8 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IWr
 
         if (destination.Length < 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian(destination[0..], this.Value1.Span, 2);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian(destination[2..], this.Value2, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<OneBool>(destination[0..], this.Value1.Span, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<OneBool>(destination[2..], this.Value2, 2);
         bytesWritten += 4;
 
         return true;
@@ -128,8 +128,8 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IWr
 
         if (destination.Length < 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian(destination[0..], this.Value1.Span, 2);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian(destination[2..], this.Value2, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<OneBool>(destination[0..], this.Value1.Span, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<OneBool>(destination[2..], this.Value2, 2);
         bytesWritten += 4;
 
         return true;
