@@ -69,4 +69,80 @@ public static partial class BinaryHelpers
         }
         return list;
     }
+
+    public static T[] ReadConstantBinaryObjectArrayLittleEndian<T>(
+        ReadOnlySpan<byte> source,
+        int numberOfElements,
+        int elementLength
+    )
+        where T : ISpanReadable<T>
+    {
+        var array = new T[numberOfElements];
+        for (var i = 0; i < numberOfElements; i++)
+        {
+            if (
+                !T.TryReadLittleEndian(
+                    source.Slice(i * elementLength, elementLength),
+                    out T? value,
+                    out var tempBytesRead
+                )
+            )
+                throw new ArgumentOutOfRangeException(nameof(source));
+            array[i] = value;
+        }
+        return array;
+    }
+
+    public static List<T> ReadBinaryObjectListLittleEndian<T>(
+        ReadOnlySpan<byte> source,
+        int numberOfElements,
+        int elementLength
+    )
+        where T : ISpanReadable<T>
+    {
+        var array = new List<T>(numberOfElements);
+        for (var i = 0; i < numberOfElements; i++)
+        {
+            if (
+                !T.TryReadLittleEndian(
+                    source.Slice(i * elementLength, elementLength),
+                    out T? value,
+                    out var tempBytesRead
+                )
+            )
+                throw new ArgumentOutOfRangeException(nameof(source));
+            array[i] = value;
+        }
+        return array;
+    }
+
+    public static TEnum[] ReadUInt8EnumArray<TEnum>(ReadOnlySpan<byte> source)
+        where TEnum : unmanaged, Enum
+    {
+        return MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
+    }
+
+    public static TEnum[] ReadUInt64EnumArrayBigEndian<TEnum>(ReadOnlySpan<byte> source)
+        where TEnum : unmanaged, Enum
+    {
+        var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
+        if (BitConverter.IsLittleEndian)
+        {
+            var underlyingArray = MemoryMarshal.Cast<TEnum, ulong>(array);
+            BinaryPrimitives.ReverseEndianness(underlyingArray, underlyingArray);
+        }
+        return array;
+    }
+
+    public static TEnum[] ReadInt32EnumArrayLittleEndian<TEnum>(ReadOnlySpan<byte> source)
+        where TEnum : unmanaged, Enum
+    {
+        var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
+        if (!BitConverter.IsLittleEndian)
+        {
+            var underlyingArray = MemoryMarshal.Cast<TEnum, int>(array);
+            BinaryPrimitives.ReverseEndianness(underlyingArray, underlyingArray);
+        }
+        return array;
+    }
 }

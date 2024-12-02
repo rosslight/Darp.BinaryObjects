@@ -5,15 +5,19 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-internal readonly record struct Aaa(
+internal readonly record struct ParsedObjectInfo(
     ImmutableArray<DiagnosticData> Diagnostics,
     ImmutableArray<IGroup> MemberGroups,
     ImmutableArray<IMember> MembersInitializedByConstructor
 )
 {
-    public static Aaa Fail(IEnumerable<DiagnosticData> diagnostics)
+    public static ParsedObjectInfo Fail(IEnumerable<DiagnosticData> diagnostics)
     {
-        return new Aaa(diagnostics.ToImmutableArray(), ImmutableArray<IGroup>.Empty, ImmutableArray<IMember>.Empty);
+        return new ParsedObjectInfo(
+            diagnostics.ToImmutableArray(),
+            ImmutableArray<IGroup>.Empty,
+            ImmutableArray<IMember>.Empty
+        );
     }
 }
 
@@ -28,7 +32,7 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool TryParseType(INamedTypeSymbol typeSymbol, out Aaa result)
+    private static bool TryParseType(INamedTypeSymbol typeSymbol, out ParsedObjectInfo result)
     {
         List<IMember> membersInitializedByConstructor = [];
 
@@ -51,11 +55,11 @@ partial class BinaryObjectsGenerator
             );
             if (!validity.IsValid)
                 continue;
-            if (!TryGet(diagnostics, members, memberSymbol, out IMember? info))
+            if (!TryGet(diagnostics, members, memberSymbol, out IMember? memberInfo))
                 continue;
-            members.Add(info);
+            members.Add(memberInfo);
             if (validity.IsConstructorInitialized)
-                membersInitializedByConstructor.Add(info);
+                membersInitializedByConstructor.Add(memberInfo);
         }
 
         if ((constructor?.Parameters.Length ?? 0) != membersInitializedByConstructor.Count)
@@ -76,16 +80,16 @@ partial class BinaryObjectsGenerator
                     )
                 );
             diagnostics.AddRange(parameterDiagnostics);
-            result = Aaa.Fail(diagnostics);
+            result = ParsedObjectInfo.Fail(diagnostics);
             return false;
         }
         var groupedMembers = members.GroupInfos().ToImmutableArray();
         if (diagnostics.Any(x => x.Descriptor.DefaultSeverity > DiagnosticSeverity.Warning))
         {
-            result = Aaa.Fail(diagnostics);
+            result = ParsedObjectInfo.Fail(diagnostics);
             return false;
         }
-        result = new Aaa(
+        result = new ParsedObjectInfo(
             diagnostics.ToImmutableArray(),
             groupedMembers,
             membersInitializedByConstructor.ToImmutableArray()
@@ -318,8 +322,42 @@ partial class BinaryObjectsGenerator
 
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
-            info = new BinaryObjectMemberGroup { MemberSymbol = symbol, TypeSymbol = typeSymbol };
-            return true;
+            var isConstant = IsConstant(typeSymbol, out var constantLength);
+            info = (collectionKind, arrayLength, isConstant) switch
+            {
+                (WellKnownCollectionKind.None, _, true) => new ConstantWellKnownMember
+                {
+                    TypeKind = WellKnownTypeKind.BinaryObject,
+                    MemberSymbol = symbol,
+                    TypeByteLength = constantLength,
+                    TypeSymbol = typeSymbol,
+                },
+                (WellKnownCollectionKind.None, _, false) => new BinaryObjectMemberGroup
+                {
+                    MemberSymbol = symbol,
+                    TypeSymbol = typeSymbol,
+                },
+                (not WellKnownCollectionKind.None, not null, true) => info = new ConstantArrayMember
+                {
+                    TypeKind = WellKnownTypeKind.BinaryObject,
+                    MemberSymbol = symbol,
+                    TypeSymbol = typeSymbol,
+                    CollectionKind = collectionKind,
+                    TypeByteLength = constantLength,
+                    ArrayTypeSymbol = arrayTypeSymbol,
+                    ArrayLength = arrayLength.Value,
+                },
+                _ => null,
+            };
+            if (info is not null)
+                return true;
+            var diagnostic = DiagnosticData.Create(
+                DiagnosticDescriptors.CollectionParameterInvalidType,
+                location: symbol.GetSourceLocation(),
+                [typeSymbol.Name]
+            );
+            diagnostics.Add(diagnostic);
+            return false;
         }
         info = (arrayKind: collectionKind, arrayLength, arrayMinLength, arrayLengthMember) switch
         {
@@ -344,7 +382,7 @@ partial class BinaryObjectsGenerator
                 ArrayTypeSymbol = arrayTypeSymbol,
                 ArrayLength = arrayLength.Value,
             },
-            (WellKnownCollectionKind.None, _, _, _) => new ConstantPrimitiveMember
+            (WellKnownCollectionKind.None, _, _, _) => new ConstantWellKnownMember
             {
                 TypeKind = typeKind,
                 MemberSymbol = symbol,
@@ -353,6 +391,39 @@ partial class BinaryObjectsGenerator
             },
             _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
         };
+        return true;
+    }
+
+    private static bool IsConstant(ITypeSymbol typeSymbol, out int constantLength)
+    {
+        constantLength = default;
+        foreach (
+            ITypeSymbol memberTypeSymbol in typeSymbol
+                .GetMembers()
+                .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
+                .Where(x => !x.IsImplicitlyDeclared)
+                .Select(x =>
+                    x switch
+                    {
+                        IFieldSymbol s => s.Type,
+                        IPropertySymbol s => s.Type,
+                        _ => throw new ArgumentOutOfRangeException(nameof(x)),
+                    }
+                )
+        )
+        {
+            if (
+                memberTypeSymbol.TryGetArrayType(out WellKnownCollectionKind collectionKind, out ITypeSymbol? _)
+                || collectionKind is not WellKnownCollectionKind.None
+            )
+                return false;
+            WellKnownTypeKind typeKind = GetWellKnownTypeKind(memberTypeSymbol);
+            if (typeKind is WellKnownTypeKind.BinaryObject)
+                return false;
+            if (!typeKind.TryGetLength(out var length))
+                return false;
+            constantLength += length;
+        }
         return true;
     }
 }

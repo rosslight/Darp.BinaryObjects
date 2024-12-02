@@ -264,7 +264,7 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 var variableName = $"{Prefix}read{binaryObjectsGroup.MemberSymbol.Name}";
                 var bytesReadVariable = $"{Prefix}bytesRead{binaryObjectsGroup.MemberSymbol.Name}";
                 writer.WriteLine(
-                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[0..], out var {variableName}, out var {bytesReadVariable}))"
+                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable}))"
                 );
                 writer.Indent++;
                 writer.WriteLine("return false;");
@@ -354,6 +354,7 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
             $$"""
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

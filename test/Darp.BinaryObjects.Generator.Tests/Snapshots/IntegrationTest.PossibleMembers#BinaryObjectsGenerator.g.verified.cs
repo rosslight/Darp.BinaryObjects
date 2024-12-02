@@ -72,11 +72,11 @@ public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::D
 
         if (source.Length < 5)
             return false;
-        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..]);
-        var ___readvalueEight = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..]);
-        var ___readValueFour = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[2..]);
-        var ___readValueFive = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..]);
-        var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..]);
+        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        var ___readvalueEight = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
+        var ___readValueFour = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[2..3]);
+        var ___readValueFive = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..4]);
+        var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
         bytesRead += 5;
 
         value = new Members1(___readValueOne)
@@ -100,11 +100,11 @@ public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::D
 
         if (source.Length < 5)
             return false;
-        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..]);
-        var ___readvalueEight = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..]);
-        var ___readValueFour = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[2..]);
-        var ___readValueFive = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..]);
-        var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..]);
+        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        var ___readvalueEight = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
+        var ___readValueFour = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[2..3]);
+        var ___readValueFive = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..4]);
+        var ___readValueSix = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
         bytesRead += 5;
 
         value = new Members1(___readValueOne)
@@ -238,7 +238,7 @@ public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Da
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool()
@@ -259,7 +259,7 @@ public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Da
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool()
@@ -272,6 +272,7 @@ public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Da
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

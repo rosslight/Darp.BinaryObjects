@@ -70,7 +70,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < 1)
             return false;
-        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..]);
+        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
         bytesRead += 1;
 
         if (source.Length < bytesRead + ___readLength)
@@ -93,7 +93,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < 1)
             return false;
-        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..]);
+        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
         bytesRead += 1;
 
         if (source.Length < bytesRead + ___readLength)
@@ -108,6 +108,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

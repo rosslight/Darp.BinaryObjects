@@ -68,25 +68,32 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                 {
                     try
                     {
-                        if (!TryParseType(info.Symbol, out Aaa a))
+                        if (!TryParseType(info.Symbol, out ParsedObjectInfo parsedObject))
                         {
                             return new BinaryObjectStruct(
-                                a.Diagnostics.ToImmutableEquatableArray(),
+                                parsedObject.Diagnostics.ToImmutableEquatableArray(),
                                 null,
                                 ImmutableEquatableArray<UtilityData>.Empty
                             );
                         }
 
-                        if (!TryEmit(info, a.MemberGroups, a.MembersInitializedByConstructor, out Aaa2 aaa))
+                        if (
+                            !TryEmit(
+                                info,
+                                parsedObject.MemberGroups,
+                                parsedObject.MembersInitializedByConstructor,
+                                out Aaa2 aaa
+                            )
+                        )
                         {
                             return new BinaryObjectStruct(
-                                aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
+                                aaa.Diagnostics.Concat(parsedObject.Diagnostics).ToImmutableEquatableArray(),
                                 null,
                                 ImmutableEquatableArray<UtilityData>.Empty
                             );
                         }
 
-                        var utilities = a
+                        var utilities = parsedObject
                             .MemberGroups.SelectMembers()
                             .SelectMany(x =>
                                 GetWriteUtilities(x.CollectionKind, x.TypeKind)
@@ -95,7 +102,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                             .Distinct()
                             .ToImmutableEquatableArray();
                         return new BinaryObjectStruct(
-                            aaa.Diagnostics.Concat(a.Diagnostics).ToImmutableEquatableArray(),
+                            aaa.Diagnostics.Concat(parsedObject.Diagnostics).ToImmutableEquatableArray(),
                             aaa.Code,
                             utilities
                         );

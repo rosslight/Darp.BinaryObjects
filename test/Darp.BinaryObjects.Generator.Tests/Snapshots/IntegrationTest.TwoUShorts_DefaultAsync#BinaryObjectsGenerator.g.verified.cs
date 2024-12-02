@@ -63,8 +63,8 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
 
         if (source.Length < 4)
             return false;
-        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[0..]);
-        var ___readValueTwo = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[2..]);
+        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[0..2]);
+        var ___readValueTwo = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[2..4]);
         bytesRead += 4;
 
         value = new TwoUShorts(___readValueOne, ___readValueTwo);
@@ -82,8 +82,8 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
 
         if (source.Length < 4)
             return false;
-        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[0..]);
-        var ___readValueTwo = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[2..]);
+        var ___readValueOne = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[0..2]);
+        var ___readValueTwo = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[2..4]);
         bytesRead += 4;
 
         value = new TwoUShorts(___readValueOne, ___readValueTwo);
@@ -93,6 +93,7 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, 
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

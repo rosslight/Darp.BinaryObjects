@@ -60,7 +60,7 @@ public sealed partial record OneBool1 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool1(___readValue);
@@ -78,7 +78,7 @@ public sealed partial record OneBool1 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
         bytesRead += 1;
 
         value = new OneBool1(___readValue);
@@ -147,8 +147,8 @@ public sealed partial record OneBool2 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
         bytesRead += 2;
 
         value = new OneBool2()
@@ -170,8 +170,8 @@ public sealed partial record OneBool2 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
         bytesRead += 2;
 
         value = new OneBool2()
@@ -247,9 +247,9 @@ public sealed partial record OneBool3 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 3)
             return false;
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..]);
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[2..]);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[2..3]);
         bytesRead += 3;
 
         value = new OneBool3(___readValue3, ___readValue)
@@ -270,9 +270,9 @@ public sealed partial record OneBool3 : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 3)
             return false;
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..]);
-        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..]);
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[2..]);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[2..3]);
         bytesRead += 3;
 
         value = new OneBool3(___readValue3, ___readValue)
@@ -347,6 +347,7 @@ public sealed partial record OneBool4 : global::Darp.BinaryObjects.IWritable, gl
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
