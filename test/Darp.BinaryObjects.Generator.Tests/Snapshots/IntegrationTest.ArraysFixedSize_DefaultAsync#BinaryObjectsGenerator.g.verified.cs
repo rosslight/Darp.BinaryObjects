@@ -123,6 +123,7 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

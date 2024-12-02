@@ -108,6 +108,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

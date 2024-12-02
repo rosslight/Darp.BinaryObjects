@@ -816,7 +816,9 @@ partial class BinaryObjectsGenerator
         var typeParameterConstraint =
             typeKind is WellKnownTypeKind.BinaryObject ? "    where T : ISpanReadable<T>" : string.Empty;
         var numberOfElementsParameter =
-            typeKind is WellKnownTypeKind.BinaryObject ? ", int numberOfElements" : string.Empty;
+            collectionKind is not WellKnownCollectionKind.None && typeKind is WellKnownTypeKind.BinaryObject
+                ? ", int numberOfElements"
+                : string.Empty;
         writer.WriteLine(
             $"/// <summary> Reads a <c>{HttpUtility.HtmlEncode(collectionName)}</c> from the given source{endiannessName} </summary>"
         );

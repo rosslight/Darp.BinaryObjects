@@ -272,6 +272,7 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWrita
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;

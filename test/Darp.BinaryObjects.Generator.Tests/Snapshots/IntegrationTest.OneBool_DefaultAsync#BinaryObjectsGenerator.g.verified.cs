@@ -88,6 +88,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
