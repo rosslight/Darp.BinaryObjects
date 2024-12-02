@@ -92,4 +92,12 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+    public static readonly DiagnosticDescriptor CollectionParameterInvalidType = new(
+        id: "DBO001",
+        title: "CollectionParameterInvalidType",
+        messageFormat: "The type '{0}' is not allowed for collections",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 }

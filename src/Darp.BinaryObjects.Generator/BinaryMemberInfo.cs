@@ -141,8 +141,11 @@ internal sealed class ConstantArrayMember : IConstantMember
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeSymbol);
+        var optionalNumberOfElements =
+            TypeKind is WellKnownTypeKind.BinaryObject ? $", {ConstantByteLength / TypeByteLength}" : string.Empty;
+        var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(TypeKind, TypeSymbol);
         readString =
-            $"var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]);";
+            $"var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]{optionalNumberOfElements});";
         bytesRead = ConstantByteLength;
         return true;
     }
@@ -291,7 +294,7 @@ partial class BinaryObjectsGenerator
             "double" => WellKnownTypeKind.Double,
             "System.Int128" => WellKnownTypeKind.Int128,
             "System.UInt128" => WellKnownTypeKind.UInt128,
-            _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
+            _ => throw new ArgumentException($"Could get well known type kind for {symbol.ToDisplayString()}"),
         };
     }
 
@@ -315,7 +318,7 @@ partial class BinaryObjectsGenerator
             WellKnownTypeKind.UInt128 => "UInt128",
             WellKnownTypeKind.Int128 => "Int128",
             WellKnownTypeKind.BinaryObject => "BinaryObject",
-            _ => throw new ArgumentOutOfRangeException(nameof(typeKind)),
+            _ => throw new ArgumentException($"Could get well known name for {typeKind}"),
         };
     }
 
@@ -339,7 +342,7 @@ partial class BinaryObjectsGenerator
             WellKnownTypeKind.UInt128 => "System.UInt128",
             WellKnownTypeKind.Int128 => "System.Int128",
             WellKnownTypeKind.BinaryObject => "T",
-            _ => throw new ArgumentOutOfRangeException(nameof(typeKind)),
+            _ => throw new ArgumentException($"Could get well known display name for {typeKind}"),
         };
         return collectionKind switch
         {
@@ -349,7 +352,7 @@ partial class BinaryObjectsGenerator
             WellKnownCollectionKind.Array => $"{typeKindDisplayName}[]",
             WellKnownCollectionKind.List => $"List<{typeKindDisplayName}>",
             WellKnownCollectionKind.Enumerable => $"IEnumerable<{typeKindDisplayName}>",
-            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            _ => throw new ArgumentException($"Could get well known display name for {collectionKind}"),
         };
     }
 
@@ -378,7 +381,9 @@ partial class BinaryObjectsGenerator
             WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array =>
                 $"Write{typeName}Span{endianness}",
             WellKnownCollectionKind.Enumerable => $"Write{typeName}Enumerable{endianness}",
-            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            _ => throw new ArgumentException(
+                $"Could create write method name for {collectionKind} and {typeKind} (littleEndian={isLittleEndian})"
+            ),
         };
     }
 
@@ -396,14 +401,14 @@ partial class BinaryObjectsGenerator
             WellKnownCollectionKind.List => $"Read{typeName}List{endianness}",
             WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable =>
                 $"Read{typeName}Array{endianness}",
-            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            _ => throw new ArgumentException(
+                $"Could create read method name for {collectionKind} and {typeKind} (littleEndian={isLittleEndian})"
+            ),
         };
     }
 
     internal static UtilityData[] GetWriteUtilities(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)
     {
-        if (typeKind is WellKnownTypeKind.BinaryObject)
-            return [new UtilityData(false, collectionKind, WellKnownTypeKind.BinaryObject, true)];
         var emitLittleAndBigEndianMethods =
             typeKind is not WellKnownTypeKind.Bool and not WellKnownTypeKind.SByte and not WellKnownTypeKind.Byte;
         return collectionKind switch
@@ -427,14 +432,12 @@ partial class BinaryObjectsGenerator
                 new UtilityData(false, WellKnownCollectionKind.List, typeKind, emitLittleAndBigEndianMethods),
                 new UtilityData(false, WellKnownCollectionKind.Enumerable, typeKind, emitLittleAndBigEndianMethods),
             ],
-            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            _ => throw new ArgumentException($"Could create write utilities for {collectionKind} and {typeKind}"),
         };
     }
 
     internal static UtilityData[] GetReadUtilities(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)
     {
-        if (typeKind is WellKnownTypeKind.BinaryObject)
-            return [new UtilityData(true, collectionKind, WellKnownTypeKind.BinaryObject, true)];
         var emitLittleAndBigEndianMethods =
             typeKind is not WellKnownTypeKind.Bool and not WellKnownTypeKind.SByte and not WellKnownTypeKind.Byte;
         return collectionKind switch
@@ -455,7 +458,7 @@ partial class BinaryObjectsGenerator
             [
                 new UtilityData(true, WellKnownCollectionKind.List, typeKind, emitLittleAndBigEndianMethods),
             ],
-            _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+            _ => throw new ArgumentException($"Could create read utilities for {collectionKind} and {typeKind}"),
         };
     }
 
@@ -503,6 +506,17 @@ partial class BinaryObjectsGenerator
                     $"""
                         var length = Math.Min(value.Length, maxElementLength);
                         MemoryMarshal.Cast<{typeName}, byte>(value.Slice(0, length)).CopyTo(destination);
+                        """,
+                (WellKnownCollectionKind.Span, WellKnownTypeKind.BinaryObject) => (_, _, isLittleEndian) =>
+                    $$"""
+                        for (var i = 0; i < maxElementLength; i++)
+                        {
+                            if (!value[i].TryWrite{{GetEndiannessName(
+                            typeKind,
+                            isLittleEndian
+                        )}}(destination.Slice(i * maxElementLength, maxElementLength)))
+                                throw new ArgumentException($"Could not write {typeof(T).Name} to destination");
+                        }
                         """,
                 (WellKnownCollectionKind.Span, _) => (_, typeName, isLittleEndian) =>
                     $$"""
@@ -577,7 +591,7 @@ partial class BinaryObjectsGenerator
                                 return;
                         }
                         """,
-                _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+                _ => throw new ArgumentException($"Could not emit write utility for {collectionKind} and {typeKind}"),
             };
             if (emitLittleAndBigEndian)
             {
@@ -708,6 +722,26 @@ partial class BinaryObjectsGenerator
                     WellKnownCollectionKind.Memory
                         or WellKnownCollectionKind.Array
                         or WellKnownCollectionKind.Enumerable,
+                    WellKnownTypeKind.BinaryObject
+                ) => (_, _, isLittleEndian) =>
+                    $$"""
+                          var elementLength = source.Length / numberOfElements;
+                          var array = new T[numberOfElements];
+                          for (var i = 0; i < numberOfElements; i++)
+                          {
+                              if (!T.TryRead{{GetEndiannessName(
+                                  typeKind,
+                                  isLittleEndian
+                              )}}(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
+                                  throw new ArgumentException($"Could not read {typeof(T).Name} from source");
+                              array[i] = value;
+                          }
+                          return array;
+                          """,
+                (
+                    WellKnownCollectionKind.Memory
+                        or WellKnownCollectionKind.Array
+                        or WellKnownCollectionKind.Enumerable,
                     _
                 ) => (_, typeName, isLittleEndian) =>
                     $"""
@@ -734,7 +768,7 @@ partial class BinaryObjectsGenerator
                         }
                         return list;
                         """,
-                _ => throw new ArgumentOutOfRangeException(nameof(collectionKind)),
+                _ => throw new ArgumentException($"Could not emit read utility for {collectionKind} and {typeKind}"),
             };
             if (emitLittleAndBigEndian)
             {
@@ -781,12 +815,15 @@ partial class BinaryObjectsGenerator
         var typeParameter = typeKind is WellKnownTypeKind.BinaryObject ? "<T>" : string.Empty;
         var typeParameterConstraint =
             typeKind is WellKnownTypeKind.BinaryObject ? "    where T : ISpanReadable<T>" : string.Empty;
-
+        var numberOfElementsParameter =
+            typeKind is WellKnownTypeKind.BinaryObject ? ", int numberOfElements" : string.Empty;
         writer.WriteLine(
             $"/// <summary> Reads a <c>{HttpUtility.HtmlEncode(collectionName)}</c> from the given source{endiannessName} </summary>"
         );
         writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static {collectionName} {methodName}{typeParameter}(ReadOnlySpan<byte> source)");
+        writer.WriteLine(
+            $"public static {collectionName} {methodName}{typeParameter}(ReadOnlySpan<byte> source{numberOfElementsParameter})"
+        );
         if (!string.IsNullOrEmpty(typeParameterConstraint))
             writer.WriteLine(typeParameterConstraint);
         writer.WriteLine("{");

@@ -323,21 +323,41 @@ partial class BinaryObjectsGenerator
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
             var isConstant = IsConstant(typeSymbol, out var constantLength);
-            if (isConstant)
+            info = (collectionKind, arrayLength, isConstant) switch
             {
-                info = new ConstantWellKnownMember
+                (WellKnownCollectionKind.None, _, true) => new ConstantWellKnownMember
                 {
                     TypeKind = WellKnownTypeKind.BinaryObject,
                     MemberSymbol = symbol,
                     TypeByteLength = constantLength,
                     TypeSymbol = typeSymbol,
-                };
-            }
-            else
-            {
-                info = new BinaryObjectMemberGroup { MemberSymbol = symbol, TypeSymbol = typeSymbol };
-            }
-            return true;
+                },
+                (WellKnownCollectionKind.None, _, false) => new BinaryObjectMemberGroup
+                {
+                    MemberSymbol = symbol,
+                    TypeSymbol = typeSymbol,
+                },
+                (not WellKnownCollectionKind.None, not null, true) => info = new ConstantArrayMember
+                {
+                    TypeKind = WellKnownTypeKind.BinaryObject,
+                    MemberSymbol = symbol,
+                    TypeSymbol = typeSymbol,
+                    CollectionKind = collectionKind,
+                    TypeByteLength = constantLength,
+                    ArrayTypeSymbol = arrayTypeSymbol,
+                    ArrayLength = arrayLength.Value,
+                },
+                _ => null,
+            };
+            if (info is not null)
+                return true;
+            var diagnostic = DiagnosticData.Create(
+                DiagnosticDescriptors.CollectionParameterInvalidType,
+                location: symbol.GetSourceLocation(),
+                [typeSymbol.Name]
+            );
+            diagnostics.Add(diagnostic);
+            return false;
         }
         info = (arrayKind: collectionKind, arrayLength, arrayMinLength, arrayLengthMember) switch
         {

@@ -354,6 +354,7 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
             $$"""
 namespace Darp.BinaryObjects.Generated
 {
+    using Darp.BinaryObjects;
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
