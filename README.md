@@ -1,15 +1,22 @@
+<div align="center">
+
 # Darp.BinaryObjects
 
-[![.NET](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml/badge.svg)](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml)
 [![NuGet](https://img.shields.io/nuget/v/Darp.BinaryObjects.svg)](https://www.nuget.org/packages/Darp.BinaryObjects)
 [![Downloads](https://img.shields.io/nuget/dt/Darp.BinaryObjects)](https://www.nuget.org/packages/Darp.BinaryObjects)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
 
-A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
+![Dotnet Version](https://img.shields.io/badge/dotnet-net8.0%20%7C%20net9.0-blue)
+![Language Version](https://img.shields.io/badge/c%23-11-blue)
+
+[![Tests](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml/badge.svg)](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml)
+![License](https://img.shields.io/github/license/rosslight/Darp.BinaryObjects)
+
+### A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
 
 > [!IMPORTANT]  
 > This package is under heavy development. Anything is subject to change.
 
+</div>
 You should use the source generation when you want:
  
 - Serialization to a buffer of bytes
@@ -17,6 +24,7 @@ You should use the source generation when you want:
 - Endianness during serialization
 - Common interfaces for serialization are required which allow to implement more complex scenarios by hand without the generator
 - Usage of something like BinaryPrimitives but for more complex types
+- Can work with a minimum c# LanguageVersion of 11 and net8.0 / net9.0
 
 If these requirements do not meet your expectations, check out those other wonderful projects
 
