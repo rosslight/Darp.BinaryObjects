@@ -351,6 +351,7 @@ namespace Darp.BinaryObjects.Generated
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
+    using System.Collections.Generic;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
 

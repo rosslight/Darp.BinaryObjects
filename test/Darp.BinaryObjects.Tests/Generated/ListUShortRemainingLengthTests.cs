@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using FluentAssertions;
 
 public sealed partial record ListUShortRemainingLength(
-    [property: BinaryReadRemaining(MinElements = 2)] IReadOnlyList<ushort> Value
+    [property: BinaryMinElementCount(2)] IReadOnlyList<ushort> Value
 );
 
 public class ListUShortRemainingLengthTests

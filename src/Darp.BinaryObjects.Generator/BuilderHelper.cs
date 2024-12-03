@@ -78,8 +78,8 @@ internal static class BuilderHelper
             _ => false,
         };
 
-    public static int GetLength(this WellKnownTypeKind typeKind) =>
-        typeKind.TryGetLength(out var length) ? length : throw new ArgumentOutOfRangeException(nameof(typeKind));
+    public static int? GetLength(this WellKnownTypeKind typeKind) =>
+        typeKind.TryGetLength(out var length) ? length : null;
 
     public static bool TryGetLength(this WellKnownTypeKind typeKind, out int length)
     {

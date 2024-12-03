@@ -246,4 +246,35 @@ public sealed partial record BinaryObjectArrays(
 """;
         await VerifyBinaryObjectsGenerator(code);
     }
+
+    [Fact]
+    public async Task ArrayReadRemaining_DefaultAsync()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            [BinaryObject]
+            public sealed partial record Unlimited(System.ReadOnlyMemory<byte> Value);
+
+            [BinaryObject]
+            public sealed partial record UnlimitedWithOffset(byte Offset, uint[] Value);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task ArrayMinElementCount_DefaultAsync()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            [BinaryObject]
+            public sealed partial record UnlimitedWithMinLength(
+                int Length,
+                [property: BinaryElementCount("Length"), BinaryMinElementCount(1)] ReadOnlyMemory<byte> Value,
+                [property: BinaryMinElementCount(3)] int[] Value2);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
 }

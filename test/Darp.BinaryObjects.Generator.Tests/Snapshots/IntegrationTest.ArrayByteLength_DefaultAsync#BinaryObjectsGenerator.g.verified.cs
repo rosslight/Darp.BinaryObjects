@@ -31,7 +31,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (destination.Length < bytesWritten + this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[1..], this.Value, this.Length);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(1, this.Length), this.Value);
         bytesWritten += this.Length;
 
         return true;
@@ -52,7 +52,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (destination.Length < bytesWritten + this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[1..], this.Value, this.Length);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(1, this.Length), this.Value);
         bytesWritten += this.Length;
 
         return true;
@@ -75,7 +75,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < bytesRead + ___readLength)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength));
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength), out _);
         bytesRead += ___readLength;
 
         value = new ArrayByteLength(___readLength, ___readValue);
@@ -98,7 +98,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWrita
 
         if (source.Length < bytesRead + ___readLength)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength));
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength), out _);
         bytesRead += ___readLength;
 
         value = new ArrayByteLength(___readLength, ___readValue);
@@ -112,6 +112,7 @@ namespace Darp.BinaryObjects.Generated
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
+    using System.Collections.Generic;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
 
@@ -133,15 +134,17 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Writes a <c>ReadOnlySpan&lt;byte&gt;</c> with a <c>maxElementLength</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteUInt8Span(Span<byte> destination, ReadOnlySpan<byte> value, int maxElementLength)
+        public static int WriteUInt8Span(Span<byte> destination, ReadOnlySpan<byte> value)
         {
-            var length = Math.Min(value.Length, maxElementLength);
+            var length = Math.Min(value.Length, destination.Length);
             value.Slice(0, length).CopyTo(destination);
+            return length;
         }
         /// <summary> Reads a <c>byte[]</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] ReadUInt8Array(ReadOnlySpan<byte> source)
+        public static byte[] ReadUInt8Array(ReadOnlySpan<byte> source, out int bytesRead)
         {
+            bytesRead = source.Length;
             return source.ToArray();
         }
     }

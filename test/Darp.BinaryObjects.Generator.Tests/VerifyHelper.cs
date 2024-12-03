@@ -3,13 +3,15 @@ namespace Darp.BinaryObjects.Generator.Tests;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 public static partial class VerifyHelper
 {
     public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
-        VerifyGenerator<BinaryObjectsGenerator>(sources, "DBO0").ScrubGeneratedCodeAttribute();
+        VerifyGenerator<BinaryObjectsGenerator>(sources, "DBO0", LanguageVersion.CSharp11)
+            .ScrubGeneratedCodeAttribute();
 
     [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
     private static partial Regex GetGeneratedCodeRegex();
@@ -33,10 +35,15 @@ public static partial class VerifyHelper
         });
     }
 
-    private static SettingsTask VerifyGenerator<TGenerator>(string[] sources, string? allowedDiagnosticCode)
+    private static SettingsTask VerifyGenerator<TGenerator>(
+        string[] sources,
+        string? allowedDiagnosticCode,
+        LanguageVersion languageVersion = LanguageVersion.Default
+    )
         where TGenerator : IIncrementalGenerator, new()
     {
-        SyntaxTree[] syntaxTrees = sources.Select(x => CSharpSyntaxTree.ParseText(x)).ToArray();
+        CSharpParseOptions parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
+        SyntaxTree[] syntaxTrees = sources.Select(x => CSharpSyntaxTree.ParseText(x, parseOptions)).ToArray();
 
         // Get all references of the currently loaded assembly
         PortableExecutableReference[] references = AppDomain
@@ -59,20 +66,36 @@ public static partial class VerifyHelper
 
         var generator = new TGenerator();
 
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(
+            [generator.AsSourceGenerator()],
+            parseOptions: parseOptions
+        );
         driver = driver.RunGeneratorsAndUpdateCompilation(
             compilation,
-            out Compilation _,
+            out Compilation newCompilation,
             out ImmutableArray<Diagnostic> diagnostics
         );
         // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)
-        Assert.DoesNotContain(
-            diagnostics,
-            x =>
-                x.Id is not "CS5001"
-                && (allowedDiagnosticCode is null || !x.Id.StartsWith(allowedDiagnosticCode, StringComparison.Ordinal))
-                && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError)
-        );
+        newCompilation
+            .GetDiagnostics()
+            .Should()
+            .NotContain(
+                x => IsDiagnosticInvalid(allowedDiagnosticCode, x),
+                "generated sources throw:\n{0}",
+                string.Join("\n", driver.GetRunResult().GeneratedTrees.ToReadableString())
+            );
         return Verify(driver).UseDirectory("Snapshots");
+    }
+
+    private static string ToReadableString(this ImmutableArray<SyntaxTree> syntaxTrees)
+    {
+        return string.Join("\n", syntaxTrees.SelectMany(x => x.GetText().Lines).Select((x, i) => $"{i + 1, 4} {x}"));
+    }
+
+    private static bool IsDiagnosticInvalid(string? allowedDiagnosticCode, Diagnostic x)
+    {
+        return x.Id is not "CS5001"
+            && (allowedDiagnosticCode is null || !x.Id.StartsWith(allowedDiagnosticCode, StringComparison.Ordinal))
+            && (x.Severity > DiagnosticSeverity.Warning || x.IsWarningAsError);
     }
 }

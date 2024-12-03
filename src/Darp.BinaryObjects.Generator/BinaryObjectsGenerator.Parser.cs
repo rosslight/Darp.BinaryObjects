@@ -296,7 +296,6 @@ partial class BinaryObjectsGenerator
                                 return false;
                             }
                             arrayLengthMember = previousMember;
-                            arrayMinLength = 0;
                         }
                         else if (pair is { Key: "length", Value.Value: int lengthValue })
                         {
@@ -304,7 +303,14 @@ partial class BinaryObjectsGenerator
                         }
                     }
                     continue;
-                case "Darp.BinaryObjects.BinaryReadRemainingAttribute":
+                case "Darp.BinaryObjects.UnlimitedWithMinLengthAttribute":
+                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
+                    {
+                        if (pair is { Key: "minLength", Value.Value: int value })
+                        {
+                            arrayMinLength = value;
+                        }
+                    }
                     continue;
                 case "Darp.BinaryObjects.BinaryByteLengthAttribute":
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
@@ -359,9 +365,9 @@ partial class BinaryObjectsGenerator
             diagnostics.Add(diagnostic);
             return false;
         }
-        info = (arrayKind: collectionKind, arrayLength, arrayMinLength, arrayLengthMember) switch
+        info = (collectionKind, arrayLength, arrayLengthMember) switch
         {
-            (not WellKnownCollectionKind.None, _, not null, not null) => new VariableArrayMemberGroup
+            (not WellKnownCollectionKind.None, _, not null) => new VariableArrayMemberGroup
             {
                 TypeKind = typeKind,
                 CollectionKind = collectionKind,
@@ -369,10 +375,10 @@ partial class BinaryObjectsGenerator
                 TypeSymbol = typeSymbol,
                 TypeByteLength = length,
                 ArrayTypeSymbol = arrayTypeSymbol,
-                ArrayMinLength = arrayMinLength.Value,
+                ArrayMinLength = arrayMinLength ?? 0,
                 ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
             },
-            (not WellKnownCollectionKind.None, not null, _, _) => new ConstantArrayMember
+            (not WellKnownCollectionKind.None, not null, _) => new ConstantArrayMember
             {
                 TypeKind = typeKind,
                 CollectionKind = collectionKind,
@@ -382,14 +388,25 @@ partial class BinaryObjectsGenerator
                 ArrayTypeSymbol = arrayTypeSymbol,
                 ArrayLength = arrayLength.Value,
             },
-            (WellKnownCollectionKind.None, _, _, _) => new ConstantWellKnownMember
+            (not WellKnownCollectionKind.None, _, _) => new ReadRemainingArrayMemberGroup
+            {
+                TypeKind = typeKind,
+                MemberSymbol = symbol,
+                TypeByteLength = length,
+                TypeSymbol = typeSymbol,
+                CollectionKind = collectionKind,
+                ArrayMinLength = arrayMinLength ?? 0,
+            },
+            (WellKnownCollectionKind.None, _, _) => new ConstantWellKnownMember
             {
                 TypeKind = typeKind,
                 MemberSymbol = symbol,
                 TypeByteLength = length,
                 TypeSymbol = typeSymbol,
             },
-            _ => throw new ArgumentOutOfRangeException(nameof(symbol)),
+            //_ => throw new ArgumentException(
+            //    $"Could not get info for {symbol.Name} {typeKind} {collectionKind} ({arrayLength}, {arrayMinLength}, {arrayLengthMember?.MemberSymbol.Name})"
+            //),
         };
         return true;
     }

@@ -46,3 +46,15 @@ public interface ISpanReadable<TSelf>
         out int bytesRead
     );
 }
+
+public interface IBinaryObject<TSelf> : IWritable, ISpanReadable<TSelf>
+    where TSelf : IBinaryObject<TSelf>;
+
+public interface IConstBinaryObject<TSelf> : IBinaryObject<TSelf>, IConstBinaryReadable<TSelf>
+    where TSelf : IConstBinaryObject<TSelf>;
+
+public interface IConstBinaryReadable<TSelf> : ISpanReadable<TSelf>
+    where TSelf : IBinaryObject<TSelf>
+{
+    public static abstract int GetConstByteCount();
+}

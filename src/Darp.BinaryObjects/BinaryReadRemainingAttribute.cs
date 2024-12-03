@@ -1,9 +1,10 @@
 namespace Darp.BinaryObjects;
 
 /// <summary> Read the remaining bytes into the array this attribute is applied on </summary>
+/// <param name="minElements"> The minimum number of elements expected to be inside the collection </param>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public sealed class BinaryReadRemainingAttribute : Attribute
+public sealed class BinaryMinElementCountAttribute(int minElements) : Attribute
 {
-    /// <summary> An optional minimum number of elements of the collection </summary>
-    public int MinElements { get; set; }
+    /// <summary> The minimum number of elements expected to be inside the collection </summary>
+    public int MinElements { get; } = minElements;
 }

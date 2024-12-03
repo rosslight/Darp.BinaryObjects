@@ -110,7 +110,7 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, gl
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..], this.Value, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..], this.Value);
         bytesWritten += 2;
 
         return true;
@@ -126,7 +126,7 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, gl
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..], this.Value, 2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..], this.Value);
         bytesWritten += 2;
 
         return true;
@@ -144,7 +144,7 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBoolArray(source[0..2]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBoolArray(source[0..2], out _);
         bytesRead += 2;
 
         value = new OneArray(___readValue);
@@ -162,7 +162,7 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, gl
 
         if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBoolArray(source[0..2]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBoolArray(source[0..2], out _);
         bytesRead += 2;
 
         value = new OneArray(___readValue);
@@ -276,6 +276,7 @@ namespace Darp.BinaryObjects.Generated
     using System;
     using System.Buffers.Binary;
     using System.CodeDom.Compiler;
+    using System.Collections.Generic;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
 
@@ -297,15 +298,17 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Writes a <c>ReadOnlySpan&lt;bool&gt;</c> with a <c>maxElementLength</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBoolSpan(Span<byte> destination, ReadOnlySpan<bool> value, int maxElementLength)
+        public static int WriteBoolSpan(Span<byte> destination, ReadOnlySpan<bool> value)
         {
-            var length = Math.Min(value.Length, maxElementLength);
+            var length = Math.Min(value.Length, destination.Length);
             MemoryMarshal.Cast<bool, byte>(value.Slice(0, length)).CopyTo(destination);
+            return length;
         }
         /// <summary> Reads a <c>bool[]</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool[] ReadBoolArray(ReadOnlySpan<byte> source)
+        public static bool[] ReadBoolArray(ReadOnlySpan<byte> source, out int bytesRead)
         {
+            bytesRead = source.Length;
             return MemoryMarshal.Cast<byte, bool>(source).ToArray();
         }
         /// <summary> Writes a <c>T</c> to the destination </summary>
