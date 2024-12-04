@@ -33,14 +33,14 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
 
         if (destination.Length < 24)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..], this.ValueByteMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[2..], this.ValueByteArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination[4..], this.ValueByteList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination[6..], this.ValueByteEnumerable);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination[8..], this.ValueUShortMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination[12..], this.ValueUShortArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListLittleEndian(destination[16..], this.ValueUShortList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableLittleEndian(destination[20..], this.ValueUShortEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(0, 2), this.ValueByteMemory.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(2, 2), this.ValueByteArray);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination.Slice(4, 2), this.ValueByteList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination.Slice(6, 2), this.ValueByteEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination.Slice(8, 4), this.ValueUShortMemory.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination.Slice(12, 4), this.ValueUShortArray);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListLittleEndian(destination.Slice(16, 4), this.ValueUShortList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableLittleEndian(destination.Slice(20, 4), this.ValueUShortEnumerable);
         bytesWritten += 24;
 
         return true;
@@ -56,14 +56,14 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IWritable, gl
 
         if (destination.Length < 24)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..], this.ValueByteMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[2..], this.ValueByteArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination[4..], this.ValueByteList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination[6..], this.ValueByteEnumerable);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination[8..], this.ValueUShortMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination[12..], this.ValueUShortArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListBigEndian(destination[16..], this.ValueUShortList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableBigEndian(destination[20..], this.ValueUShortEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(0, 2), this.ValueByteMemory.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(2, 2), this.ValueByteArray);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination.Slice(4, 2), this.ValueByteList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination.Slice(6, 2), this.ValueByteEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination.Slice(8, 4), this.ValueUShortMemory.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination.Slice(12, 4), this.ValueUShortArray);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListBigEndian(destination.Slice(16, 4), this.ValueUShortList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableBigEndian(destination.Slice(20, 4), this.ValueUShortEnumerable);
         bytesWritten += 24;
 
         return true;

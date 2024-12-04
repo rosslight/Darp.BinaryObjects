@@ -33,8 +33,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IWritable,
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[0..], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64LittleEndian(destination[5..], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination[13..], this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<DefaultEnum>(destination[15..], this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
         bytesWritten += 23;
 
         return true;
@@ -53,8 +53,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IWritable,
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[0..], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64BigEndian(destination[5..], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination[13..], this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<DefaultEnum>(destination[15..], this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
         bytesWritten += 23;
 
         return true;

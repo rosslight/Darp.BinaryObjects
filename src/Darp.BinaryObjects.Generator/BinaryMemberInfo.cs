@@ -134,7 +134,7 @@ internal sealed class ConstantArrayMember : IConstantMember
             TypeSymbol
         );
         writeString =
-            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..], {memberName});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination.Slice({currentByteIndex}, {ConstantByteLength}), {memberName});";
         bytesWritten = ConstantByteLength;
         return true;
     }
