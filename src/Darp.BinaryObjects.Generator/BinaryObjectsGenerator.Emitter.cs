@@ -38,7 +38,7 @@ partial class BinaryObjectsGenerator
         EmitAddTypeDeclaration(writer, info.Syntax, memberGroups);
         writer.WriteLine("{");
         writer.Indent++;
-        EmitGetByteCountMethod(writer, memberGroups);
+        EmitGetByteCountMethod(writer, info.Symbol, memberGroups);
         writer.WriteEmptyLine();
         EmitWriteImplementationMethod(writer, memberGroups, true, utilities);
         EmitWriteImplementationMethod(writer, memberGroups, false, utilities);
@@ -81,11 +81,12 @@ partial class BinaryObjectsGenerator
     )
     {
         // Add xml docs
-        IEnumerable<string> memberDocs = memberGroups
+        var memberDocs = memberGroups
             .SelectMembers()
             .Select(memberInfo =>
                 $"""/// <item> <term><see cref="{memberInfo.MemberSymbol.Name}"/></term> <description>{memberInfo.GetDocCommentLength()}</description> </item>"""
-            );
+            )
+            .ToArray();
         var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var variableLength = string.Join(
             " + ",
@@ -95,10 +96,15 @@ partial class BinaryObjectsGenerator
             ? $"{summedConstantLength}"
             : string.Join(" + ", summedConstantLength, variableLength);
         writer.WriteMultiLine(
-            $"""
+            """
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-{string.Join("\n", memberDocs)}
+"""
+        );
+        if (memberDocs.Length > 0)
+            writer.WriteMultiLine(string.Join("\n", memberDocs));
+        writer.WriteMultiLine(
+            $"""
 /// <item> <term> --- </term> <description>{summedLength}</description> </item>
 /// </list> </remarks>
 """
@@ -109,12 +115,21 @@ partial class BinaryObjectsGenerator
             && !string.IsNullOrWhiteSpace(recordSyntax.ClassOrStructKeyword.Text)
                 ? $" {recordSyntax.ClassOrStructKeyword}"
                 : "";
+
+        var isPure = memberGroups.SelectMembers().All(x => x is IConstantMember);
+        var attributes = isPure
+            ? $"global::Darp.BinaryObjects.IBinaryConstantObject<{syntax.Identifier}>"
+            : $"global::Darp.BinaryObjects.IBinaryObject<{syntax.Identifier}>";
         writer.WriteLine(
-            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<{syntax.Identifier}>"
+            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : {attributes}"
         );
     }
 
-    private static void EmitGetByteCountMethod(IndentedTextWriter writer, ImmutableArray<IGroup> memberGroups)
+    private static void EmitGetByteCountMethod(
+        IndentedTextWriter writer,
+        INamedTypeSymbol infoSymbol,
+        ImmutableArray<IGroup> memberGroups
+    )
     {
         var constantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var variableLength = string.Join(
@@ -135,6 +150,16 @@ partial class BinaryObjectsGenerator
 public int GetByteCount() => {summedLength};
 """
         );
+        if (isPure)
+        {
+            writer.WriteMultiLine(
+                $"""
+
+{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}
+static int global::Darp.BinaryObjects.IBinaryConstantReadable<{infoSymbol.Name}>.ByteCount => {summedLength};
+"""
+            );
+        }
     }
 
     private static void EmitWriteImplementationMethod(

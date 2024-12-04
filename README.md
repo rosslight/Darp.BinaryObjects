@@ -13,16 +13,17 @@
 
 ### A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
 
+</div>
+
 > [!IMPORTANT]  
 > This package is under heavy development. Anything is subject to change.
 
-</div>
 You should use the source generation when you want:
- 
+
 - Serialization to a buffer of bytes
 - Deserialization from a buffer already completely received
 - Endianness during serialization
-- Common interfaces for serialization are required which allow to implement more complex scenarios by hand without the generator
+- Common interfaces for serialization are required which allow implementation of more complex scenarios by hand without the generator
 - Usage of something like BinaryPrimitives but for more complex types
 - Can work with a minimum c# LanguageVersion of 11 and net8.0 / net9.0
 
@@ -39,7 +40,7 @@ If these requirements do not meet your expectations, check out those other wonde
 Here is a list of the property types currently supported by the library:
 
 - [x] Unmanaged types: `bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `char`, `float`, `double`
-- [x] BinaryObjects implementing `IWritable` or `IReadable`
+- [x] BinaryObjects implementing `IBinaryWritable` or `IBinaryReadable`
 - [ ] Blittable types
 - [x] Enums
 - [ ] Other .NET types: `BitArray`
@@ -138,7 +139,7 @@ namespace Your.Namespace;
 /// <item> <term><see cref="B"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>3</description> </item>
 /// </list> </remarks>
-public partial record struct YourStruct : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<YourStruct>
+public partial record struct YourStruct : global::Darp.BinaryObjects.IBinaryWritable, global::Darp.BinaryObjects.IBinaryReadable<YourStruct>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

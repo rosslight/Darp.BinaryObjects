@@ -7,13 +7,16 @@
 /// <item> <term><see cref="Value"/></term> <description>1 * 2</description> </item>
 /// <item> <term> --- </term> <description>2</description> </item>
 /// </list> </remarks>
-public sealed partial record ArrayByteFixedSize : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<ArrayByteFixedSize>
+public sealed partial record ArrayByteFixedSize : global::Darp.BinaryObjects.IBinaryConstantObject<ArrayByteFixedSize>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 2;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<ArrayByteFixedSize>.ByteCount => 2;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

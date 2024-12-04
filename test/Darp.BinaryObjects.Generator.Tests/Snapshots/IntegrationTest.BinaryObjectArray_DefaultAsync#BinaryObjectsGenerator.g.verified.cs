@@ -7,13 +7,16 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool>
+public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool>.ByteCount => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -92,13 +95,16 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 /// <item> <term><see cref="Value2"/></term> <description>1 * 2</description> </item>
 /// <item> <term> --- </term> <description>4</description> </item>
 /// </list> </remarks>
-public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<BinaryObjectArrays>
+public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBinaryConstantObject<BinaryObjectArrays>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 4;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<BinaryObjectArrays>.ByteCount => 4;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -204,7 +210,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Writes a <c>ReadOnlySpan&lt;T&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBinaryObjectSpanLittleEndian<T>(Span<byte> destination, ReadOnlySpan<T> value)
-            where T : IWritable
+            where T : IBinaryWritable
         {
             if (value.Length == 0)
                 return 0;
@@ -220,7 +226,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Writes a <c>ReadOnlySpan&lt;T&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBinaryObjectSpanBigEndian<T>(Span<byte> destination, ReadOnlySpan<T> value)
-            where T : IWritable
+            where T : IBinaryWritable
         {
             if (value.Length == 0)
                 return 0;
@@ -236,7 +242,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Reads a <c>T[]</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] ReadBinaryObjectArrayLittleEndian<T>(ReadOnlySpan<byte> source, int numberOfElements, out int bytesRead)
-            where T : ISpanReadable<T>
+            where T : IBinaryReadable<T>
         {
             var elementLength = source.Length / numberOfElements;
             var array = new T[numberOfElements];
@@ -252,7 +258,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Reads a <c>T[]</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] ReadBinaryObjectArrayBigEndian<T>(ReadOnlySpan<byte> source, int numberOfElements, out int bytesRead)
-            where T : ISpanReadable<T>
+            where T : IBinaryReadable<T>
         {
             var elementLength = source.Length / numberOfElements;
             var array = new T[numberOfElements];

@@ -8,7 +8,7 @@
 /// <item> <term><see cref="Value"/></term> <description>1 * <see cref="Length"/></description> </item>
 /// <item> <term> --- </term> <description>1 + 1 * <see cref="Length"/></description> </item>
 /// </list> </remarks>
-public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<ArrayByteLength>
+public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinaryObject<ArrayByteLength>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

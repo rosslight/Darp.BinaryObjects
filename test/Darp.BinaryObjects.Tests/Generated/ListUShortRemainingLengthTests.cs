@@ -158,7 +158,7 @@ public class ListUShortRemainingLengthTests
 /// <item> <term><see cref="Value"/></term> <description>2 * (2 + k)</description> </item>
 /// <item> <term> --- </term> <description>4 + 2 * k</description> </item>
 /// </list> </remarks>
-public sealed partial record ListUShortRemainingLength : IWritable, ISpanReadable<ListUShortRemainingLength>
+public sealed partial record ListUShortRemainingLength : IBinaryObject<ListUShortRemainingLength>
 {
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,7 +1,7 @@
 namespace Darp.BinaryObjects;
 
 /// <summary> Defines a mechanism for writing the object to a <see cref="Span{T}"/> </summary>
-public interface IWritable
+public interface IBinaryWritable
 {
     /// <summary> Gets the number of bytes that are required for <see cref="TryWriteLittleEndian(System.Span{byte})" />. </summary>
     /// <returns> The number of bytes that are required for <see cref="TryWriteBigEndian(System.Span{byte})" />. </returns>

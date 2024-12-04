@@ -5,11 +5,11 @@ using System.Diagnostics.Contracts;
 
 /// <summary> Defines a mechanism for reading the object from a <see cref="ReadOnlySpan{T}"/> </summary>
 /// <typeparam name="TSelf"> The type that implements this interface </typeparam>
-public interface ISpanReadable<TSelf>
+public interface IBinaryReadable<TSelf>
 #if NET9_0_OR_GREATER
-    where TSelf : ISpanReadable<TSelf>, allows ref struct
+    where TSelf : IBinaryReadable<TSelf>, allows ref struct
 #else
-    where TSelf : ISpanReadable<TSelf>
+    where TSelf : IBinaryReadable<TSelf>
 #endif
 {
     /// <summary> Tries to read the object from a span, in little-endian format </summary>
@@ -45,16 +45,4 @@ public interface ISpanReadable<TSelf>
         [NotNullWhen(true)] out TSelf? value,
         out int bytesRead
     );
-}
-
-public interface IBinaryObject<TSelf> : IWritable, ISpanReadable<TSelf>
-    where TSelf : IBinaryObject<TSelf>;
-
-public interface IConstBinaryObject<TSelf> : IBinaryObject<TSelf>, IConstBinaryReadable<TSelf>
-    where TSelf : IConstBinaryObject<TSelf>;
-
-public interface IConstBinaryReadable<TSelf> : ISpanReadable<TSelf>
-    where TSelf : IBinaryObject<TSelf>
-{
-    public static abstract int GetConstByteCount();
 }

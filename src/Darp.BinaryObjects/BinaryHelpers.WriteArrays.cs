@@ -127,7 +127,7 @@ public static partial class BinaryHelpers
         ReadOnlySpan<T> value,
         int elementLength
     )
-        where T : IWritable
+        where T : IBinaryWritable
     {
         for (var i = 0; i < elementLength; i++)
         {
@@ -141,7 +141,7 @@ public static partial class BinaryHelpers
         List<T> value,
         int elementLength
     )
-        where T : IWritable
+        where T : IBinaryWritable
     {
         WriteConstantBinaryObjectSpanLittleEndian<T>(destination, CollectionsMarshal.AsSpan(value), elementLength);
     }
@@ -152,7 +152,7 @@ public static partial class BinaryHelpers
         IEnumerable<T> value,
         int elementLength
     )
-        where T : IWritable
+        where T : IBinaryWritable
     {
         switch (value)
         {

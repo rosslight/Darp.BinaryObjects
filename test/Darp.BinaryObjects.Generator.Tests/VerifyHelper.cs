@@ -11,10 +11,19 @@ public static partial class VerifyHelper
 {
     public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
         VerifyGenerator<BinaryObjectsGenerator>(sources, "DBO0", LanguageVersion.CSharp11)
+            .AddReferenceAssemblyMarker<BinaryObjectAttribute>()
             .ScrubGeneratedCodeAttribute();
 
     [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
     private static partial Regex GetGeneratedCodeRegex();
+
+    /// <summary>
+    /// This functions ensures that the assembly is referenced and <see cref="AppDomain.GetAssemblies()"/> of the <see cref="AppDomain.CurrentDomain"/> contains this assembly
+    /// </summary>
+    /// <param name="settingsTask"> The task </param>
+    /// <typeparam name="TMarker"> The type of an object of the assembly </typeparam>
+    /// <returns> The task </returns>
+    public static SettingsTask AddReferenceAssemblyMarker<TMarker>(this SettingsTask settingsTask) => settingsTask;
 
     public static SettingsTask ScrubGeneratedCodeAttribute(
         this SettingsTask settingsTask,

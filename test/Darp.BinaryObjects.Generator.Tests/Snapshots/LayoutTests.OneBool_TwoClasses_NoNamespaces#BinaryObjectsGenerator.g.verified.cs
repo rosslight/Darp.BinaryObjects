@@ -4,16 +4,18 @@
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-
 /// <item> <term> --- </term> <description>0</description> </item>
 /// </list> </remarks>
-public sealed partial record EmptyRecord1 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<EmptyRecord1>
+public sealed partial record EmptyRecord1 : global::Darp.BinaryObjects.IBinaryConstantObject<EmptyRecord1>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 0;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<EmptyRecord1>.ByteCount => 0;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -66,16 +68,18 @@ public sealed partial record EmptyRecord1 : global::Darp.BinaryObjects.IWritable
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-
 /// <item> <term> --- </term> <description>0</description> </item>
 /// </list> </remarks>
-public sealed partial record EmptyRecord2 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<EmptyRecord2>
+public sealed partial record EmptyRecord2 : global::Darp.BinaryObjects.IBinaryConstantObject<EmptyRecord2>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 0;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<EmptyRecord2>.ByteCount => 0;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

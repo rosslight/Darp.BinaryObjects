@@ -11,13 +11,16 @@
 /// <item> <term><see cref="ValueSix"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>5</description> </item>
 /// </list> </remarks>
-public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<Members1>
+public partial record Members1 : global::Darp.BinaryObjects.IBinaryConstantObject<Members1>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 5;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<Members1>.ByteCount => 5;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -120,16 +123,18 @@ public partial record Members1 : global::Darp.BinaryObjects.IWritable, global::D
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-
 /// <item> <term> --- </term> <description>0</description> </item>
 /// </list> </remarks>
-public partial record OneBool2 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool2>
+public partial record OneBool2 : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool2>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 0;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool2>.ByteCount => 0;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -185,13 +190,16 @@ public partial record OneBool2 : global::Darp.BinaryObjects.IWritable, global::D
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool>
+public partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool>.ByteCount => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

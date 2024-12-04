@@ -75,7 +75,7 @@ public static partial class BinaryHelpers
         int numberOfElements,
         int elementLength
     )
-        where T : ISpanReadable<T>
+        where T : IBinaryReadable<T>
     {
         var array = new T[numberOfElements];
         for (var i = 0; i < numberOfElements; i++)
@@ -98,7 +98,7 @@ public static partial class BinaryHelpers
         int numberOfElements,
         int elementLength
     )
-        where T : ISpanReadable<T>
+        where T : IBinaryReadable<T>
     {
         var array = new List<T>(numberOfElements);
         for (var i = 0; i < numberOfElements; i++)

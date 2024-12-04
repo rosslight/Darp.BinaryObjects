@@ -7,7 +7,7 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool1 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool1>
+public sealed partial record OneBool1 : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool1>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
@@ -91,7 +91,7 @@ public sealed partial record OneBool1 : global::Darp.BinaryObjects.IWritable, gl
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool2 : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool2>
+public sealed partial record OneBool2 : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool2>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]

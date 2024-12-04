@@ -8,13 +8,16 @@
 /// <item> <term><see cref="ValueTwo"/></term> <description>2</description> </item>
 /// <item> <term> --- </term> <description>4</description> </item>
 /// </list> </remarks>
-public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<TwoUShorts>
+public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IBinaryConstantObject<TwoUShorts>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 4;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<TwoUShorts>.ByteCount => 4;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

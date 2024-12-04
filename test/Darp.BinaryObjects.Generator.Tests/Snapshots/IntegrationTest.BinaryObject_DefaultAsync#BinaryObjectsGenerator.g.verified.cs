@@ -7,13 +7,16 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBool>
+public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool>.ByteCount => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -91,13 +94,16 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IWritable, glo
 /// <item> <term><see cref="Value"/></term> <description>1 * 2</description> </item>
 /// <item> <term> --- </term> <description>2</description> </item>
 /// </list> </remarks>
-public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneArray>
+public sealed partial record OneArray : global::Darp.BinaryObjects.IBinaryConstantObject<OneArray>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 2;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneArray>.ByteCount => 2;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -176,7 +182,7 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IWritable, gl
 /// <item> <term><see cref="Array"/></term> <description><see cref="OneArray.GetByteCount()"/></description> </item>
 /// <item> <term> --- </term> <description>1 + <see cref="OneArray.GetByteCount()"/></description> </item>
 /// </list> </remarks>
-public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<OneBinaryObject>
+public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinaryObject<OneBinaryObject>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -314,7 +320,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Writes a <c>T</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value)
-            where T : IWritable
+            where T : IBinaryWritable
         {
             if (!value.TryWriteLittleEndian(destination))
                 throw new ArgumentOutOfRangeException(nameof(value));
@@ -322,7 +328,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Writes a <c>T</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteBinaryObjectBigEndian<T>(Span<byte> destination, T value)
-            where T : IWritable
+            where T : IBinaryWritable
         {
             if (!value.TryWriteBigEndian(destination))
                 throw new ArgumentOutOfRangeException(nameof(value));
@@ -330,7 +336,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Reads a <c>T</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source)
-            where T : ISpanReadable<T>
+            where T : IBinaryReadable<T>
         {
             if (!T.TryReadLittleEndian(source, out var value))
                 throw new ArgumentOutOfRangeException(nameof(source));
@@ -339,7 +345,7 @@ namespace Darp.BinaryObjects.Generated
         /// <summary> Reads a <c>T</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source)
-            where T : ISpanReadable<T>
+            where T : IBinaryReadable<T>
         {
             if (!T.TryReadBigEndian(source, out var value))
                 throw new ArgumentOutOfRangeException(nameof(source));

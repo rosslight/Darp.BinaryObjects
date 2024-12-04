@@ -1,6 +1,6 @@
 namespace Darp.BinaryObjects;
 
-/// <summary> Provides extension methods to binary objects marked with <see cref="IWritable"/> interfaces </summary>
+/// <summary> Provides extension methods to binary objects marked with <see cref="IBinaryWritable"/> interfaces </summary>
 public static class BinaryObjectExtensions
 {
     /// <summary> Writes the object, in little-endian format, to an array. </summary>
@@ -8,7 +8,7 @@ public static class BinaryObjectExtensions
     /// <typeparam name="T"> The type of the writable binary object </typeparam>
     /// <exception cref="ArgumentException"> Writing the object to the destination failed </exception>
     public static byte[] ToArrayLittleEndian<T>(this T writable)
-        where T : IWritable
+        where T : IBinaryWritable
     {
         ArgumentNullException.ThrowIfNull(writable);
         var destination = new byte[writable.GetByteCount()];
@@ -22,7 +22,7 @@ public static class BinaryObjectExtensions
     /// <typeparam name="T"> The type of the writable binary object </typeparam>
     /// <exception cref="ArgumentException"> Writing the object to the destination failed </exception>
     public static void WriteLittleEndian<T>(this T writable, Span<byte> destination)
-        where T : IWritable
+        where T : IBinaryWritable
     {
         ArgumentNullException.ThrowIfNull(writable);
         if (!writable.TryWriteLittleEndian(destination))
@@ -34,7 +34,7 @@ public static class BinaryObjectExtensions
     /// <typeparam name="T"> The type of the writable binary object </typeparam>
     /// <exception cref="ArgumentException"> Writing the object to the destination failed </exception>
     public static byte[] ToArrayBigEndian<T>(this T writable)
-        where T : IWritable
+        where T : IBinaryWritable
     {
         ArgumentNullException.ThrowIfNull(writable);
         var destination = new byte[writable.GetByteCount()];
@@ -48,7 +48,7 @@ public static class BinaryObjectExtensions
     /// <typeparam name="T"> The type of the writable binary object </typeparam>
     /// <exception cref="ArgumentException"> Writing the object to the destination failed </exception>
     public static void WriteBigEndian<T>(this T writable, Span<byte> destination)
-        where T : IWritable
+        where T : IBinaryWritable
     {
         ArgumentNullException.ThrowIfNull(writable);
         if (!writable.TryWriteBigEndian(destination))

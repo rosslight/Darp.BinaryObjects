@@ -883,7 +883,7 @@ partial class BinaryObjectsGenerator
         var methodName = GetWriteMethodName(WellKnownCollectionKind.None, typeKind, isLittleEndian);
         var typeParameter = typeKind is WellKnownTypeKind.BinaryObject ? "<T>" : string.Empty;
         var typeParameterConstraint =
-            typeKind is WellKnownTypeKind.BinaryObject ? "    where T : IWritable" : string.Empty;
+            typeKind is WellKnownTypeKind.BinaryObject ? "    where T : IBinaryWritable" : string.Empty;
         writer.WriteLine(
             $"/// <summary> Writes a <c>{HttpUtility.HtmlEncode(typeName)}</c> to the destination </summary>"
         );
@@ -916,7 +916,7 @@ partial class BinaryObjectsGenerator
     private static string GetWriteTypeParameterConstraint(WellKnownTypeKind typeKind) =>
         typeKind switch
         {
-            WellKnownTypeKind.BinaryObject => "    where T : IWritable",
+            WellKnownTypeKind.BinaryObject => "    where T : IBinaryWritable",
             WellKnownTypeKind.EnumByte
             or WellKnownTypeKind.EnumSByte
             or WellKnownTypeKind.EnumUShort
@@ -931,7 +931,7 @@ partial class BinaryObjectsGenerator
     private static string GetReadTypeParameterConstraint(WellKnownTypeKind typeKind) =>
         typeKind switch
         {
-            WellKnownTypeKind.BinaryObject => "    where T : ISpanReadable<T>",
+            WellKnownTypeKind.BinaryObject => "    where T : IBinaryReadable<T>",
             WellKnownTypeKind.EnumByte
             or WellKnownTypeKind.EnumSByte
             or WellKnownTypeKind.EnumUShort

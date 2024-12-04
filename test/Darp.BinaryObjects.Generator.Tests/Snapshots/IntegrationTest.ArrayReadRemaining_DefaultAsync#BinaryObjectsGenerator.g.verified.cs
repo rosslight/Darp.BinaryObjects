@@ -7,7 +7,7 @@
 /// <item> <term><see cref="Value"/></term> <description>1 * n</description> </item>
 /// <item> <term> --- </term> <description>0 + 1 * n</description> </item>
 /// </list> </remarks>
-public sealed partial record Unlimited : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<Unlimited>
+public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObject<Unlimited>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -81,7 +81,7 @@ public sealed partial record Unlimited : global::Darp.BinaryObjects.IWritable, g
 /// <item> <term><see cref="Value"/></term> <description>4 * n</description> </item>
 /// <item> <term> --- </term> <description>1 + 4 * n</description> </item>
 /// </list> </remarks>
-public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<UnlimitedWithOffset>
+public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IBinaryObject<UnlimitedWithOffset>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

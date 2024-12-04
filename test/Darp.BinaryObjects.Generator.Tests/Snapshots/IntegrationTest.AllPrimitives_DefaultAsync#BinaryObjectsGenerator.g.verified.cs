@@ -20,13 +20,16 @@
 /// <item> <term><see cref="ValueByte"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>77</description> </item>
 /// </list> </remarks>
-public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IWritable, global::Darp.BinaryObjects.ISpanReadable<AllPrimitives>
+public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryConstantObject<AllPrimitives>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 77;
+    
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    static int global::Darp.BinaryObjects.IBinaryConstantReadable<AllPrimitives>.ByteCount => 77;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
