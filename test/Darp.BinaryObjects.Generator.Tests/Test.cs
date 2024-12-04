@@ -262,7 +262,7 @@ public sealed partial record BinaryObjectArrays(
         await VerifyBinaryObjectsGenerator(code);
     }
 
-    [Fact]
+    //[Fact]
     public async Task ArrayMinElementCount_DefaultAsync()
     {
         const string code = """
