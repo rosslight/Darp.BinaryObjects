@@ -36,8 +36,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryCon
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[0..], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64LittleEndian(destination[5..], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<Test.Space.DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
         bytesWritten += 23;
 
         return true;
@@ -56,8 +56,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryCon
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[0..], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64BigEndian(destination[5..], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<Test.Space.DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
         bytesWritten += 23;
 
         return true;
@@ -75,11 +75,11 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryCon
 
         if (source.Length < 23)
             return false;
-        var ___readValue1 = (DefaultEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[0..4]);
-        var ___readValue2 = (ByteEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
-        var ___readValue3 = (LongEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt64LittleEndian(source[5..13]);
-        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8EnumArray<ByteEnum>(source[13..15], out _);
-        var ___readValue5 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayLittleEndian<DefaultEnum>(source[15..23], out _);
+        var ___readValue1 = (Test.Space.DefaultEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[0..4]);
+        var ___readValue2 = (Test.Space.ByteEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
+        var ___readValue3 = (Test.Space.LongEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt64LittleEndian(source[5..13]);
+        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8EnumArray<Test.Space.ByteEnum>(source[13..15], out _);
+        var ___readValue5 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayLittleEndian<Test.Space.DefaultEnum>(source[15..23], out _);
         bytesRead += 23;
 
         value = new OneByteEnum(___readValue1, ___readValue2, ___readValue3, ___readValue4, ___readValue5);
@@ -97,11 +97,11 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryCon
 
         if (source.Length < 23)
             return false;
-        var ___readValue1 = (DefaultEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[0..4]);
-        var ___readValue2 = (ByteEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
-        var ___readValue3 = (LongEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt64BigEndian(source[5..13]);
-        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8EnumArray<ByteEnum>(source[13..15], out _);
-        var ___readValue5 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayBigEndian<DefaultEnum>(source[15..23], out _);
+        var ___readValue1 = (Test.Space.DefaultEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[0..4]);
+        var ___readValue2 = (Test.Space.ByteEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[4..5]);
+        var ___readValue3 = (Test.Space.LongEnum) global::Darp.BinaryObjects.Generated.Utilities.ReadInt64BigEndian(source[5..13]);
+        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8EnumArray<Test.Space.ByteEnum>(source[13..15], out _);
+        var ___readValue5 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayBigEndian<Test.Space.DefaultEnum>(source[15..23], out _);
         bytesRead += 23;
 
         value = new OneByteEnum(___readValue1, ___readValue2, ___readValue3, ___readValue4, ___readValue5);

@@ -346,7 +346,7 @@ partial class BinaryObjectsGenerator
                     or WellKnownTypeKind.EnumInt
                     or WellKnownTypeKind.EnumULong
                     or WellKnownTypeKind.EnumLong
-            ? $"({symbol.Name}) "
+            ? $"({symbol.ToDisplayString()}) "
             : string.Empty;
     }
 
