@@ -214,17 +214,18 @@ public partial record Members2
     {
         const string code = """
             using Darp.BinaryObjects;
-
-            public enum DefaultEnum {}
-            public enum ByteEnum : byte {}
-            public enum LongEnum : long {}
-
+            namespace Test.Space
+            {
+                public enum DefaultEnum {}
+                public enum ByteEnum : byte {}
+                public enum LongEnum : long {}
+            }
             [BinaryObject]
-            public sealed partial record OneByteEnum(DefaultEnum Value1,
-                ByteEnum Value2,
-                LongEnum Value3,
-                [property: BinaryElementCount(2)] System.ReadOnlyMemory<ByteEnum> Value4,
-                [property: BinaryElementCount(2)] System.ReadOnlyMemory<DefaultEnum> Value5);
+            public sealed partial record OneByteEnum(Test.Space.DefaultEnum Value1,
+                Test.Space.ByteEnum Value2,
+                Test.Space.LongEnum Value3,
+                [property: BinaryElementCount(2)] System.ReadOnlyMemory<Test.Space.ByteEnum> Value4,
+                [property: BinaryElementCount(2)] System.ReadOnlyMemory<Test.Space.DefaultEnum> Value5);
             """;
         await VerifyBinaryObjectsGenerator(code);
     }
