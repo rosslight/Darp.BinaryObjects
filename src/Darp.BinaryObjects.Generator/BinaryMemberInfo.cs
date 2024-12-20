@@ -298,8 +298,13 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
+            CollectionKind,
+            TypeKind,
+            TypeSymbol
+        );
         writeString = $"""
-            bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], {memberName});
+            bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..], {memberName});
             """;
         if (ArrayMinLength > 0)
         {

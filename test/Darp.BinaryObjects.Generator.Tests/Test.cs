@@ -87,6 +87,21 @@ public sealed partial record ArrayByteFixedSize([property: BinaryElementCount(2)
     }
 
     [Fact]
+    public async Task ReadRemaining_BinaryObject_DefaultAsync()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            [BinaryObject]
+            public sealed partial record BinaryObject1(byte Value);
+
+            [BinaryObject]
+            public sealed partial record BinaryObject2(BinaryObject1[] Value);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task ArraysFixedSize_DefaultAsync()
     {
         const string code = """

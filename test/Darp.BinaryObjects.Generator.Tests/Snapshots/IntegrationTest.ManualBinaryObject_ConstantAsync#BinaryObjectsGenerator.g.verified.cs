@@ -39,7 +39,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination.Slice(4, this.Length), this.LengthValues);
         bytesWritten += this.Length;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListLittleEndian(destination[4..], this.RemainingValue);
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListLittleEndian<ManualConstantObject>(destination[4..], this.RemainingValue);
 
         return true;
     }
@@ -64,7 +64,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination.Slice(4, this.Length), this.LengthValues);
         bytesWritten += this.Length;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListBigEndian(destination[4..], this.RemainingValue);
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListBigEndian<ManualConstantObject>(destination[4..], this.RemainingValue);
 
         return true;
     }
