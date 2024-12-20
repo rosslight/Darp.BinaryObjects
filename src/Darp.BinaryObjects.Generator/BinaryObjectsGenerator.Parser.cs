@@ -424,44 +424,59 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool IsConstant(ITypeSymbol typeSymbol, out int constantLength)
+    private static bool IsConstant(ITypeSymbol typeSymbol, out int totalLength)
     {
         AttributeData? binaryConstantObjectAttribute = typeSymbol
             .GetAttributes()
             .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryConstantAttribute");
         if (binaryConstantObjectAttribute?.ConstructorArguments[0].Value is int value)
         {
-            constantLength = value;
+            totalLength = value;
             return true;
         }
 
-        constantLength = default;
+        totalLength = 0;
         foreach (
-            ITypeSymbol memberTypeSymbol in typeSymbol
+            ISymbol symbol in typeSymbol
                 .GetMembers()
                 .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
                 .Where(x => !x.IsImplicitlyDeclared)
-                .Select(x =>
-                    x switch
-                    {
-                        IFieldSymbol s => s.Type,
-                        IPropertySymbol s => s.Type,
-                        _ => throw new ArgumentOutOfRangeException(nameof(x)),
-                    }
-                )
         )
         {
-            if (
-                memberTypeSymbol.TryGetArrayType(out WellKnownCollectionKind collectionKind, out ITypeSymbol? _)
-                || collectionKind is not WellKnownCollectionKind.None
-            )
-                return false;
+            (bool HasAttribute, int? Length) hasElementCountTuple = symbol
+                .GetAttributes()
+                .Select(a =>
+                {
+                    if (a.AttributeClass?.ToDisplayString() != "Darp.BinaryObjects.BinaryElementCountAttribute")
+                        return (false, 1);
+                    if (
+                        !a.GetArguments()
+                            .ToDictionary(x => x.Key, x => x.Value)
+                            .TryGetValue("length", out TypedConstant lengthValue)
+                    )
+                        return (false, 1);
+                    return (true, (int?)lengthValue.Value);
+                })
+                .FirstOrDefault(x => x.Item1);
+            var arrayLength = hasElementCountTuple.Length ?? 1;
+            ITypeSymbol memberTypeSymbol = symbol switch
+            {
+                IFieldSymbol s => s.Type,
+                IPropertySymbol s => s.Type,
+                _ => throw new ArgumentException($"Invalid symbol type {symbol.ToDisplayString()}"),
+            };
+            if (memberTypeSymbol.TryGetArrayType(out WellKnownCollectionKind _, out ITypeSymbol? arrayTypeSymbol))
+            {
+                if (!hasElementCountTuple.HasAttribute)
+                    return false;
+                memberTypeSymbol = arrayTypeSymbol;
+            }
             WellKnownTypeKind typeKind = GetWellKnownTypeKind(memberTypeSymbol);
             if (typeKind is WellKnownTypeKind.BinaryObject)
                 return false;
             if (!typeKind.TryGetLength(out var length))
                 return false;
-            constantLength += length;
+            totalLength += length * arrayLength;
         }
         return true;
     }

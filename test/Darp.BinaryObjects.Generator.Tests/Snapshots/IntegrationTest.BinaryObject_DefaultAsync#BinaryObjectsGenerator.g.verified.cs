@@ -175,15 +175,17 @@ public sealed partial record OneArray : global::Darp.BinaryObjects.IBinaryObject
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
-/// <item> <term><see cref="Array"/></term> <description><see cref="OneArray.GetByteCount()"/></description> </item>
-/// <item> <term> --- </term> <description>1 + <see cref="OneArray.GetByteCount()"/></description> </item>
+/// <item> <term><see cref="Array"/></term> <description>2</description> </item>
+/// <item> <term> --- </term> <description>3</description> </item>
 /// </list> </remarks>
+[global::Darp.BinaryObjects.BinaryConstant(3)]
 public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinaryObject<OneBinaryObject>
 {
     /// <inheritdoc />
+    [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 1 + this.Array.GetByteCount();
+    public int GetByteCount() => 3;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -194,14 +196,11 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1)
+        if (destination.Length < 3)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..], this.Value);
-        bytesWritten += 1;
-
-        if (!this.Array.TryWriteLittleEndian(destination[1..], out var ___bytesWrittenArray))
-            return false;
-        bytesWritten += ___bytesWrittenArray;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[1..], this.Array);
+        bytesWritten += 3;
 
         return true;
     }
@@ -214,14 +213,11 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1)
+        if (destination.Length < 3)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..], this.Value);
-        bytesWritten += 1;
-
-        if (!this.Array.TryWriteBigEndian(destination[1..], out var ___bytesWrittenArray))
-            return false;
-        bytesWritten += ___bytesWrittenArray;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[1..], this.Array);
+        bytesWritten += 3;
 
         return true;
     }
@@ -236,14 +232,11 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 1)
+        if (source.Length < 3)
             return false;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<OneBool>(source[0..1]);
-        bytesRead += 1;
-
-        if (!OneArray.TryReadLittleEndian(source[1..], out var ___readArray, out var ___bytesReadArray))
-            return false;
-        bytesRead += ___bytesReadArray;
+        var ___readArray = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<OneArray>(source[1..3]);
+        bytesRead += 3;
 
         value = new OneBinaryObject(___readValue, ___readArray);
         return true;
@@ -258,14 +251,11 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 1)
+        if (source.Length < 3)
             return false;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<OneBool>(source[0..1]);
-        bytesRead += 1;
-
-        if (!OneArray.TryReadBigEndian(source[1..], out var ___readArray, out var ___bytesReadArray))
-            return false;
-        bytesRead += ___bytesReadArray;
+        var ___readArray = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<OneArray>(source[1..3]);
+        bytesRead += 3;
 
         value = new OneBinaryObject(___readValue, ___readArray);
         return true;

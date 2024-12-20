@@ -638,6 +638,9 @@ partial class BinaryObjectsGenerator
                     and not WellKnownTypeKind.Byte
                     and not WellKnownTypeKind.EnumSByte
                     and not WellKnownTypeKind.EnumByte;
+        // Binary object generation does not depend on the byte length
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+            byteLength = UtilityData.UnknownLength;
         return collectionKind switch
         {
             WellKnownCollectionKind.None =>
@@ -732,6 +735,9 @@ partial class BinaryObjectsGenerator
                     and not WellKnownTypeKind.Byte
                     and not WellKnownTypeKind.EnumSByte
                     and not WellKnownTypeKind.EnumByte;
+        // Binary object generation does not depend on the byte length
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+            byteLength = UtilityData.UnknownLength;
         return collectionKind switch
         {
             WellKnownCollectionKind.None =>
@@ -1212,7 +1218,7 @@ partial class BinaryObjectsGenerator
                         bytesRead = list.Count * {byteLength};
                         return list;
                         """,
-                (WellKnownCollectionKind.List, WellKnownTypeKind.BinaryObject, not null) => (_, _, isLittleEndian) =>
+                (WellKnownCollectionKind.List, WellKnownTypeKind.BinaryObject, _) => (_, _, isLittleEndian) =>
                     $$"""
                       var numberOfElements = source.Length / elementLength;
                       var array = new List<T>(numberOfElements);
