@@ -329,41 +329,54 @@ partial class BinaryObjectsGenerator
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
             var isConstant = IsConstant(typeSymbol, out var constantLength);
-            info = (collectionKind, arrayLength, isConstant) switch
+            if (isConstant)
+                length = constantLength;
+            info = (collectionKind, arrayLength, arrayLengthMember, isConstant) switch
             {
-                (WellKnownCollectionKind.None, _, true) => new ConstantWellKnownMember
+                (WellKnownCollectionKind.None, _, _, true) => new ConstantWellKnownMember
                 {
                     TypeKind = WellKnownTypeKind.BinaryObject,
                     MemberSymbol = symbol,
-                    TypeByteLength = constantLength,
+                    TypeByteLength = length,
                     TypeSymbol = typeSymbol,
                 },
-                (WellKnownCollectionKind.None, _, false) => new BinaryObjectMemberGroup
+                (WellKnownCollectionKind.None, _, _, false) => new BinaryObjectMemberGroup
                 {
                     MemberSymbol = symbol,
                     TypeSymbol = typeSymbol,
                 },
-                (not WellKnownCollectionKind.None, not null, true) => info = new ConstantArrayMember
+                (not WellKnownCollectionKind.None, not null, _, true) => info = new ConstantArrayMember
                 {
                     TypeKind = WellKnownTypeKind.BinaryObject,
                     MemberSymbol = symbol,
                     TypeSymbol = typeSymbol,
                     CollectionKind = collectionKind,
-                    TypeByteLength = constantLength,
+                    TypeByteLength = length,
                     ArrayTypeSymbol = arrayTypeSymbol,
                     ArrayLength = arrayLength.Value,
                 },
-                _ => null,
+                (not WellKnownCollectionKind.None, _, not null, true) => new VariableArrayMemberGroup
+                {
+                    TypeKind = typeKind,
+                    CollectionKind = collectionKind,
+                    MemberSymbol = symbol,
+                    TypeSymbol = typeSymbol,
+                    TypeByteLength = length,
+                    ArrayTypeSymbol = arrayTypeSymbol,
+                    ArrayMinLength = arrayMinLength ?? 0,
+                    ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
+                },
+                (not WellKnownCollectionKind.None, _, _, _) => new ReadRemainingArrayMemberGroup
+                {
+                    TypeKind = typeKind,
+                    MemberSymbol = symbol,
+                    TypeByteLength = length,
+                    TypeSymbol = typeSymbol,
+                    CollectionKind = collectionKind,
+                    ArrayMinLength = arrayMinLength ?? 0,
+                },
             };
-            if (info is not null)
-                return true;
-            var diagnostic = DiagnosticData.Create(
-                DiagnosticDescriptors.CollectionParameterInvalidType,
-                location: symbol.GetSourceLocation(),
-                [typeSymbol.Name]
-            );
-            diagnostics.Add(diagnostic);
-            return false;
+            return true;
         }
         info = (collectionKind, arrayLength, arrayLengthMember) switch
         {
@@ -413,6 +426,15 @@ partial class BinaryObjectsGenerator
 
     private static bool IsConstant(ITypeSymbol typeSymbol, out int constantLength)
     {
+        AttributeData? binaryConstantObjectAttribute = typeSymbol
+            .GetAttributes()
+            .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryConstantAttribute");
+        if (binaryConstantObjectAttribute?.ConstructorArguments[0].Value is int value)
+        {
+            constantLength = value;
+            return true;
+        }
+
         constantLength = default;
         foreach (
             ITypeSymbol memberTypeSymbol in typeSymbol

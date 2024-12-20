@@ -278,4 +278,37 @@ public sealed partial record BinaryObjectArrays(
             """;
         await VerifyBinaryObjectsGenerator(code);
     }
+
+    [Fact]
+    public async Task ManualBinaryObject_ConstantAsync()
+    {
+        const string code = """
+using Darp.BinaryObjects;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+
+[BinaryConstant(1)]
+public sealed record ManualConstantObject : IBinaryObject<ManualConstantObject>
+{
+    public int GetByteCount() => throw new NotImplementedException();
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryReadLittleEndian(destination, out _);
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWriteBigEndian(destination, out _);
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+    public static bool TryReadLittleEndian(ReadOnlySpan<byte> source,[NotNullWhen(true)] out ManualConstantObject? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(ReadOnlySpan<byte> source,[NotNullWhen(true)] out ManualConstantObject? value,out int bytesRead) => throw new NotImplementedException();
+    public static bool TryReadBigEndian(ReadOnlySpan<byte> source,[NotNullWhen(true)] out ManualConstantObject? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(ReadOnlySpan<byte> source,[NotNullWhen(true)] out ManualConstantObject? value,out int bytesRead) => throw new NotSupportedException();
+}
+
+[BinaryObject]
+public sealed partial record UnlimitedWithMinLength(ManualConstantObject Value,
+    [property: BinaryElementCount(2)] ManualConstantObject[] Values,
+    byte Length,
+    [property: BinaryElementCount("Length")] ManualConstantObject[] LengthValues,
+    List<ManualConstantObject> RemainingValue);
+""";
+        await VerifyBinaryObjectsGenerator(code);
+    }
 }

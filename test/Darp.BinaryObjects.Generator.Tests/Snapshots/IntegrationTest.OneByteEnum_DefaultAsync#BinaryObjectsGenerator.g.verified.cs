@@ -11,16 +11,14 @@
 /// <item> <term><see cref="Value5"/></term> <description>4 * 2</description> </item>
 /// <item> <term> --- </term> <description>23</description> </item>
 /// </list> </remarks>
-public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryConstantObject<OneByteEnum>
+[global::Darp.BinaryObjects.BinaryConstant(23)]
+public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryObject<OneByteEnum>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 23;
-    
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneByteEnum>.ByteCount => 23;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

@@ -7,16 +7,14 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
+[global::Darp.BinaryObjects.BinaryConstant(1)]
+public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;
-    
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool>.ByteCount => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -95,16 +93,14 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstan
 /// <item> <term><see cref="Value2"/></term> <description>1 * 2</description> </item>
 /// <item> <term> --- </term> <description>4</description> </item>
 /// </list> </remarks>
-public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBinaryConstantObject<BinaryObjectArrays>
+[global::Darp.BinaryObjects.BinaryConstant(4)]
+public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBinaryObject<BinaryObjectArrays>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 4;
-    
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    static int global::Darp.BinaryObjects.IBinaryConstantReadable<BinaryObjectArrays>.ByteCount => 4;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -153,8 +149,8 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBi
 
         if (source.Length < 4)
             return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[0..2], 2, out _);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[2..4], 2, out _);
+        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[0..2], 1, out _);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[2..4], 1, out _);
         bytesRead += 4;
 
         value = new BinaryObjectArrays(___readValue1, ___readValue2);
@@ -172,8 +168,8 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBi
 
         if (source.Length < 4)
             return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[0..2], 2, out _);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[2..4], 2, out _);
+        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[0..2], 1, out _);
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[2..4], 1, out _);
         bytesRead += 4;
 
         value = new BinaryObjectArrays(___readValue1, ___readValue2);
@@ -241,10 +237,10 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Reads a <c>T[]</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] ReadBinaryObjectArrayLittleEndian<T>(ReadOnlySpan<byte> source, int numberOfElements, out int bytesRead)
+        public static T[] ReadBinaryObjectArrayLittleEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
             where T : IBinaryReadable<T>
         {
-            var elementLength = source.Length / numberOfElements;
+            var numberOfElements = source.Length / elementLength;
             var array = new T[numberOfElements];
             for (var i = 0; i < numberOfElements; i++)
             {
@@ -257,10 +253,10 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Reads a <c>T[]</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] ReadBinaryObjectArrayBigEndian<T>(ReadOnlySpan<byte> source, int numberOfElements, out int bytesRead)
+        public static T[] ReadBinaryObjectArrayBigEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
             where T : IBinaryReadable<T>
         {
-            var elementLength = source.Length / numberOfElements;
+            var numberOfElements = source.Length / elementLength;
             var array = new T[numberOfElements];
             for (var i = 0; i < numberOfElements; i++)
             {

@@ -47,7 +47,8 @@ public static partial class VerifyHelper
     private static SettingsTask VerifyGenerator<TGenerator>(
         string[] sources,
         string? allowedDiagnosticCode,
-        LanguageVersion languageVersion = LanguageVersion.Default
+        LanguageVersion languageVersion = LanguageVersion.Default,
+        NullableContextOptions nullableContextOptions = NullableContextOptions.Enable
     )
         where TGenerator : IIncrementalGenerator, new()
     {
@@ -64,7 +65,8 @@ public static partial class VerifyHelper
         var compilation = CSharpCompilation.Create(
             assemblyName: Assembly.GetExecutingAssembly().FullName,
             syntaxTrees: syntaxTrees,
-            references: references
+            references: references,
+            new CSharpCompilationOptions(OutputKind.NetModule, nullableContextOptions: nullableContextOptions)
         );
 
         // Assert that there are no compilation errors (except for CS5001 which informs about the missing program entry)

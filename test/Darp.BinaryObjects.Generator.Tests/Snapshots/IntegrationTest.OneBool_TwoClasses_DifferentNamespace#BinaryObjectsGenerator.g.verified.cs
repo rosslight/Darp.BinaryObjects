@@ -9,7 +9,7 @@ namespace Test1
     /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
     /// <item> <term> --- </term> <description>1</description> </item>
     /// </list> </remarks>
-    public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
+    public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool>
     {
         /// <inheritdoc />
         [global::System.Diagnostics.Contracts.Pure]
@@ -96,7 +96,7 @@ namespace Test2
     /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
     /// <item> <term> --- </term> <description>1</description> </item>
     /// </list> </remarks>
-    public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
+    public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool>
     {
         /// <inheritdoc />
         [global::System.Diagnostics.Contracts.Pure]

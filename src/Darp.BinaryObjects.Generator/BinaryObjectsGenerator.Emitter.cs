@@ -117,11 +117,13 @@ partial class BinaryObjectsGenerator
                 : "";
 
         var isPure = memberGroups.SelectMembers().All(x => x is IConstantMember);
-        var attributes = isPure
-            ? $"global::Darp.BinaryObjects.IBinaryConstantObject<{syntax.Identifier}>"
-            : $"global::Darp.BinaryObjects.IBinaryObject<{syntax.Identifier}>";
+        if (isPure)
+        {
+            var constantLength = memberGroups.Sum(x => x.ConstantByteLength);
+            writer.WriteLine($"[global::Darp.BinaryObjects.BinaryConstant({constantLength})]");
+        }
         writer.WriteLine(
-            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : {attributes}"
+            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : global::Darp.BinaryObjects.IBinaryObject<{syntax.Identifier}>"
         );
     }
 
@@ -150,16 +152,6 @@ partial class BinaryObjectsGenerator
 public int GetByteCount() => {summedLength};
 """
         );
-        if (isPure)
-        {
-            writer.WriteMultiLine(
-                $"""
-
-{RoslynHelper.GetGeneratedVersionAttribute(fullNamespace: true)}
-static int global::Darp.BinaryObjects.IBinaryConstantReadable<{infoSymbol.Name}>.ByteCount => {summedLength};
-"""
-            );
-        }
     }
 
     private static void EmitWriteImplementationMethod(
@@ -401,11 +393,12 @@ namespace Darp.BinaryObjects.Generated
                 var isReadUtility,
                 WellKnownCollectionKind collectionKind,
                 WellKnownTypeKind typeKind,
+                var constLength,
                 var emitLittleAndBigEndian
             ) = utilityData;
             if (isReadUtility)
             {
-                EmitReadUtility(writer, collectionKind, typeKind, emitLittleAndBigEndian);
+                EmitReadUtility(writer, collectionKind, typeKind, constLength, emitLittleAndBigEndian);
             }
             else
             {

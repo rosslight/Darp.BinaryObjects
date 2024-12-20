@@ -7,16 +7,14 @@
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryConstantObject<OneBool>
+[global::Darp.BinaryObjects.BinaryConstant(1)]
+public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 1;
-    
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    static int global::Darp.BinaryObjects.IBinaryConstantReadable<OneBool>.ByteCount => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

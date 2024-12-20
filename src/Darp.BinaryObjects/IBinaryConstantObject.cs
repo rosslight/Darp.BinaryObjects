@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects;
 
+/*
 /// <summary> Defines a binary object which implements both read and write methods and has a constant length </summary>
 /// <typeparam name="TSelf"> The type that implements this interface </typeparam>
 public interface IBinaryConstantObject<TSelf> : IBinaryObject<TSelf>, IBinaryConstantReadable<TSelf>
@@ -8,3 +9,11 @@ public interface IBinaryConstantObject<TSelf> : IBinaryObject<TSelf>, IBinaryCon
 #else
     where TSelf : IBinaryConstantObject<TSelf>;
 #endif
+
+*/
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class BinaryConstantAttribute(int constantLength) : Attribute
+{
+    public int ConstantLength { get; } = constantLength;
+}

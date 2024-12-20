@@ -45,8 +45,12 @@ internal readonly record struct UtilityData(
     bool IsReadUtility,
     WellKnownCollectionKind CollectionKind,
     WellKnownTypeKind TypeKind,
+    int? ByteLength,
     bool EmitLittleAndBigEndian
-);
+)
+{
+    public static int? UnknownLength { get; } = null!;
+}
 
 [Generator(LanguageNames.CSharp)]
 public partial class BinaryObjectsGenerator : IIncrementalGenerator
@@ -96,8 +100,8 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                         var utilities = parsedObject
                             .MemberGroups.SelectMembers()
                             .SelectMany(x =>
-                                GetWriteUtilities(x.CollectionKind, x.TypeKind)
-                                    .Concat(GetReadUtilities(x.CollectionKind, x.TypeKind))
+                                GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol)
+                                    .Concat(GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol))
                             )
                             .Distinct()
                             .ToImmutableEquatableArray();

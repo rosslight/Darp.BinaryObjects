@@ -14,16 +14,14 @@
 /// <item> <term><see cref="ValueUShortEnumerable"/></term> <description>2 * 2</description> </item>
 /// <item> <term> --- </term> <description>24</description> </item>
 /// </list> </remarks>
-public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryConstantObject<ArraysFixedSize>
+[global::Darp.BinaryObjects.BinaryConstant(24)]
+public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryObject<ArraysFixedSize>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     public int GetByteCount() => 24;
-    
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    static int global::Darp.BinaryObjects.IBinaryConstantReadable<ArraysFixedSize>.ByteCount => 24;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
