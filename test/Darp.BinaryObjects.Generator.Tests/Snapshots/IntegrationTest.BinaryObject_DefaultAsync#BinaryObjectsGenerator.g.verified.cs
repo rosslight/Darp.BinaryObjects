@@ -27,7 +27,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -43,7 +43,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -198,8 +198,8 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
 
         if (destination.Length < 3)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[1..], this.Array);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..1], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[1..3], this.Array);
         bytesWritten += 3;
 
         return true;
@@ -215,8 +215,8 @@ public sealed partial record OneBinaryObject : global::Darp.BinaryObjects.IBinar
 
         if (destination.Length < 3)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[1..], this.Array);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..1], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[1..3], this.Array);
         bytesWritten += 3;
 
         return true;

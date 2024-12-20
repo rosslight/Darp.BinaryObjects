@@ -27,7 +27,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -43,7 +43,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;

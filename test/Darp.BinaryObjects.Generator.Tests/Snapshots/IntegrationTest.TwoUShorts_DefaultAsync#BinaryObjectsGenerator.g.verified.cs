@@ -28,8 +28,8 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[0..], this.ValueOne);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[2..], this.ValueTwo);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[0..2], this.ValueOne);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[2..4], this.ValueTwo);
         bytesWritten += 4;
 
         return true;
@@ -45,8 +45,8 @@ public sealed partial record TwoUShorts : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[0..], this.ValueOne);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[2..], this.ValueTwo);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[0..2], this.ValueOne);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[2..4], this.ValueTwo);
         bytesWritten += 4;
 
         return true;

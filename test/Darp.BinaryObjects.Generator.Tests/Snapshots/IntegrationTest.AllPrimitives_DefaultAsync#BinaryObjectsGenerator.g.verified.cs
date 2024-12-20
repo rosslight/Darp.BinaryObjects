@@ -40,20 +40,20 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryO
 
         if (destination.Length < 77)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.ValueBool);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt8(destination[1..], this.ValueSByte);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16LittleEndian(destination[2..], this.ValueShort);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteHalfLittleEndian(destination[4..], this.ValueHalf);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[6..], this.ValueInt);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteSingleLittleEndian(destination[10..], this.ValueFloat);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64LittleEndian(destination[14..], this.ValueLong);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt128LittleEndian(destination[22..], this.ValueInt128);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt128LittleEndian(destination[38..], this.ValueUInt128);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt64LittleEndian(destination[54..], this.ValueULong);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteDoubleLittleEndian(destination[62..], this.ValueDouble);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32LittleEndian(destination[70..], this.ValueUInt);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[74..], this.ValueUShort);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[76..], this.ValueByte);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.ValueBool);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt8(destination[1..2], this.ValueSByte);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16LittleEndian(destination[2..4], this.ValueShort);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteHalfLittleEndian(destination[4..6], this.ValueHalf);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[6..10], this.ValueInt);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteSingleLittleEndian(destination[10..14], this.ValueFloat);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64LittleEndian(destination[14..22], this.ValueLong);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt128LittleEndian(destination[22..38], this.ValueInt128);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt128LittleEndian(destination[38..54], this.ValueUInt128);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt64LittleEndian(destination[54..62], this.ValueULong);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteDoubleLittleEndian(destination[62..70], this.ValueDouble);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32LittleEndian(destination[70..74], this.ValueUInt);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[74..76], this.ValueUShort);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[76..77], this.ValueByte);
         bytesWritten += 77;
 
         return true;
@@ -69,20 +69,20 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryO
 
         if (destination.Length < 77)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.ValueBool);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt8(destination[1..], this.ValueSByte);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16BigEndian(destination[2..], this.ValueShort);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteHalfBigEndian(destination[4..], this.ValueHalf);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[6..], this.ValueInt);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteSingleBigEndian(destination[10..], this.ValueFloat);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64BigEndian(destination[14..], this.ValueLong);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt128BigEndian(destination[22..], this.ValueInt128);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt128BigEndian(destination[38..], this.ValueUInt128);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt64BigEndian(destination[54..], this.ValueULong);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteDoubleBigEndian(destination[62..], this.ValueDouble);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32BigEndian(destination[70..], this.ValueUInt);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[74..], this.ValueUShort);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[76..], this.ValueByte);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.ValueBool);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt8(destination[1..2], this.ValueSByte);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16BigEndian(destination[2..4], this.ValueShort);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteHalfBigEndian(destination[4..6], this.ValueHalf);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[6..10], this.ValueInt);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteSingleBigEndian(destination[10..14], this.ValueFloat);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64BigEndian(destination[14..22], this.ValueLong);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt128BigEndian(destination[22..38], this.ValueInt128);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt128BigEndian(destination[38..54], this.ValueUInt128);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt64BigEndian(destination[54..62], this.ValueULong);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteDoubleBigEndian(destination[62..70], this.ValueDouble);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32BigEndian(destination[70..74], this.ValueUInt);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[74..76], this.ValueUShort);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[76..77], this.ValueByte);
         bytesWritten += 77;
 
         return true;

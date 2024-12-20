@@ -99,7 +99,7 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.Offset);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Offset);
         bytesWritten += 1;
 
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination[1..], this.Value);
@@ -117,7 +117,7 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.Offset);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Offset);
         bytesWritten += 1;
 
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination[1..], this.Value);

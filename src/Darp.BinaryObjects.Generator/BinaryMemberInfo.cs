@@ -75,7 +75,7 @@ internal sealed class ConstantWellKnownMember : IConstantMember
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
         writeString =
-            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..], {optionalCast}this.{MemberSymbol.Name});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..{currentByteIndex + ConstantByteLength}], {optionalCast}this.{MemberSymbol.Name});";
         bytesWritten = ConstantByteLength;
         return true;
     }

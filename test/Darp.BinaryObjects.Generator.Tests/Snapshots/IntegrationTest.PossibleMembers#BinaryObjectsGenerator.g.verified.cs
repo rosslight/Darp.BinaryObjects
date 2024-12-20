@@ -31,11 +31,11 @@ public partial record Members1 : global::Darp.BinaryObjects.IBinaryObject<Member
 
         if (destination.Length < 5)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.ValueOne);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..], this.valueEight);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[2..], this.ValueFour);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..], this.ValueFive);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], this.ValueSix);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.ValueOne);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.valueEight);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[2..3], this.ValueFour);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..4], this.ValueFive);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..5], this.ValueSix);
         bytesWritten += 5;
 
         return true;
@@ -51,11 +51,11 @@ public partial record Members1 : global::Darp.BinaryObjects.IBinaryObject<Member
 
         if (destination.Length < 5)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.ValueOne);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..], this.valueEight);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[2..], this.ValueFour);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..], this.ValueFive);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..], this.ValueSix);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.ValueOne);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.valueEight);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[2..3], this.ValueFour);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..4], this.ValueFive);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..5], this.ValueSix);
         bytesWritten += 5;
 
         return true;
@@ -206,7 +206,7 @@ public partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -222,7 +222,7 @@ public partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;

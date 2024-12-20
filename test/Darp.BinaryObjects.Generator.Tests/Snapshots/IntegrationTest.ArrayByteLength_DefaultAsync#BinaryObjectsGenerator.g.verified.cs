@@ -26,7 +26,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.Length);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Length);
         bytesWritten += 1;
 
         if (destination.Length < bytesWritten + this.Length)
@@ -47,7 +47,7 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..], this.Length);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Length);
         bytesWritten += 1;
 
         if (destination.Length < bytesWritten + this.Length)
