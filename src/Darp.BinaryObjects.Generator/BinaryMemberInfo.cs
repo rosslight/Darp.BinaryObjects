@@ -134,7 +134,7 @@ internal sealed class ConstantArrayMember : IConstantMember
             TypeSymbol
         );
         writeString =
-            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination.Slice({currentByteIndex}, {ConstantByteLength}), {memberName});";
+            $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..{currentByteIndex + ConstantByteLength}], {memberName});";
         bytesWritten = ConstantByteLength;
         return true;
     }
@@ -169,10 +169,16 @@ internal interface IVariableMemberGroup : IMember, IGroup
     public bool TryGetWriteString(
         bool isLittleEndian,
         int currentByteIndex,
-        [NotNullWhen(true)] out string? writeString
+        [NotNullWhen(true)] out string? writeString,
+        out string? bytesWrittenString
     );
 
-    public bool TryGetReadString(bool isLittleEndian, int currentByteIndex, [NotNullWhen(true)] out string? readString);
+    public bool TryGetReadString(
+        bool isLittleEndian,
+        int currentByteIndex,
+        [NotNullWhen(true)] out string? readString,
+        [NotNullWhen(true)] out string? bytesReadString
+    );
 }
 
 internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
@@ -192,23 +198,28 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public string GetVariableByteLength()
     {
         if (ArrayMinLength > 0)
-            return $"{TypeByteLength} * (this.{ArrayLengthMemberName} - {ArrayMinLength})";
+            return $"{TypeByteLength} * global::System.Math.Max(this.{ArrayLengthMemberName}, {ArrayMinLength})";
         return $"{TypeByteLength} * this.{ArrayLengthMemberName}";
     }
 
-    public string GetVariableDocCommentLength() => GetDocCommentLength();
+    public string GetVariableDocCommentLength() => $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
 
-    public string GetDocCommentLength() => $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
+    public string GetDocCommentLength()
+    {
+        if (ArrayMinLength > 0)
+            return $"""{TypeByteLength} * ({ArrayMinLength} + <see cref="{ArrayLengthMemberName}"/> - {ArrayMinLength})""";
+        return $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
+    }
 
     public string GetLengthCodeString() => $"{TypeByteLength} * this.{ArrayLengthMemberName}";
 
     public bool TryGetWriteString(
         bool isLittleEndian,
         int currentByteIndex,
-        [NotNullWhen(true)] out string? writeString
+        [NotNullWhen(true)] out string? writeString,
+        out string? bytesWrittenString
     )
     {
-        var bytesWrittenOffset = currentByteIndex > 0 ? "bytesWritten + " : "";
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
         var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
@@ -219,18 +230,24 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             TypeKind,
             TypeSymbol
         );
+        var optionalMinLengthCheck =
+            ArrayMinLength > 0 ? $" || destination.Length < {TypeByteLength * ArrayMinLength}" : "";
         writeString = $"""
-            if (destination.Length < {bytesWrittenOffset}this.{ArrayLengthMemberName})
+            if (destination.Length < this.{ArrayLengthMemberName}{optionalMinLengthCheck})
                 return false;
-            global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination.Slice({currentByteIndex}, this.{ArrayLengthMemberName}), {memberName});
-            bytesWritten += this.{ArrayLengthMemberName};
+            global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..this.{ArrayLengthMemberName}], {memberName});
             """;
+        bytesWrittenString = $"this.{ArrayLengthMemberName}";
         return true;
     }
 
-    public bool TryGetReadString(bool isLittleEndian, int currentByteIndex, [NotNullWhen(true)] out string? readString)
+    public bool TryGetReadString(
+        bool isLittleEndian,
+        int currentByteIndex,
+        [NotNullWhen(true)] out string? readString,
+        [NotNullWhen(true)] out string? bytesReadString
+    )
     {
-        var bytesReadOffset = currentByteIndex > 0 ? "bytesRead + " : "";
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
@@ -242,12 +259,13 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         );
         var optionalNumberOfElements =
             TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
+        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || source.Length < {TypeByteLength * ArrayMinLength}" : "";
         readString = $"""
-            if (source.Length < {bytesReadOffset}{lengthVariableName})
+            if (source.Length < {lengthVariableName}{optionalMinLengthCheck})
                 return false;
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source.Slice({currentByteIndex}, {lengthVariableName}){optionalNumberOfElements}, out _);
-            bytesRead += {lengthVariableName};
+            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
             """;
+        bytesReadString = lengthVariableName;
         return true;
     }
 }
@@ -276,6 +294,8 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
 
     public string GetVariableByteLength()
     {
+        if (ArrayMinLength > 0)
+            return $"{TypeByteLength} * global::System.Math.Max({GetVariableLength()}, {ArrayMinLength})";
         return $"{TypeByteLength} * {GetVariableLength()}";
     }
 
@@ -289,10 +309,10 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
     public bool TryGetWriteString(
         bool isLittleEndian,
         int currentByteIndex,
-        [NotNullWhen(true)] out string? writeString
+        [NotNullWhen(true)] out string? writeString,
+        out string? bytesWrittenString
     )
     {
-        var bytesWrittenOffset = currentByteIndex > 0 ? "bytesWritten + " : "";
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
         var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
@@ -303,21 +323,24 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
             TypeKind,
             TypeSymbol
         );
+        var optionalMinLengthCheck =
+            ArrayMinLength > 0 ? $" || destination.Length < {TypeByteLength * ArrayMinLength}" : "";
+
         writeString = $"""
-            bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..], {memberName});
+            if (destination.Length < {TypeByteLength} * {GetVariableLength()}{optionalMinLengthCheck})
+                return false;
+            bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination, {memberName});
             """;
-        if (ArrayMinLength > 0)
-        {
-            writeString = $"""
-                if (source.Length < {bytesWrittenOffset}{TypeByteLength * ArrayMinLength})
-                    return false;
-                {writeString}
-                """;
-        }
+        bytesWrittenString = null;
         return true;
     }
 
-    public bool TryGetReadString(bool isLittleEndian, int currentByteIndex, [NotNullWhen(true)] out string? readString)
+    public bool TryGetReadString(
+        bool isLittleEndian,
+        int currentByteIndex,
+        [NotNullWhen(true)] out string? readString,
+        [NotNullWhen(true)] out string? bytesReadString
+    )
     {
         var variableBytesReadName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
@@ -331,9 +354,17 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var optionalNumberOfElements =
             TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
         readString = $"""
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source.Slice({currentByteIndex}){optionalNumberOfElements}, out int {variableBytesReadName});
-            bytesRead += {variableBytesReadName};
+            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
             """;
+        if (ArrayMinLength > 0)
+        {
+            readString = $"""
+                if (source.Length < {TypeByteLength * ArrayMinLength})
+                    return false;
+                {readString}
+                """;
+        }
+        bytesReadString = variableBytesReadName;
         return true;
     }
 }

@@ -30,16 +30,20 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         if (destination.Length < 4)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..1], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination.Slice(1, 2), this.Values);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination[1..3], this.Values);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..4], this.Length);
+        destination = destination[4..];
         bytesWritten += 4;
 
-        if (destination.Length < bytesWritten + this.Length)
+        if (destination.Length < this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination.Slice(4, this.Length), this.LengthValues);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination[0..this.Length], this.LengthValues);
+        destination = destination[this.Length..];
         bytesWritten += this.Length;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListLittleEndian<ManualConstantObject>(destination[4..], this.RemainingValue);
+        if (destination.Length < 1 * this.RemainingValue.Count)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListLittleEndian<ManualConstantObject>(destination, this.RemainingValue);
 
         return true;
     }
@@ -55,16 +59,20 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         if (destination.Length < 4)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..1], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination.Slice(1, 2), this.Values);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination[1..3], this.Values);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[3..4], this.Length);
+        destination = destination[4..];
         bytesWritten += 4;
 
-        if (destination.Length < bytesWritten + this.Length)
+        if (destination.Length < this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination.Slice(4, this.Length), this.LengthValues);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination[0..this.Length], this.LengthValues);
+        destination = destination[this.Length..];
         bytesWritten += this.Length;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListBigEndian<ManualConstantObject>(destination[4..], this.RemainingValue);
+        if (destination.Length < 1 * this.RemainingValue.Count)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListBigEndian<ManualConstantObject>(destination, this.RemainingValue);
 
         return true;
     }
@@ -84,14 +92,16 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<ManualConstantObject>(source[0..1]);
         var ___readValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<ManualConstantObject>(source[1..3], 1, out _);
         var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..4]);
+        source = source[4..];
         bytesRead += 4;
 
-        if (source.Length < bytesRead + ___readLength)
+        if (source.Length < ___readLength)
             return false;
-        var ___readLengthValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<ManualConstantObject>(source.Slice(4, ___readLength), 1, out _);
+        var ___readLengthValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<ManualConstantObject>(source[0..___readLength], 1, out _);
+        source = source[___readLength..];
         bytesRead += ___readLength;
 
-        var ___readRemainingValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListLittleEndian<ManualConstantObject>(source.Slice(4), 1, out int ___bytesReadRemainingValue);
+        var ___readRemainingValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListLittleEndian<ManualConstantObject>(source, 1, out int ___bytesReadRemainingValue);
         bytesRead += ___bytesReadRemainingValue;
 
         value = new UnlimitedWithMinLength(___readValue, ___readValues, ___readLength, ___readLengthValues, ___readRemainingValue);
@@ -112,14 +122,16 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<ManualConstantObject>(source[0..1]);
         var ___readValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<ManualConstantObject>(source[1..3], 1, out _);
         var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[3..4]);
+        source = source[4..];
         bytesRead += 4;
 
-        if (source.Length < bytesRead + ___readLength)
+        if (source.Length < ___readLength)
             return false;
-        var ___readLengthValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<ManualConstantObject>(source.Slice(4, ___readLength), 1, out _);
+        var ___readLengthValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<ManualConstantObject>(source[0..___readLength], 1, out _);
+        source = source[___readLength..];
         bytesRead += ___readLength;
 
-        var ___readRemainingValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListBigEndian<ManualConstantObject>(source.Slice(4), 1, out int ___bytesReadRemainingValue);
+        var ___readRemainingValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListBigEndian<ManualConstantObject>(source, 1, out int ___bytesReadRemainingValue);
         bytesRead += ___bytesReadRemainingValue;
 
         value = new UnlimitedWithMinLength(___readValue, ___readValues, ___readLength, ___readLengthValues, ___readRemainingValue);

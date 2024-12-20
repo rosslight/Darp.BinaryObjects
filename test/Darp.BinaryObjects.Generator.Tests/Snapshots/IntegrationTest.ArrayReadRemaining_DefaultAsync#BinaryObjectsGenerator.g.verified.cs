@@ -5,14 +5,14 @@
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
 /// <item> <term><see cref="Value"/></term> <description>1 * n</description> </item>
-/// <item> <term> --- </term> <description>0 + 1 * n</description> </item>
+/// <item> <term> --- </term> <description>1 * n</description> </item>
 /// </list> </remarks>
 public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObject<Unlimited>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 0 + 1 * this.Value.Length;
+    public int GetByteCount() => 1 * this.Value.Length;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -23,7 +23,9 @@ public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObjec
     {
         bytesWritten = 0;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..], this.Value.Span);
+        if (destination.Length < 1 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination, this.Value.Span);
 
         return true;
     }
@@ -36,7 +38,9 @@ public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObjec
     {
         bytesWritten = 0;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..], this.Value.Span);
+        if (destination.Length < 1 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination, this.Value.Span);
 
         return true;
     }
@@ -51,7 +55,7 @@ public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObjec
         bytesRead = 0;
         value = default;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(0), out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new Unlimited(___readValue);
@@ -67,7 +71,7 @@ public sealed partial record Unlimited : global::Darp.BinaryObjects.IBinaryObjec
         bytesRead = 0;
         value = default;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(0), out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new Unlimited(___readValue);
@@ -100,9 +104,12 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
         if (destination.Length < 1)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Offset);
+        destination = destination[1..];
         bytesWritten += 1;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination[1..], this.Value);
+        if (destination.Length < 4 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination, this.Value);
 
         return true;
     }
@@ -118,9 +125,12 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
         if (destination.Length < 1)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Offset);
+        destination = destination[1..];
         bytesWritten += 1;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination[1..], this.Value);
+        if (destination.Length < 4 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination, this.Value);
 
         return true;
     }
@@ -138,9 +148,10 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
         if (source.Length < 1)
             return false;
         var ___readOffset = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        source = source[1..];
         bytesRead += 1;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayLittleEndian(source.Slice(1), out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayLittleEndian(source, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new UnlimitedWithOffset(___readOffset, ___readValue);
@@ -159,9 +170,10 @@ public sealed partial record UnlimitedWithOffset : global::Darp.BinaryObjects.IB
         if (source.Length < 1)
             return false;
         var ___readOffset = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        source = source[1..];
         bytesRead += 1;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayBigEndian(source.Slice(1), out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayBigEndian(source, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new UnlimitedWithOffset(___readOffset, ___readValue);

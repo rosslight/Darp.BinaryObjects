@@ -90,14 +90,14 @@ public sealed partial record BinaryObject1 : global::Darp.BinaryObjects.IBinaryO
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
 /// <item> <term><see cref="Value"/></term> <description>1 * n</description> </item>
-/// <item> <term> --- </term> <description>0 + 1 * n</description> </item>
+/// <item> <term> --- </term> <description>1 * n</description> </item>
 /// </list> </remarks>
 public sealed partial record BinaryObject2 : global::Darp.BinaryObjects.IBinaryObject<BinaryObject2>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 0 + 1 * this.Value.Length;
+    public int GetByteCount() => 1 * this.Value.Length;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -108,7 +108,9 @@ public sealed partial record BinaryObject2 : global::Darp.BinaryObjects.IBinaryO
     {
         bytesWritten = 0;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<BinaryObject1>(destination[0..], this.Value);
+        if (destination.Length < 1 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<BinaryObject1>(destination, this.Value);
 
         return true;
     }
@@ -121,7 +123,9 @@ public sealed partial record BinaryObject2 : global::Darp.BinaryObjects.IBinaryO
     {
         bytesWritten = 0;
 
-        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<BinaryObject1>(destination[0..], this.Value);
+        if (destination.Length < 1 * this.Value.Length)
+            return false;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<BinaryObject1>(destination, this.Value);
 
         return true;
     }
@@ -136,7 +140,7 @@ public sealed partial record BinaryObject2 : global::Darp.BinaryObjects.IBinaryO
         bytesRead = 0;
         value = default;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<BinaryObject1>(source.Slice(0), 1, out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<BinaryObject1>(source, 1, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new BinaryObject2(___readValue);
@@ -152,7 +156,7 @@ public sealed partial record BinaryObject2 : global::Darp.BinaryObjects.IBinaryO
         bytesRead = 0;
         value = default;
 
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<BinaryObject1>(source.Slice(0), 1, out int ___bytesReadValue);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<BinaryObject1>(source, 1, out int ___bytesReadValue);
         bytesRead += ___bytesReadValue;
 
         value = new BinaryObject2(___readValue);

@@ -34,8 +34,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryObj
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[0..4], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..5], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64LittleEndian(destination[5..13], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<Test.Space.DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination[13..15], this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<Test.Space.DefaultEnum>(destination[15..23], this.Value5.Span);
         bytesWritten += 23;
 
         return true;
@@ -54,8 +54,8 @@ public sealed partial record OneByteEnum : global::Darp.BinaryObjects.IBinaryObj
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[0..4], (int) this.Value1);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[4..5], (byte) this.Value2);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64BigEndian(destination[5..13], (long) this.Value3);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination.Slice(13, 2), this.Value4.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<Test.Space.DefaultEnum>(destination.Slice(15, 8), this.Value5.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8EnumSpan<Test.Space.ByteEnum>(destination[13..15], this.Value4.Span);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<Test.Space.DefaultEnum>(destination[15..23], this.Value5.Span);
         bytesWritten += 23;
 
         return true;

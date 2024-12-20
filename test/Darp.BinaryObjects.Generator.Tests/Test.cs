@@ -291,7 +291,7 @@ public sealed partial record BinaryObjectArrays(
         await VerifyBinaryObjectsGenerator(code);
     }
 
-    //[Fact]
+    [Fact]
     public async Task ArrayMinElementCount_DefaultAsync()
     {
         const string code = """
@@ -301,7 +301,7 @@ public sealed partial record BinaryObjectArrays(
             [BinaryObject]
             public sealed partial record UnlimitedWithMinLength(
                 int Length,
-                [property: BinaryElementCount("Length"), BinaryMinElementCount(1)] ReadOnlyMemory<byte> Value,
+                [property: BinaryElementCount("Length"), BinaryMinElementCount(1)] ReadOnlyMemory<short> Value,
                 [property: BinaryMinElementCount(3)] int[] Value2);
             """;
         await VerifyBinaryObjectsGenerator(code);

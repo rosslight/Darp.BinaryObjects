@@ -27,11 +27,12 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
         if (destination.Length < 1)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Length);
+        destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < bytesWritten + this.Length)
+        if (destination.Length < this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(1, this.Length), this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..this.Length], this.Value);
         bytesWritten += this.Length;
 
         return true;
@@ -48,11 +49,12 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
         if (destination.Length < 1)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Length);
+        destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < bytesWritten + this.Length)
+        if (destination.Length < this.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination.Slice(1, this.Length), this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..this.Length], this.Value);
         bytesWritten += this.Length;
 
         return true;
@@ -71,11 +73,12 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
         if (source.Length < 1)
             return false;
         var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        source = source[1..];
         bytesRead += 1;
 
-        if (source.Length < bytesRead + ___readLength)
+        if (source.Length < ___readLength)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength), out _);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..___readLength], out _);
         bytesRead += ___readLength;
 
         value = new ArrayByteLength(___readLength, ___readValue);
@@ -94,11 +97,12 @@ public sealed partial record ArrayByteLength : global::Darp.BinaryObjects.IBinar
         if (source.Length < 1)
             return false;
         var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        source = source[1..];
         bytesRead += 1;
 
-        if (source.Length < bytesRead + ___readLength)
+        if (source.Length < ___readLength)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source.Slice(1, ___readLength), out _);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..___readLength], out _);
         bytesRead += ___readLength;
 
         value = new ArrayByteLength(___readLength, ___readValue);

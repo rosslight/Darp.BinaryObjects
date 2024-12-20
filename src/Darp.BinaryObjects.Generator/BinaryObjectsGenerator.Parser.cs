@@ -312,10 +312,10 @@ partial class BinaryObjectsGenerator
                         }
                     }
                     continue;
-                case "Darp.BinaryObjects.UnlimitedWithMinLengthAttribute":
+                case "Darp.BinaryObjects.BinaryMinElementCountAttribute":
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
                     {
-                        if (pair is { Key: "minLength", Value.Value: int value })
+                        if (pair is { Key: "minElements", Value.Value: int value })
                         {
                             arrayMinLength = value;
                         }

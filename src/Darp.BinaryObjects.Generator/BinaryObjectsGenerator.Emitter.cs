@@ -87,14 +87,15 @@ partial class BinaryObjectsGenerator
                 $"""/// <item> <term><see cref="{memberInfo.MemberSymbol.Name}"/></term> <description>{memberInfo.GetDocCommentLength()}</description> </item>"""
             )
             .ToArray();
-        var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
-        var variableLength = string.Join(
-            " + ",
-            memberGroups.OfType<IGroup>().Select(x => x.GetVariableDocCommentLength()).Where(x => x is not null)
-        );
-        var summedLength = string.IsNullOrEmpty(variableLength)
-            ? $"{summedConstantLength}"
-            : string.Join(" + ", summedConstantLength, variableLength);
+        //var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
+        var summedLength = memberGroups.Length switch
+        {
+            > 0 => string.Join(
+                " + ",
+                memberGroups.Select(x => x.GetVariableDocCommentLength() ?? $"{x.ConstantByteLength}")
+            ),
+            _ => "0",
+        };
         writer.WriteMultiLine(
             """
 /// <remarks> <list type="table">
@@ -133,14 +134,11 @@ partial class BinaryObjectsGenerator
         ImmutableArray<IGroup> memberGroups
     )
     {
-        var constantLength = memberGroups.Sum(x => x.ConstantByteLength);
-        var variableLength = string.Join(
-            " + ",
-            memberGroups.Select(x => x.GetVariableByteLength()).Where(x => x is not null)
-        );
-        var summedLength = string.IsNullOrEmpty(variableLength)
-            ? $"{constantLength}"
-            : string.Join(" + ", constantLength, variableLength);
+        var summedLength = memberGroups.Length switch
+        {
+            > 0 => string.Join(" + ", memberGroups.Select(x => x.GetVariableByteLength() ?? $"{x.ConstantByteLength}")),
+            _ => "0",
+        };
         writer.WriteLine("/// <inheritdoc />");
         var isPure = memberGroups.SelectMembers().All(x => x is IConstantMember);
         if (isPure)
@@ -178,9 +176,9 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
         writer.WriteLine("bytesWritten = 0;");
         writer.WriteEmptyLine();
         // All the members in the group
-        var currentByteIndex = 0;
-        foreach (IGroup memberInfoGroup in memberGroups)
+        foreach ((IGroup? memberInfoGroup, var index) in memberGroups.Select((group, i) => (group, i)))
         {
+            var currentByteIndex = 0;
             if (memberInfoGroup is BinaryObjectMemberGroup binaryObjectsGroup)
             {
                 var endianness = littleEndian ? "LittleEndian" : "BigEndian";
@@ -191,24 +189,47 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"destination = destination[{bytesWrittenVariable}..];");
+                }
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"destination = destination[{currentByteIndex}..];");
+                }
                 writer.WriteLine($"bytesWritten += {bytesWrittenVariable};");
                 writer.WriteEmptyLine();
             }
             else if (memberInfoGroup is IVariableMemberGroup variableGroup)
             {
-                if (!variableGroup.TryGetWriteString(littleEndian, currentByteIndex, out var writeString))
+                if (
+                    !variableGroup.TryGetWriteString(
+                        littleEndian,
+                        currentByteIndex,
+                        out var writeString,
+                        out var bytesWrittenString
+                    )
+                )
                 {
                     continue;
                 }
+
                 writer.WriteMultiLine(writeString);
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"destination = destination[{bytesWrittenString}..];");
+                }
+                if (bytesWrittenString is not null)
+                {
+                    writer.WriteLine($"bytesWritten += {bytesWrittenString};");
+                }
                 writer.WriteEmptyLine();
             }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
             {
                 // Ensure length of destination
-                var offsetString = currentByteIndex > 0 ? "- bytesWritten " : "";
                 var summedLength = memberInfoGroup.GetLengthCodeString();
-                writer.WriteLine($"if (destination.Length {offsetString}< {summedLength})");
+                writer.WriteLine($"if (destination.Length < {summedLength})");
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
@@ -227,6 +248,10 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     }
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesWritten;
+                }
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"destination = destination[{currentByteIndex}..];");
                 }
                 writer.WriteLine($"bytesWritten += {currentByteIndex};");
                 writer.WriteEmptyLine();
@@ -272,9 +297,9 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
             writer.WriteLine("value = default;");
         }
         writer.WriteEmptyLine();
-        var currentByteIndex = 0;
-        foreach (IGroup memberInfoGroup in memberGroups)
+        foreach ((IGroup? memberInfoGroup, var index) in memberGroups.Select((group, i) => (group, i)))
         {
+            var currentByteIndex = 0;
             if (memberInfoGroup is BinaryObjectMemberGroup binaryObjectsGroup)
             {
                 var endianness = littleEndian ? "LittleEndian" : "BigEndian";
@@ -286,16 +311,32 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"source = source[{bytesReadVariable}..];");
+                }
                 writer.WriteLine($"bytesRead += {bytesReadVariable};");
                 writer.WriteEmptyLine();
             }
             else if (memberInfoGroup is IVariableMemberGroup arrayMemberInfo)
             {
-                if (!arrayMemberInfo.TryGetReadString(littleEndian, currentByteIndex, out var readString))
+                if (
+                    !arrayMemberInfo.TryGetReadString(
+                        littleEndian,
+                        currentByteIndex,
+                        out var readString,
+                        out var bytesReadString
+                    )
+                )
                 {
                     continue;
                 }
                 writer.WriteMultiLine(readString);
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"source = source[{bytesReadString}..];");
+                }
+                writer.WriteLine($"bytesRead += {bytesReadString};");
                 writer.WriteEmptyLine();
             }
             else if (memberInfoGroup is ConstantBinaryMemberGroup constantGroup)
@@ -321,6 +362,10 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                     }
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesRead;
+                }
+                if (index != memberGroups.Length - 1)
+                {
+                    writer.WriteLine($"source = source[{currentByteIndex}..];");
                 }
                 if (constantGroup.Members.Count > 0)
                 {
