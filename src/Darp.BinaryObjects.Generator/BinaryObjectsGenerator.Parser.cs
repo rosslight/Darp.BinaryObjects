@@ -178,7 +178,7 @@ partial class BinaryObjectsGenerator
         (bool IsValid, bool IsConstructorInitialized) IsConstructorInitialized(ISymbol symbol, ITypeSymbol symbolType)
         {
             IParameterSymbol? constructorParameter = constructor?.Parameters.FirstOrDefault(c =>
-                c.Name.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase)
+                IsNameEquivalent(symbol.Name, c.Name)
             );
             if (constructorParameter is not null)
             {
@@ -217,6 +217,15 @@ partial class BinaryObjectsGenerator
             }
             return (true, default);
         }
+    }
+
+    private static bool IsNameEquivalent(string memberName, string constructorName)
+    {
+        if (memberName.Equals(constructorName, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (memberName.Equals('_' + constructorName, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
     }
 
     private static bool TryGet(

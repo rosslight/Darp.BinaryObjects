@@ -159,6 +159,19 @@ public sealed partial record OneBool4
 {
     public readonly bool Value;
 }
+
+[BinaryObject]
+public sealed partial class OneBool5
+{
+    public OneBool5(bool value1, bool value2)
+    {
+        _value1 = value1;
+        _value2 = value2;
+    }
+
+    private readonly bool _value1;
+    private bool _value2;
+}
 """;
         await VerifyBinaryObjectsGenerator(code);
     }
