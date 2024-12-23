@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 #pragma warning disable CA1031 // Do not catch general exception types - allow for source generator to avoid have it crashing on unexpected behavior
@@ -60,6 +61,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        IncrementalValueProvider<AnalyzerConfigOptionsProvider> configProvider = context.AnalyzerConfigOptionsProvider;
         IncrementalValueProvider<ImmutableArray<BinaryObjectStruct>> attributes = context
             // Only target specific attributes
             .SyntaxProvider.ForAttributeWithMetadataName(
@@ -133,11 +135,15 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
             )
             .Collect();
 
-        context.RegisterSourceOutput(attributes, Execute);
+        context.RegisterSourceOutput(attributes.Combine(configProvider), Execute);
     }
 
-    private static void Execute(SourceProductionContext spc, ImmutableArray<BinaryObjectStruct> infos)
+    private static void Execute(
+        SourceProductionContext spc,
+        (ImmutableArray<BinaryObjectStruct> StructInfos, AnalyzerConfigOptionsProvider Options) provided
+    )
     {
+        ImmutableArray<BinaryObjectStruct> infos = provided.StructInfos;
         var shouldGenerateCode = false;
         foreach (BinaryObjectStruct info in infos)
         {
@@ -169,8 +175,15 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                 writer.WriteEmptyLine();
             }
 
+            var isInternal =
+                provided.Options.GlobalOptions.TryGetValue(
+                    "build_property.BinaryObjectsGenerator_IsUtilityClassInternal",
+                    out var isInternalString
+                )
+                && bool.TryParse(isInternalString, out var isInternalParsed)
+                && isInternalParsed;
             var requestedUtilities = infos.SelectMany(x => x.RequiredUtilities).Distinct().ToImmutableArray();
-            EmitUtilityClass(writer, requestedUtilities);
+            EmitUtilityClass(writer, requestedUtilities, isInternal);
 
             spc.AddSource(GeneratedFileName, SourceText.From(sw.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
         }

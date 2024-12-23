@@ -406,12 +406,18 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
         writer.WriteLine("}");
     }
 
-    private static void EmitUtilityClass(IndentedTextWriter writer, ImmutableArray<UtilityData> requestedUtilities)
+    private static void EmitUtilityClass(
+        IndentedTextWriter writer,
+        ImmutableArray<UtilityData> requestedUtilities,
+        bool isInternal
+    )
     {
         if (requestedUtilities.Length == 0)
         {
             return;
         }
+
+        var modifier = isInternal ? "internal" : "file";
         writer.WriteLine(
             $$"""
 namespace Darp.BinaryObjects.Generated
@@ -426,7 +432,7 @@ namespace Darp.BinaryObjects.Generated
 
     /// <summary>Helper methods used by generated BinaryObjects.</summary>
     {{RoslynHelper.GetGeneratedVersionAttribute(false)}}
-    file static class Utilities
+    {{modifier}} static class Utilities
     {
 """
         );
