@@ -474,7 +474,7 @@ partial class BinaryObjectsGenerator
                 IPropertySymbol s => s.Type,
                 _ => throw new ArgumentException($"Invalid symbol type {symbol.ToDisplayString()}"),
             };
-            if (memberTypeSymbol.TryGetArrayType(out WellKnownCollectionKind _, out ITypeSymbol? arrayTypeSymbol))
+            if (memberTypeSymbol.TryGetArrayType(out _, out ITypeSymbol? arrayTypeSymbol))
             {
                 if (!hasElementCountTuple.HasAttribute)
                     return false;

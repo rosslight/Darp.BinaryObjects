@@ -100,9 +100,18 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                         var utilities = parsedObject
                             .MemberGroups.SelectMembers()
                             .SelectMany(x =>
-                                GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol)
-                                    .Concat(GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol))
-                            )
+                            {
+                                var typeByteLength = x switch
+                                {
+                                    IConstantMember c => c.TypeByteLength,
+                                    IVariableMemberGroup v => v.TypeByteLength,
+                                    _ => UtilityData.UnknownLength,
+                                };
+                                return GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    .Concat(
+                                        GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    );
+                            })
                             .Distinct()
                             .ToImmutableEquatableArray();
                         return new BinaryObjectStruct(
