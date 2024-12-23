@@ -1,22 +1,35 @@
-﻿namespace Darp.BinaryObjects.Tests;
+namespace Darp.BinaryObjects.Tests;
 
+using BinaryObjects.Generated;
 using FluentAssertions;
 
-#pragma warning disable CS0618 // Type or member is obsolete
+[BinaryObject]
+internal readonly partial struct TestStruct()
+{
+    public required byte[] Value2 { get; init; }
+    public required List<byte> Value3 { get; init; }
+    public required IEnumerable<byte> Value4 { get; init; }
+    public required ushort[] Value12 { get; init; }
+    public required List<ushort> Value13 { get; init; }
+    public required IEnumerable<ushort> Value14 { get; init; }
+}
 
-public class BinaryHelpersTests
+public class UtilitiesTests
 {
     [Theory]
     [InlineData("010203", 0x01, 0x02, 0x03)]
     public void ReadUInt8_ShouldBeValid(string hexBytes, params int[] expectedResult)
     {
         var bytes = Convert.FromHexString(hexBytes);
+        var expectedLength = bytes.Length;
 
-        var arrayResult = BinaryHelpers.ReadUInt8Array(bytes);
-        List<byte> listResult = BinaryHelpers.ReadUInt8List(bytes);
+        var arrayResult = Utilities.ReadUInt8Array(bytes, out var bytesRead1);
+        List<byte> listResult = Utilities.ReadUInt8List(bytes, out var bytesRead2);
 
         arrayResult.Should().BeEquivalentTo(expectedResult);
         listResult.Should().BeEquivalentTo(expectedResult);
+        bytesRead1.Should().Be(expectedLength);
+        bytesRead2.Should().Be(expectedLength);
     }
 
     [Theory]
@@ -24,12 +37,15 @@ public class BinaryHelpersTests
     public void ReadUInt16ArrayLittleEndian_ShouldBeValid(string hexBytes, params int[] expectedResult)
     {
         var bytes = Convert.FromHexString(hexBytes);
+        var expectedLength = bytes.Length;
 
-        var arrayResult = BinaryHelpers.ReadUInt16ArrayLittleEndian(bytes);
-        List<ushort> listResult = BinaryHelpers.ReadUInt16ListLittleEndian(bytes);
+        var arrayResult = Utilities.ReadUInt16ArrayLittleEndian(bytes, out var bytesRead1);
+        List<ushort> listResult = Utilities.ReadUInt16ListLittleEndian(bytes, out var bytesRead2);
 
         arrayResult.Should().BeEquivalentTo(expectedResult);
         listResult.Should().BeEquivalentTo(expectedResult);
+        bytesRead1.Should().Be(expectedLength);
+        bytesRead2.Should().Be(expectedLength);
     }
 
     [Theory]
@@ -37,12 +53,15 @@ public class BinaryHelpersTests
     public void ReadUInt16ArrayBigEndian_ShouldBeValid(string hexBytes, params int[] expectedResult)
     {
         var bytes = Convert.FromHexString(hexBytes);
+        var expectedLength = bytes.Length;
 
-        var arrayResult = BinaryHelpers.ReadUInt16ArrayBigEndian(bytes);
-        List<ushort> listResult = BinaryHelpers.ReadUInt16ListBigEndian(bytes);
+        var arrayResult = Utilities.ReadUInt16ArrayBigEndian(bytes, out var bytesRead1);
+        List<ushort> listResult = Utilities.ReadUInt16ListBigEndian(bytes, out var bytesRead2);
 
         arrayResult.Should().BeEquivalentTo(expectedResult);
         listResult.Should().BeEquivalentTo(expectedResult);
+        bytesRead1.Should().Be(expectedLength);
+        bytesRead2.Should().Be(expectedLength);
     }
 
     [Theory]
@@ -62,11 +81,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength];
         var bufferEnumerable = new byte[maxLength];
 
-        BinaryHelpers.WriteUInt8Span(bufferArray, array, maxLength);
-        BinaryHelpers.WriteUInt8List(bufferList, list, maxLength);
-        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerableArray, array, maxLength);
-        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerableList, list, maxLength);
-        BinaryHelpers.WriteUInt8Enumerable(bufferEnumerable, enumerable, maxLength);
+        Utilities.WriteUInt8Span(bufferArray, array);
+        Utilities.WriteUInt8List(bufferList, list);
+        Utilities.WriteUInt8Enumerable(bufferEnumerableArray, array);
+        Utilities.WriteUInt8Enumerable(bufferEnumerableList, list);
+        Utilities.WriteUInt8Enumerable(bufferEnumerable, enumerable);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
@@ -92,11 +111,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength * 2];
         var bufferEnumerable = new byte[maxLength * 2];
 
-        BinaryHelpers.WriteUInt16SpanLittleEndian(bufferArray, array, maxLength);
-        BinaryHelpers.WriteUInt16ListLittleEndian(bufferList, list, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerableArray, array, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerableList, list, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableLittleEndian(bufferEnumerable, enumerable, maxLength);
+        Utilities.WriteUInt16SpanLittleEndian(bufferArray, array);
+        Utilities.WriteUInt16ListLittleEndian(bufferList, list);
+        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerableArray, array);
+        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerableList, list);
+        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerable, enumerable);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
@@ -122,11 +141,11 @@ public class BinaryHelpersTests
         var bufferEnumerableList = new byte[maxLength * 2];
         var bufferEnumerable = new byte[maxLength * 2];
 
-        BinaryHelpers.WriteUInt16SpanBigEndian(bufferArray, array, maxLength);
-        BinaryHelpers.WriteUInt16ListBigEndian(bufferList, list, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerableArray, array, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerableList, list, maxLength);
-        BinaryHelpers.WriteUInt16EnumerableBigEndian(bufferEnumerable, enumerable, maxLength);
+        Utilities.WriteUInt16SpanBigEndian(bufferArray, array);
+        Utilities.WriteUInt16ListBigEndian(bufferList, list);
+        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerableArray, array);
+        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerableList, list);
+        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerable, enumerable);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);

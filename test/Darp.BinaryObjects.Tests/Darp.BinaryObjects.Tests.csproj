@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
+        <BinaryObjectsGenerator_IsUtilityClassInternal>true</BinaryObjectsGenerator_IsUtilityClassInternal>
     </PropertyGroup>
 
     <ItemGroup>
@@ -9,4 +10,5 @@
       <ProjectReference Include="..\..\src\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj" OutputItemType="Analyzer"/>
     </ItemGroup>
 
+  <Import Project="..\..\src\Darp.BinaryObjects.Generator\buildTransitive\Darp.BinaryObjects.Generator.props" />
 </Project>
