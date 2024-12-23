@@ -8,7 +8,7 @@
 /// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
 [global::Darp.BinaryObjects.BinaryConstant(1)]
-public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<OneBool>
+public sealed partial record TestObjectNested : global::Darp.BinaryObjects.IBinaryObject<TestObjectNested>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
@@ -27,7 +27,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -43,7 +43,7 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
         if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this.Value);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Value);
         bytesWritten += 1;
 
         return true;
@@ -51,56 +51,53 @@ public sealed partial record OneBool : global::Darp.BinaryObjects.IBinaryObject<
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObjectNested? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObjectNested? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
         bytesRead += 1;
 
-        value = new OneBool(___readValue);
+        value = new TestObjectNested(___readValue);
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObjectNested? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out OneBool? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObjectNested? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
         if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
         bytesRead += 1;
 
-        value = new OneBool(___readValue);
+        value = new TestObjectNested(___readValue);
         return true;
     }
 }
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Value1"/></term> <description>1 * 2</description> </item>
-/// <item> <term><see cref="Value2"/></term> <description>1 * 2</description> </item>
-/// <item> <term> --- </term> <description>4</description> </item>
+/// <item> <term><see cref="Value"/></term> <description>1 * n</description> </item>
+/// <item> <term> --- </term> <description>1 * n</description> </item>
 /// </list> </remarks>
-[global::Darp.BinaryObjects.BinaryConstant(4)]
-public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBinaryObject<BinaryObjectArrays>
+public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
-    [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 4;
+    public int GetByteCount() => 1 * this.Value.Length;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -111,11 +108,9 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBi
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 1 * this.Value.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<OneBool>(destination[0..2], this.Value1.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<OneBool>(destination[2..4], this.Value2);
-        bytesWritten += 4;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<TestObjectNested>(destination, this.Value);
 
         return true;
     }
@@ -128,51 +123,43 @@ public sealed partial record BinaryObjectArrays : global::Darp.BinaryObjects.IBi
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 1 * this.Value.Length)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<OneBool>(destination[0..2], this.Value1.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<OneBool>(destination[2..4], this.Value2);
-        bytesWritten += 4;
+        bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<TestObjectNested>(destination, this.Value);
 
         return true;
     }
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BinaryObjectArrays? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BinaryObjectArrays? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 4)
-            return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[0..2], 1, out _);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<OneBool>(source[2..4], 1, out _);
-        bytesRead += 4;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<TestObjectNested>(source, 1, out int ___bytesReadValue);
+        bytesRead += ___bytesReadValue;
 
-        value = new BinaryObjectArrays(___readValue1, ___readValue2);
+        value = new TestObject(___readValue);
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BinaryObjectArrays? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BinaryObjectArrays? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 4)
-            return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[0..2], 1, out _);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<OneBool>(source[2..4], 1, out _);
-        bytesRead += 4;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<TestObjectNested>(source, 1, out int ___bytesReadValue);
+        bytesRead += ___bytesReadValue;
 
-        value = new BinaryObjectArrays(___readValue1, ___readValue2);
+        value = new TestObject(___readValue);
         return true;
     }
 }
@@ -191,17 +178,17 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Writes a <c>bool</c> to the destination </summary>
+        /// <summary> Writes a <c>byte</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBool(Span<byte> destination, bool value)
+        public static void WriteUInt8(Span<byte> destination, byte value)
         {
-            destination[0] = value ? (byte)0b1 : (byte)0b0;
+            destination[0] = value;
         }
-        /// <summary> Reads a <c>bool</c> from the given source </summary>
+        /// <summary> Reads a <c>byte</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ReadBool(ReadOnlySpan<byte> source)
+        public static byte ReadUInt8(ReadOnlySpan<byte> source)
         {
-            return source[0] > 0;
+            return source[0];
         }
         /// <summary> Writes a <c>ReadOnlySpan&lt;T&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -9,7 +9,7 @@
 /// <item> <term><see cref="Value2"/></term> <description>4 * (3 + n)</description> </item>
 /// <item> <term> --- </term> <description>4 + 2 * <see cref="Length"/> + 4 * (3 + n)</description> </item>
 /// </list> </remarks>
-public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects.IBinaryObject<UnlimitedWithMinLength>
+public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -73,10 +73,10 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out UnlimitedWithMinLength? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out UnlimitedWithMinLength? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -98,15 +98,15 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32ArrayLittleEndian(source, out int ___bytesReadValue2);
         bytesRead += ___bytesReadValue2;
 
-        value = new UnlimitedWithMinLength(___readLength, ___readValue, ___readValue2);
+        value = new TestObject(___readLength, ___readValue, ___readValue2);
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out UnlimitedWithMinLength? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out UnlimitedWithMinLength? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -128,7 +128,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32ArrayBigEndian(source, out int ___bytesReadValue2);
         bytesRead += ___bytesReadValue2;
 
-        value = new UnlimitedWithMinLength(___readLength, ___readValue, ___readValue2);
+        value = new TestObject(___readLength, ___readValue, ___readValue2);
         return true;
     }
 }

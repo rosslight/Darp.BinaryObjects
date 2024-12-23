@@ -21,7 +21,7 @@
 /// <item> <term> --- </term> <description>77</description> </item>
 /// </list> </remarks>
 [global::Darp.BinaryObjects.BinaryConstant(77)]
-public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryObject<AllPrimitives>
+public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
@@ -90,10 +90,10 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryO
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AllPrimitives? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AllPrimitives? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -116,15 +116,15 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryO
         var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..77]);
         bytesRead += 77;
 
-        value = new AllPrimitives(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);
+        value = new TestObject(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AllPrimitives? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AllPrimitives? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -147,7 +147,7 @@ public sealed partial record AllPrimitives : global::Darp.BinaryObjects.IBinaryO
         var ___readValueByte = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[76..77]);
         bytesRead += 77;
 
-        value = new AllPrimitives(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);
+        value = new TestObject(___readValueBool, ___readValueSByte, ___readValueShort, ___readValueHalf, ___readValueInt, ___readValueFloat, ___readValueLong, ___readValueInt128, ___readValueUInt128, ___readValueULong, ___readValueDouble, ___readValueUInt, ___readValueUShort, ___readValueByte);
         return true;
     }
 }

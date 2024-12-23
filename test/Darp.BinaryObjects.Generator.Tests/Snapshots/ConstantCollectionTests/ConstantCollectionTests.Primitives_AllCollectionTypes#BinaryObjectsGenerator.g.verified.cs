@@ -15,7 +15,7 @@
 /// <item> <term> --- </term> <description>24</description> </item>
 /// </list> </remarks>
 [global::Darp.BinaryObjects.BinaryConstant(24)]
-public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryObject<ArraysFixedSize>
+public partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
@@ -72,10 +72,10 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryObject
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ArraysFixedSize? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ArraysFixedSize? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -92,15 +92,15 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryObject
         var ___readValueUShortEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayLittleEndian(source[20..24], out _);
         bytesRead += 24;
 
-        value = new ArraysFixedSize(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
+        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ArraysFixedSize? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ArraysFixedSize? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
@@ -117,7 +117,7 @@ public partial record ArraysFixedSize : global::Darp.BinaryObjects.IBinaryObject
         var ___readValueUShortEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayBigEndian(source[20..24], out _);
         bytesRead += 24;
 
-        value = new ArraysFixedSize(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
+        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
         return true;
     }
 }

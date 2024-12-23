@@ -9,7 +9,7 @@ namespace Test1
     /// <item> <term> --- </term> <description>0</description> </item>
     /// </list> </remarks>
     [global::Darp.BinaryObjects.BinaryConstant(0)]
-    public sealed partial record EmptyRecord1 : global::Darp.BinaryObjects.IBinaryObject<EmptyRecord1>
+    public sealed partial record TestObject1 : global::Darp.BinaryObjects.IBinaryObject<TestObject1>
     {
         /// <inheritdoc />
         [global::System.Diagnostics.Contracts.Pure]
@@ -42,26 +42,26 @@ namespace Test1
 
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord1? value) => TryReadLittleEndian(source, out value, out _);
+        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject1? value) => TryReadLittleEndian(source, out value, out _);
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord1? value, out int bytesRead)
+        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject1? value, out int bytesRead)
         {
             bytesRead = 0;
 
-            value = new EmptyRecord1();
+            value = new TestObject1();
             return true;
         }
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord1? value) => TryReadBigEndian(source, out value, out _);
+        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject1? value) => TryReadBigEndian(source, out value, out _);
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord1? value, out int bytesRead)
+        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject1? value, out int bytesRead)
         {
             bytesRead = 0;
 
-            value = new EmptyRecord1();
+            value = new TestObject1();
             return true;
         }
     }
@@ -74,7 +74,7 @@ namespace Test2
     /// <item> <term> --- </term> <description>0</description> </item>
     /// </list> </remarks>
     [global::Darp.BinaryObjects.BinaryConstant(0)]
-    public sealed partial record EmptyRecord2 : global::Darp.BinaryObjects.IBinaryObject<EmptyRecord2>
+    public sealed partial record TestObject2 : global::Darp.BinaryObjects.IBinaryObject<TestObject2>
     {
         /// <inheritdoc />
         [global::System.Diagnostics.Contracts.Pure]
@@ -107,26 +107,26 @@ namespace Test2
 
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord2? value) => TryReadLittleEndian(source, out value, out _);
+        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject2? value) => TryReadLittleEndian(source, out value, out _);
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord2? value, out int bytesRead)
+        public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject2? value, out int bytesRead)
         {
             bytesRead = 0;
 
-            value = new EmptyRecord2();
+            value = new TestObject2();
             return true;
         }
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord2? value) => TryReadBigEndian(source, out value, out _);
+        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject2? value) => TryReadBigEndian(source, out value, out _);
         /// <inheritdoc />
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out EmptyRecord2? value, out int bytesRead)
+        public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject2? value, out int bytesRead)
         {
             bytesRead = 0;
 
-            value = new EmptyRecord2();
+            value = new TestObject2();
             return true;
         }
     }

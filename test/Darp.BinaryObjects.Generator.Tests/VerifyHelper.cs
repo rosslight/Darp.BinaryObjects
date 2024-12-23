@@ -2,6 +2,7 @@ namespace Darp.BinaryObjects.Generator.Tests;
 
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -9,10 +10,17 @@ using Microsoft.CodeAnalysis.CSharp;
 
 public static partial class VerifyHelper
 {
-    public static SettingsTask VerifyBinaryObjectsGenerator(params string[] sources) =>
-        VerifyGenerator<BinaryObjectsGenerator>(sources, "DBO0", LanguageVersion.CSharp11)
+    public static SettingsTask VerifyBinaryObjectsGenerator(
+        string source,
+        [CallerFilePath] string? callerFilePath = null
+    )
+    {
+        var fileName =
+            Path.GetFileNameWithoutExtension(callerFilePath) ?? throw new ArgumentNullException(nameof(callerFilePath));
+        return VerifyGenerator<BinaryObjectsGenerator>([source], "DBO0", fileName, LanguageVersion.CSharp11)
             .AddReferenceAssemblyMarker<BinaryObjectAttribute>()
             .ScrubGeneratedCodeAttribute();
+    }
 
     [GeneratedRegex("""GeneratedCodeAttribute\("[^"\n]+",\s*"(?<version>\d+\.\d+\.\d+\.\d+)"\)""")]
     private static partial Regex GetGeneratedCodeRegex();
@@ -47,6 +55,7 @@ public static partial class VerifyHelper
     private static SettingsTask VerifyGenerator<TGenerator>(
         string[] sources,
         string? allowedDiagnosticCode,
+        string directory,
         LanguageVersion languageVersion = LanguageVersion.Default,
         NullableContextOptions nullableContextOptions = NullableContextOptions.Enable
     )
@@ -95,7 +104,7 @@ public static partial class VerifyHelper
                 "generated sources throw:\n{0}",
                 string.Join("\n", driver.GetRunResult().GeneratedTrees.ToReadableString())
             );
-        return Verify(driver).UseDirectory("Snapshots");
+        return Verify(driver).UseDirectory(Path.Join("Snapshots", directory));
     }
 
     private static string ToReadableString(this ImmutableArray<SyntaxTree> syntaxTrees)
