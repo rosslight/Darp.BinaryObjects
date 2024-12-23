@@ -1,7 +1,6 @@
 namespace Darp.BinaryObjects;
 
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 
 /// <summary> Defines a mechanism for reading the object from a <see cref="ReadOnlySpan{T}"/> </summary>
 /// <typeparam name="TSelf"> The type that implements this interface </typeparam>
