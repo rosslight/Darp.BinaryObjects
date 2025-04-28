@@ -8,7 +8,7 @@ using static BinarySymbol;
 
 internal static class Parser
 {
-    public static ParserResult Parse(INamedTypeSymbol typeSymbol)
+    public static ParserResult Parse(INamedTypeSymbol typeSymbol, Compilation compilation)
     {
         List<DiagnosticData> diagnostics = [];
         List<BinarySymbol> members = [];
@@ -20,7 +20,7 @@ internal static class Parser
             .ToImmutableArray();
         foreach (ISymbol fieldSymbol in fields)
         {
-            if (TryParseField(fieldSymbol, diagnostics, members, out BinarySymbol? parsedSymbol))
+            if (TryParseField(fieldSymbol, compilation, diagnostics, members, out BinarySymbol? parsedSymbol))
                 members.Add(parsedSymbol);
         }
         return new ParserResult(typeSymbol, members.ToImmutableArray(), diagnostics.ToImmutableArray());
@@ -28,6 +28,7 @@ internal static class Parser
 
     private static bool TryParseField(
         ISymbol symbol,
+        Compilation compilation,
         List<DiagnosticData> diagnotics,
         IReadOnlyList<BinarySymbol> previousMembers,
         [NotNullWhen(true)] out BinarySymbol? binarySymbol
@@ -45,15 +46,16 @@ internal static class Parser
         if (attributeData.IsIgnore)
             return false;
 
-        if (fieldType is IArrayTypeSymbol arrayTypeSymbol)
+        if (fieldType.IsValidArrayType(compilation, out ITypeSymbol? elementTypeSymbol))
         {
-            if (!TryParseTypeData(arrayTypeSymbol.ElementType, out TypeAttributeData? arrayTypeData))
+            if (!TryParseTypeData(elementTypeSymbol, out TypeAttributeData? arrayTypeData))
                 return false;
             if (arrayTypeData.IsConstant)
             {
                 return TryParseConstantArray(
                     symbol,
-                    arrayTypeSymbol,
+                    fieldType,
+                    elementTypeSymbol,
                     arrayTypeData.ConstantLength,
                     attributeData,
                     diagnotics,
@@ -102,7 +104,8 @@ internal static class Parser
 
     private static bool TryParseConstantArray(
         ISymbol symbol,
-        IArrayTypeSymbol arrayTypeSymbol,
+        ITypeSymbol arrayTypeSymbol,
+        ITypeSymbol elementTypeSymbol,
         int elementLength,
         FieldAttributeData attributeData,
         List<DiagnosticData> diagnotics,
@@ -161,7 +164,7 @@ internal static class Parser
             symbol,
             arrayTypeSymbol,
             elementCount,
-            arrayTypeSymbol.ElementType,
+            elementTypeSymbol,
             elementLength
         );
         return true;
@@ -214,6 +217,38 @@ internal static class Parser
             BinaryElementCountAttribute = _binaryElementCountAttribute,
             BinaryElementCount = binaryElementCount,
         };
+    }
+
+    private static bool IsValidArrayType(
+        this ITypeSymbol fieldTypeSymbol,
+        Compilation compilation,
+        [NotNullWhen(true)] out ITypeSymbol? elementTypeSymbol
+    )
+    {
+        if (fieldTypeSymbol is IArrayTypeSymbol { Rank: 1 } arrayTypeSymbol)
+        {
+            elementTypeSymbol = arrayTypeSymbol.ElementType;
+            return true;
+        }
+
+        if (fieldTypeSymbol is not INamedTypeSymbol namedTypeSymbol)
+        {
+            elementTypeSymbol = null;
+            return false;
+        }
+        switch (namedTypeSymbol.GetNamespace(), namedTypeSymbol.MetadataName)
+        {
+            case ("System", "String"):
+                elementTypeSymbol = compilation.GetSpecialType(SpecialType.System_Char);
+                return true;
+            case ("System.Collections.Generic", "List`1"):
+            case ("System", "ReadOnlyMemory`1"):
+                elementTypeSymbol = namedTypeSymbol.TypeArguments[0];
+                return true;
+            default:
+                elementTypeSymbol = null;
+                return false;
+        }
     }
 
     private static bool TryParseTypeData(
@@ -357,6 +392,8 @@ public sealed record FieldAttributeData
     public string? BinaryElementCountFieldName { get; init; }
 }
 
+public sealed record ArrayTypeData { }
+
 public sealed record TypeAttributeData
 {
     public bool IsConstant { get; init; }
@@ -385,7 +422,7 @@ internal partial record BinarySymbol
 
     partial record ConstantArrayBinarySymbol(
         ISymbol Symbol,
-        IArrayTypeSymbol ArrayType,
+        ITypeSymbol ArrayType,
         int ElementCount,
         ITypeSymbol UnderlyingType,
         int ElementLength

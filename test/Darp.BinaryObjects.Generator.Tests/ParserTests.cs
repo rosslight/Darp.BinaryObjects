@@ -12,6 +12,7 @@ public sealed class ParserTests
     private const string CodeSetUp = """
         using Darp.BinaryObjects;
         using System;
+        using System.Collections.Generic;
         using System.Diagnostics.CodeAnalysis;
 
         [BinaryObject]
@@ -94,9 +95,8 @@ public sealed class ParserTests
             {CodeSetUp}
             public partial record Object0_1({arguments});
             """;
-
-        INamedTypeSymbol symbol = GetSymbol(code, "Object0_1");
-        ParserResult parsingResult = Parser.Parse(symbol);
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
         parsingResult.IsError.Should().BeFalse();
@@ -115,8 +115,8 @@ public sealed class ParserTests
             {CodeSetUp}
             public partial record Object0_1({argument});
             """;
-        INamedTypeSymbol symbol = GetSymbol(code, "Object0_1");
-        ParserResult parsingResult = Parser.Parse(symbol);
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
         parsingResult.IsError.Should().BeFalse();
@@ -142,11 +142,25 @@ public sealed class ParserTests
         1,
         5
     )]
-    [InlineData("[property: BinaryElementCount(2)] ReadOnlyMemory<int> A", "A", "ReadOnlyMemory<int>", "Int32", 2, 4)]
-    [InlineData("[property: BinaryElementCount(2)] List<int> A", "A", "List<int>", "Int32", 2, 4)]
-    [InlineData("[property: BinaryLength(8)] string A", "A", "String", "Char", 4, 2)]
-    [InlineData("[property: BinaryElementCount(2)] string A", "A", "String", "Char", 2, 2)]
-    [InlineData("[property: BinaryElementCount(4, 1)] string A", "A", "String", "Char", 4, 1)]
+    [InlineData(
+        "[property: BinaryElementCount(2)] ReadOnlyMemory<int> A",
+        "A",
+        "System.ReadOnlyMemory<int>",
+        "Int32",
+        2,
+        4
+    )]
+    [InlineData(
+        "[property: BinaryElementCount(2)] List<int> A",
+        "A",
+        "System.Collections.Generic.List<int>",
+        "Int32",
+        2,
+        4
+    )]
+    [InlineData("[property: BinaryLength(8)] string A", "A", "string", "Char", 4, 2)]
+    [InlineData("[property: BinaryElementCount(2)] string A", "A", "string", "Char", 2, 2)]
+    [InlineData("[property: BinaryElementCount(4, 1)] string A", "A", "string", "Char", 4, 1)]
     public void ConstantArrayBinarySymbol(
         string argument,
         string symbolName,
@@ -160,12 +174,12 @@ public sealed class ParserTests
             {CodeSetUp}
             public partial record Object0_1({argument});
             """;
-        INamedTypeSymbol symbol = GetSymbol(code, "Object0_1");
-        ParserResult parsingResult = Parser.Parse(symbol);
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
-        parsingResult.IsError.Should().BeFalse();
         parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
         parsingResult.Symbols[0].Should().BeOfType<ConstantArrayBinarySymbol>();
         ConstantArrayBinarySymbol symbol0 = parsingResult.Symbols[0].UnwrapConstantArrayBinarySymbol();
@@ -186,8 +200,8 @@ public sealed class ParserTests
             {CodeSetUp}
             public partial record Object0_1({argument});
             """;
-        INamedTypeSymbol symbol = GetSymbol(code, "Object0_1");
-        ParserResult parsingResult = Parser.Parse(symbol);
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
         parsingResult.IsError.Should().BeFalse();
@@ -229,8 +243,8 @@ public sealed class ParserTests
             public enum UShortEnum : ushort {};
             public partial record Object0_1({{argument}});
             """;
-        INamedTypeSymbol symbol = GetSymbol(code, "Object0_1");
-        ParserResult parsingResult = Parser.Parse(symbol);
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
         parsingResult.IsError.Should().BeTrue();
@@ -241,7 +255,7 @@ public sealed class ParserTests
         parsingResult.Symbols.Should().HaveCount(0);
     }
 
-    private static INamedTypeSymbol GetSymbol(string code, string typeName)
+    private static (INamedTypeSymbol Type, Compilation Compilation) GetSymbol(string code, string typeName)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
 
@@ -272,6 +286,6 @@ public sealed class ParserTests
             ) ?? throw new ArgumentOutOfRangeException(nameof(typeName));
         if (symbol is IErrorTypeSymbol)
             throw new ArgumentOutOfRangeException(symbol.Name);
-        return symbol;
+        return (symbol, compilation);
     }
 }
