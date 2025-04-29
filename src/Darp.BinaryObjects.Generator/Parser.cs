@@ -62,6 +62,19 @@ internal static class Parser
                     out binarySymbol
                 );
             }
+
+            if (arrayTypeData.IsBinaryObject)
+            {
+                return TryParseBinaryObjectArray(
+                    symbol,
+                    fieldType,
+                    elementTypeSymbol,
+                    arrayTypeData.IsGenerated,
+                    attributeData,
+                    diagnotics,
+                    out binarySymbol
+                );
+            }
             return false;
         }
         if (TryParseTypeData(fieldType, out TypeAttributeData? typeData))
@@ -95,11 +108,8 @@ internal static class Parser
                         attributeData.BinaryLengthFieldName
                     );
                     return true;
-                case { IsBinaryObject: true, IsGenerated: true }:
-                    binarySymbol = new GeneratedBinaryObjectSymbol(symbol, fieldType);
-                    return true;
                 case { IsBinaryObject: true }:
-                    binarySymbol = new BinaryObjectSymbol(symbol, fieldType);
+                    binarySymbol = new BinaryObjectSymbol(symbol, fieldType, typeData.IsGenerated);
                     return true;
             }
         }
@@ -209,6 +219,45 @@ internal static class Parser
             return true;
         }
         binarySymbol = new ConstantArraySymbol(symbol, arrayTypeSymbol, elementCount, elementTypeSymbol, elementLength);
+        return true;
+    }
+
+    private static bool TryParseBinaryObjectArray(
+        ISymbol symbol,
+        ITypeSymbol arrayTypeSymbol,
+        ITypeSymbol elementTypeSymbol,
+        bool isGenerated,
+        FieldAttributeData attributeData,
+        List<DiagnosticData> diagnotics,
+        [NotNullWhen(true)] out BinarySymbol? binarySymbol
+    )
+    {
+        binarySymbol = null;
+
+        if (attributeData.BinaryElementCount is not null)
+        {
+            binarySymbol = new ConstantCountBinaryObjectArraySymbol(
+                symbol,
+                arrayTypeSymbol,
+                attributeData.BinaryElementCount.Value,
+                elementTypeSymbol,
+                isGenerated
+            );
+            return true;
+        }
+
+        if (attributeData.BinaryElementCountFieldName is not null)
+        {
+            binarySymbol = new VariableCountBinaryObjectArraySymbol(
+                symbol,
+                arrayTypeSymbol,
+                attributeData.BinaryElementCountFieldName,
+                elementTypeSymbol,
+                isGenerated
+            );
+            return true;
+        }
+        binarySymbol = new BinaryObjectArraySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, isGenerated);
         return true;
     }
 
@@ -473,8 +522,6 @@ public sealed record FieldAttributeData
     public string? BinaryElementCountFieldName { get; init; }
 }
 
-public sealed record ArrayTypeData { }
-
 public sealed record TypeAttributeData
 {
     public bool IsConstant { get; init; }
@@ -508,19 +555,14 @@ internal partial record BinarySymbol
     /// </code>
     partial record ConstantSymbol(ISymbol Symbol, ITypeSymbol FieldType, int FieldLength);
 
-    /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
-    /// <code>
-    /// // An object extending IBinaryObject
-    /// SomeBinaryObject A
-    /// </code>
-    partial record BinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
-
-    /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
+    /// <summary> Tracks an object with [ FieldLength: constant/unknown, IsGenerated: true/false ] </summary>
     /// <code>
     /// // An object with BinaryObject attribute
     /// GeneratedBinaryObject A
+    /// // An object extending IBinaryObject
+    /// SomeBinaryObject A
     /// </code>
-    partial record GeneratedBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+    partial record BinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType, bool IsGenerated);
 
     /// <summary> Tracks an object with [ MaxFieldLength: const FieldLength: variable ] </summary>
     /// <code> int Length, [property: BinaryLength("Length")] int A </code>
@@ -542,9 +584,28 @@ internal partial record BinarySymbol
         public int FieldLength => ElementCount * ElementLength;
     }
 
+    /// <summary> Tracks an array with [ ElementCount: constant, ElementLength: constant/unknown, IsGenerated: true/false ] </summary>
+    /// <code> GeneratedObject[] A </code>
+    partial record ConstantCountBinaryObjectArraySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        int ElementCount,
+        ITypeSymbol UnderlyingType,
+        bool IsGenerated
+    );
+
     /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: undefined ] </summary>
     /// <code> int[] A </code>
     partial record ArraySymbol(ISymbol Symbol, ITypeSymbol ArrayType, ITypeSymbol UnderlyingType, int ElementLength);
+
+    /// <summary> Tracks an array with [ ElementLength: constant/unknown, IsGenerated: true/false ] </summary>
+    /// <code> GeneratedObject[] A </code>
+    partial record BinaryObjectArraySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        ITypeSymbol UnderlyingType,
+        bool IsGenerated
+    );
 
     /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: variable ] </summary>
     /// <code> int Length, [property: BinaryLength("Length")] int[] A </code>
@@ -564,5 +625,15 @@ internal partial record BinarySymbol
         string ElementCountName,
         ITypeSymbol UnderlyingType,
         int ElementLength
+    );
+
+    /// <summary> Tracks an array with [ ElementCount: variable, ElementLength: constant/unknown, IsGenerated: true/false ] </summary>
+    /// <code> int Length, [property: BinaryElementCount("Length")] GeneratedObject[] A </code>
+    partial record VariableCountBinaryObjectArraySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        string ElementCountName,
+        ITypeSymbol UnderlyingType,
+        bool IsGenerated
     );
 }

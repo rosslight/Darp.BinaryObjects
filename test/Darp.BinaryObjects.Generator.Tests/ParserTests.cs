@@ -160,6 +160,30 @@ public sealed class ParserTests
     }
 
     [Theory]
+    [InlineData("Object0_1(GeneratedObject A)", "A", "GeneratedObject", true)]
+    [InlineData("Object0_1<T>(T A) where T : IBinaryObject<T>", "A", "T", false)]
+    [InlineData("Object0_1(VariableObject A)", "A", "VariableObject", false)]
+    public void BinaryObjectSymbol(string argument, string symbolName, string fieldTypeName, bool isGenerated)
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record {argument};
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(1);
+        parsingResult.Symbols[0].Should().BeOfType<BinaryObjectSymbol>();
+        BinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapBinaryObjectSymbol();
+        symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
+        symbol0.FieldType.Name.Should().Be(fieldTypeName);
+        symbol0.IsGenerated.Should().Be(isGenerated);
+    }
+
+    [Theory]
     [InlineData("[property: BinaryLength(8)] int[] A", "A", "int[]", "Int32", 2, 4)]
     [InlineData("[property: BinaryLength(10)] ConstantObject[] A", "A", "ConstantObject[]", "ConstantObject", 2, 5)]
     [InlineData("[property: BinaryElementCount(2)] int[] A", "A", "int[]", "Int32", 2, 4)]
@@ -333,8 +357,38 @@ public sealed class ParserTests
     }
 
     [Theory]
-    [InlineData("Object0_1(GeneratedObject A)", "A", "GeneratedObject")]
-    public void GeneratedBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    [InlineData(
+        "Object0_1([property: BinaryElementCount(2)] GeneratedObject[] A)",
+        "A",
+        "GeneratedObject[]",
+        2,
+        "GeneratedObject",
+        true
+    )]
+    [InlineData(
+        "Object0_1<T>([property: BinaryElementCount(2)] T[] A) where T : IBinaryObject<T>",
+        "A",
+        "T[]",
+        2,
+        "T",
+        false
+    )]
+    [InlineData(
+        "Object0_1([property: BinaryElementCount(2)] VariableObject[] A)",
+        "A",
+        "VariableObject[]",
+        2,
+        "VariableObject",
+        false
+    )]
+    public void ConstantCountBinaryObjectArraySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        int elementCount,
+        string underlyingType,
+        bool isGenerated
+    )
     {
         var code = $"""
             {CodeSetUp}
@@ -347,16 +401,28 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<GeneratedBinaryObjectSymbol>();
-        GeneratedBinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapGeneratedBinaryObjectSymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantCountBinaryObjectArraySymbol>();
+        ConstantCountBinaryObjectArraySymbol symbol0 = parsingResult
+            .Symbols[0]
+            .UnwrapConstantCountBinaryObjectArraySymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
-        symbol0.FieldType.Name.Should().Be(fieldTypeName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.ElementCount.Should().Be(elementCount);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.IsGenerated.Should().Be(isGenerated);
     }
 
     [Theory]
-    [InlineData("Object0_1<T>(T A) where T : IBinaryObject<T>", "A", "T")]
-    [InlineData("Object0_1(VariableObject A)", "A", "VariableObject")]
-    public void BinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    [InlineData("Object0_1(GeneratedObject[] A)", "A", "GeneratedObject[]", "GeneratedObject", true)]
+    [InlineData("Object0_1<T>(T[] A) where T : IBinaryObject<T>", "A", "T[]", "T", false)]
+    [InlineData("Object0_1(VariableObject[] A)", "A", "VariableObject[]", "VariableObject", false)]
+    public void BinaryObjectArraySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        string underlyingType,
+        bool isGenerated
+    )
     {
         var code = $"""
             {CodeSetUp}
@@ -369,10 +435,69 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<BinaryObjectSymbol>();
-        BinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapBinaryObjectSymbol();
+        parsingResult.Symbols[0].Should().BeOfType<BinaryObjectArraySymbol>();
+        BinaryObjectArraySymbol symbol0 = parsingResult.Symbols[0].UnwrapBinaryObjectArraySymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
-        symbol0.FieldType.Name.Should().Be(fieldTypeName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.IsGenerated.Should().Be(isGenerated);
+    }
+
+    [Theory]
+    [InlineData(
+        """Object0_1(int Length, [property: BinaryElementCount("Length")] GeneratedObject[] A)""",
+        "A",
+        "GeneratedObject[]",
+        "Length",
+        "GeneratedObject",
+        true
+    )]
+    [InlineData(
+        """Object0_1<T>(int Length, [property: BinaryElementCount("Length")] T[] A) where T : IBinaryObject<T>""",
+        "A",
+        "T[]",
+        "Length",
+        "T",
+        false
+    )]
+    [InlineData(
+        """Object0_1(int Length, [property: BinaryElementCount("Length")] VariableObject[] A)""",
+        "A",
+        "VariableObject[]",
+        "Length",
+        "VariableObject",
+        false
+    )]
+    public void VariableCountBinaryObjectArraySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        string elementCountName,
+        string underlyingType,
+        bool isGenerated
+    )
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record {argument};
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(2);
+        parsingResult.Symbols[0].Should().BeOfType<ConstantSymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableCountBinaryObjectArraySymbol>();
+        VariableCountBinaryObjectArraySymbol symbol0 = parsingResult
+            .Symbols[1]
+            .UnwrapVariableCountBinaryObjectArraySymbol();
+        symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.ElementCountName.Should().Be(elementCountName);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.IsGenerated.Should().Be(isGenerated);
     }
 
     [Theory]
