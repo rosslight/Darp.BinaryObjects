@@ -80,7 +80,7 @@ internal static class Parser
                     {
                         return false;
                     }
-                    binarySymbol = new ConstantBinarySymbol(
+                    binarySymbol = new ConstantSymbol(
                         symbol,
                         fieldType,
                         attributeData.BinaryLength ?? typeData.ConstantLength
@@ -88,7 +88,7 @@ internal static class Parser
                     return true;
                 }
                 case { IsConstant: true } when attributeData.BinaryLengthFieldName is not null:
-                    binarySymbol = new VariableBinarySymbol(
+                    binarySymbol = new VariableSymbol(
                         symbol,
                         fieldType,
                         typeData.ConstantLength,
@@ -96,10 +96,10 @@ internal static class Parser
                     );
                     return true;
                 case { IsBinaryObject: true, IsGenerated: true }:
-                    binarySymbol = new UnknownGeneratedBinaryObjectSymbol(symbol, fieldType);
+                    binarySymbol = new GeneratedBinaryObjectSymbol(symbol, fieldType);
                     return true;
                 case { IsBinaryObject: true }:
-                    binarySymbol = new UnknownBinaryObjectSymbol(symbol, fieldType);
+                    binarySymbol = new BinaryObjectSymbol(symbol, fieldType);
                     return true;
             }
         }
@@ -156,7 +156,7 @@ internal static class Parser
         }
         else if (attributeData.BinaryElementCountFieldName is not null)
         {
-            binarySymbol = new VariableCountArrayBinarySymbol(
+            binarySymbol = new VariableCountArraySymbol(
                 symbol,
                 arrayTypeSymbol,
                 attributeData.BinaryElementCountFieldName,
@@ -167,7 +167,7 @@ internal static class Parser
         }
         else if (attributeData.BinaryLengthFieldName is not null)
         {
-            binarySymbol = new ConstantLengthArrayBinarySymbol(
+            binarySymbol = new VariableLengthArraySymbol(
                 symbol,
                 arrayTypeSymbol,
                 elementTypeSymbol,
@@ -180,7 +180,7 @@ internal static class Parser
         {
             if (attributeData.BinaryElementLengthAttribute is not null)
             {
-                binarySymbol = new VariableArrayBinarySymbol(
+                binarySymbol = new ArraySymbol(
                     symbol,
                     arrayTypeSymbol,
                     elementTypeSymbol,
@@ -205,16 +205,10 @@ internal static class Parser
         }
         else
         {
-            binarySymbol = new VariableArrayBinarySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, elementLength);
+            binarySymbol = new ArraySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, elementLength);
             return true;
         }
-        binarySymbol = new ConstantArrayBinarySymbol(
-            symbol,
-            arrayTypeSymbol,
-            elementCount,
-            elementTypeSymbol,
-            elementLength
-        );
+        binarySymbol = new ConstantArraySymbol(symbol, arrayTypeSymbol, elementCount, elementTypeSymbol, elementLength);
         return true;
     }
 
@@ -512,35 +506,32 @@ internal partial record BinarySymbol
     /// // An object extending IBinaryObject with BinaryConstant attribute
     /// ConstantBinaryObject A
     /// </code>
-    partial record ConstantBinarySymbol(ISymbol Symbol, ITypeSymbol FieldType, int FieldLength);
+    partial record ConstantSymbol(ISymbol Symbol, ITypeSymbol FieldType, int FieldLength);
 
     /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
     /// <code>
     /// // An object extending IBinaryObject
     /// SomeBinaryObject A
     /// </code>
-    partial record UnknownBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+    partial record BinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
 
     /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
     /// <code>
     /// // An object with BinaryObject attribute
     /// GeneratedBinaryObject A
     /// </code>
-    partial record UnknownGeneratedBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+    partial record GeneratedBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
 
     /// <summary> Tracks an object with [ MaxFieldLength: const FieldLength: variable ] </summary>
     /// <code> int Length, [property: BinaryLength("Length")] int A </code>
-    partial record VariableBinarySymbol(
-        ISymbol Symbol,
-        ITypeSymbol FieldType,
-        int MaxFieldLength,
-        string FieldLengthName
-    );
+    partial record VariableSymbol(ISymbol Symbol, ITypeSymbol FieldType, int MaxFieldLength, string FieldLengthName);
 
     /// <summary> Tracks an array with [ ElementCount: constant, ElementLength: constant, FieldLength: constant ] </summary>
-    /// <code> [property: BinaryLength(8)] int[] A </code>
-    /// <code> [property: BinaryElementCount(2)] int[] A </code>
-    partial record ConstantArrayBinarySymbol(
+    /// <code>
+    /// [property: BinaryLength(8)] int[] A
+    /// [property: BinaryElementCount(2)] int[] A
+    /// </code>
+    partial record ConstantArraySymbol(
         ISymbol Symbol,
         ITypeSymbol ArrayType,
         int ElementCount,
@@ -553,16 +544,11 @@ internal partial record BinarySymbol
 
     /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: undefined ] </summary>
     /// <code> int[] A </code>
-    partial record VariableArrayBinarySymbol(
-        ISymbol Symbol,
-        ITypeSymbol ArrayType,
-        ITypeSymbol UnderlyingType,
-        int ElementLength
-    );
+    partial record ArraySymbol(ISymbol Symbol, ITypeSymbol ArrayType, ITypeSymbol UnderlyingType, int ElementLength);
 
     /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: variable ] </summary>
     /// <code> int Length, [property: BinaryLength("Length")] int[] A </code>
-    partial record ConstantLengthArrayBinarySymbol(
+    partial record VariableLengthArraySymbol(
         ISymbol Symbol,
         ITypeSymbol ArrayType,
         ITypeSymbol UnderlyingType,
@@ -572,7 +558,7 @@ internal partial record BinarySymbol
 
     /// <summary> Tracks an array with [ ElementCount: variable, ElementLength: constant, FieldLength: undefined ] </summary>
     /// <code> int Length, [property: BinaryElementCount("Length")] int[] A </code>
-    partial record VariableCountArrayBinarySymbol(
+    partial record VariableCountArraySymbol(
         ISymbol Symbol,
         ITypeSymbol ArrayType,
         string ElementCountName,

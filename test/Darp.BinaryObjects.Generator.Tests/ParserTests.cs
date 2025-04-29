@@ -109,7 +109,7 @@ public sealed class ParserTests
     [InlineData("UShortEnum A", "A", "UShortEnum", 2)]
     [InlineData("[property: BinaryLength(3)] int A", "A", "Int32", 3)]
     [InlineData("ConstantObject A", "A", "ConstantObject", 5)]
-    public void ConstantBinarySymbol(string argument, string symbolName, string fieldTypeName, int fieldLength)
+    public void ConstantSymbol(string argument, string symbolName, string fieldTypeName, int fieldLength)
     {
         var code = $"""
             {CodeSetUp}
@@ -122,8 +122,8 @@ public sealed class ParserTests
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
-        ConstantBinarySymbol symbol0 = parsingResult.Symbols[0].UnwrapConstantBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantSymbol>();
+        ConstantSymbol symbol0 = parsingResult.Symbols[0].UnwrapConstantSymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
         symbol0.FieldType.Name.Should().Be(fieldTypeName);
         symbol0.FieldLength.Should().Be(fieldLength);
@@ -131,7 +131,7 @@ public sealed class ParserTests
 
     [Theory]
     [InlineData("""int Length, [property: BinaryLength("Length")] int A""", "A", "Int32", 4, "Length")]
-    public void VariableBinarySymbol(
+    public void VariableSymbol(
         string argument,
         string symbolName,
         string fieldTypeName,
@@ -150,9 +150,9 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(2);
-        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
-        parsingResult.Symbols[1].Should().BeOfType<VariableBinarySymbol>();
-        VariableBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantSymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableSymbol>();
+        VariableSymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableSymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
         symbol0.FieldType.Name.Should().Be(fieldTypeName);
         symbol0.MaxFieldLength.Should().Be(fieldLength);
@@ -191,7 +191,7 @@ public sealed class ParserTests
     [InlineData("[property: BinaryLength(8)] string A", "A", "string", "Char", 4, 2)]
     [InlineData("[property: BinaryElementCount(2)] string A", "A", "string", "Char", 2, 2)]
     [InlineData("[property: BinaryElementCount(4), BinaryElementLength(1)] string A", "A", "string", "Char", 4, 1)]
-    public void ConstantArrayBinarySymbol(
+    public void ConstantArraySymbol(
         string argument,
         string symbolName,
         string fieldTypeName,
@@ -211,8 +211,8 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<ConstantArrayBinarySymbol>();
-        ConstantArrayBinarySymbol symbol0 = parsingResult.Symbols[0].UnwrapConstantArrayBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantArraySymbol>();
+        ConstantArraySymbol symbol0 = parsingResult.Symbols[0].UnwrapConstantArraySymbol();
         symbol0.Symbol.Name.Should().Be(symbolName);
         symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
         symbol0.UnderlyingType.Name.Should().Be(underlyingType);
@@ -225,7 +225,7 @@ public sealed class ParserTests
     [InlineData("int[] A", "A", "int[]", "Int32", 4)]
     [InlineData("[property: BinaryElementLength(3)] int[] A", "A", "int[]", "Int32", 3)]
     [InlineData("List<int> A", "A", "System.Collections.Generic.List<int>", "Int32", 4)]
-    public void VariableArrayBinarySymbol(
+    public void ArraySymbol(
         string argument,
         string symbolName,
         string fieldTypeName,
@@ -244,8 +244,8 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<VariableArrayBinarySymbol>();
-        VariableArrayBinarySymbol symbol0 = parsingResult.Symbols[0].UnwrapVariableArrayBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ArraySymbol>();
+        ArraySymbol symbol0 = parsingResult.Symbols[0].UnwrapArraySymbol();
         symbol0.Symbol.Name.Should().Be(symbolName);
         symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
         symbol0.UnderlyingType.Name.Should().Be(underlyingType);
@@ -262,7 +262,7 @@ public sealed class ParserTests
         "Length",
         3
     )]
-    public void VariableCountArrayBinarySymbol(
+    public void VariableCountArraySymbol(
         string argument,
         string symbolName,
         string fieldTypeName,
@@ -282,9 +282,9 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(2);
-        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
-        parsingResult.Symbols[1].Should().BeOfType<VariableCountArrayBinarySymbol>();
-        VariableCountArrayBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableCountArrayBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantSymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableCountArraySymbol>();
+        VariableCountArraySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableCountArraySymbol();
         symbol0.Symbol.Name.Should().Be(symbolName);
         symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
         symbol0.UnderlyingType.Name.Should().Be(underlyingType);
@@ -302,7 +302,7 @@ public sealed class ParserTests
         3,
         "Length"
     )]
-    public void ConstantLengthArrayBinarySymbol(
+    public void VariableLengthArraySymbol(
         string argument,
         string symbolName,
         string fieldTypeName,
@@ -322,9 +322,9 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(2);
-        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
-        parsingResult.Symbols[1].Should().BeOfType<ConstantLengthArrayBinarySymbol>();
-        ConstantLengthArrayBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapConstantLengthArrayBinarySymbol();
+        parsingResult.Symbols[0].Should().BeOfType<ConstantSymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableLengthArraySymbol>();
+        VariableLengthArraySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableLengthArraySymbol();
         symbol0.Symbol.Name.Should().Be(symbolName);
         symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
         symbol0.UnderlyingType.Name.Should().Be(underlyingType);
@@ -334,7 +334,7 @@ public sealed class ParserTests
 
     [Theory]
     [InlineData("Object0_1(GeneratedObject A)", "A", "GeneratedObject")]
-    public void UnknownGeneratedBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    public void GeneratedBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
     {
         var code = $"""
             {CodeSetUp}
@@ -347,10 +347,8 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<UnknownGeneratedBinaryObjectSymbol>();
-        UnknownGeneratedBinaryObjectSymbol symbol0 = parsingResult
-            .Symbols[0]
-            .UnwrapUnknownGeneratedBinaryObjectSymbol();
+        parsingResult.Symbols[0].Should().BeOfType<GeneratedBinaryObjectSymbol>();
+        GeneratedBinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapGeneratedBinaryObjectSymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
         symbol0.FieldType.Name.Should().Be(fieldTypeName);
     }
@@ -358,7 +356,7 @@ public sealed class ParserTests
     [Theory]
     [InlineData("Object0_1<T>(T A) where T : IBinaryObject<T>", "A", "T")]
     [InlineData("Object0_1(VariableObject A)", "A", "VariableObject")]
-    public void UnknownBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    public void BinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
     {
         var code = $"""
             {CodeSetUp}
@@ -371,8 +369,8 @@ public sealed class ParserTests
         parsingResult.Diagnostics.Should().BeEmpty();
         parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
-        parsingResult.Symbols[0].Should().BeOfType<UnknownBinaryObjectSymbol>();
-        UnknownBinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapUnknownBinaryObjectSymbol();
+        parsingResult.Symbols[0].Should().BeOfType<BinaryObjectSymbol>();
+        BinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapBinaryObjectSymbol();
         symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
         symbol0.FieldType.Name.Should().Be(fieldTypeName);
     }
