@@ -66,29 +66,41 @@ internal static class Parser
         }
         if (TryParseTypeData(fieldType, out TypeAttributeData? typeData))
         {
-            if (typeData.IsConstant)
+            switch (typeData)
             {
-                if (
-                    !DiagnosticGuard.IsAttributeDataInRangeOrAdd(
-                        (attributeData.BinaryLength, 1, typeData.ConstantLength),
-                        (attributeData.BinaryLengthAttribute, 0),
-                        diagnotics
-                    )
-                )
+                case { IsConstant: true } when attributeData.BinaryLengthFieldName is null:
                 {
-                    return false;
+                    if (
+                        !DiagnosticGuard.IsAttributeDataInRangeOrAdd(
+                            (attributeData.BinaryLength, 1, typeData.ConstantLength),
+                            attributeData.BinaryLengthAttribute,
+                            diagnotics
+                        )
+                    )
+                    {
+                        return false;
+                    }
+                    binarySymbol = new ConstantBinarySymbol(
+                        symbol,
+                        fieldType,
+                        attributeData.BinaryLength ?? typeData.ConstantLength
+                    );
+                    return true;
                 }
-                binarySymbol = new ConstantBinarySymbol(
-                    symbol,
-                    fieldType,
-                    attributeData.BinaryLength ?? typeData.ConstantLength
-                );
-                return true;
-            }
-            if (typeData.IsBinaryObject)
-            {
-                binarySymbol = new UnknownBinaryObjectSymbol(symbol, fieldType);
-                return true;
+                case { IsConstant: true } when attributeData.BinaryLengthFieldName is not null:
+                    binarySymbol = new VariableBinarySymbol(
+                        symbol,
+                        fieldType,
+                        typeData.ConstantLength,
+                        attributeData.BinaryLengthFieldName
+                    );
+                    return true;
+                case { IsBinaryObject: true, IsGenerated: true }:
+                    binarySymbol = new UnknownGeneratedBinaryObjectSymbol(symbol, fieldType);
+                    return true;
+                case { IsBinaryObject: true }:
+                    binarySymbol = new UnknownBinaryObjectSymbol(symbol, fieldType);
+                    return true;
             }
         }
 
@@ -96,7 +108,8 @@ internal static class Parser
             DiagnosticData.Create(
                 DiagnosticDescriptors.InvalidFieldType,
                 symbol.GetSourceLocation(),
-                [fieldType.Name, symbol.Name]
+                fieldType.Name,
+                symbol.Name
             )
         );
         return false;
@@ -120,7 +133,7 @@ internal static class Parser
             if (
                 !DiagnosticGuard.IsAttributeDataInRangeOrAdd(
                     (attributeData.BinaryLength, Min: 1, Max: elementLength),
-                    (attributeData.BinaryElementCountAttribute, 1),
+                    attributeData.BinaryElementLengthAttribute,
                     diagnotics
                 )
             )
@@ -130,7 +143,7 @@ internal static class Parser
             if (
                 !DiagnosticGuard.IsAttributeDataAtLeastOrAdd(
                     (attributeData.BinaryElementCount, Min: 1),
-                    (attributeData.BinaryElementCountAttribute, 0),
+                    attributeData.BinaryElementCountAttribute,
                     diagnotics
                 )
             )
@@ -141,15 +154,49 @@ internal static class Parser
             if (attributeData.BinaryLength is not null)
                 elementLength = attributeData.BinaryLength.Value;
         }
+        else if (attributeData.BinaryElementCountFieldName is not null)
+        {
+            binarySymbol = new VariableCountArrayBinarySymbol(
+                symbol,
+                arrayTypeSymbol,
+                attributeData.BinaryElementCountFieldName,
+                elementTypeSymbol,
+                attributeData.BinaryLength ?? elementLength
+            );
+            return true;
+        }
+        else if (attributeData.BinaryLengthFieldName is not null)
+        {
+            binarySymbol = new ConstantLengthArrayBinarySymbol(
+                symbol,
+                arrayTypeSymbol,
+                elementTypeSymbol,
+                attributeData.BinaryLength ?? elementLength,
+                attributeData.BinaryLengthFieldName
+            );
+            return true;
+        }
         else if (attributeData.BinaryLength is not null)
         {
+            if (attributeData.BinaryElementLengthAttribute is not null)
+            {
+                binarySymbol = new VariableArrayBinarySymbol(
+                    symbol,
+                    arrayTypeSymbol,
+                    elementTypeSymbol,
+                    attributeData.BinaryLength.Value
+                );
+                return true;
+            }
             if (attributeData.BinaryLength % elementLength != 0)
             {
                 diagnotics.Add(
                     DiagnosticData.Create(
                         DiagnosticDescriptors.InvalidMultipleOfAttributeData,
                         attributeData.BinaryLengthAttribute?.GetLocationOfConstructorArgument(0),
-                        ["BinaryLength", attributeData.BinaryLength, elementLength]
+                        "BinaryLength",
+                        attributeData.BinaryLength,
+                        elementLength
                     )
                 );
                 return false;
@@ -158,7 +205,8 @@ internal static class Parser
         }
         else
         {
-            return false;
+            binarySymbol = new VariableArrayBinarySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, elementLength);
+            return true;
         }
         binarySymbol = new ConstantArrayBinarySymbol(
             symbol,
@@ -172,10 +220,13 @@ internal static class Parser
 
     private static FieldAttributeData ParseFieldAttributes(ISymbol symbol)
     {
-        AttributeData? _binaryLengthAttribute = null;
+        AttributeData? binaryLengthAttribute = null;
         int? binaryLength = null;
-        AttributeData? _binaryElementCountAttribute = null;
+        string? binaryLengthFieldName = null;
+        AttributeData? binaryElementCountAttribute = null;
         int? binaryElementCount = null;
+        string? binaryElementCountFieldName = null;
+        AttributeData? binaryElementLengthAttribute = null;
 
         ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
         foreach (AttributeData attributeData in attributes)
@@ -187,7 +238,7 @@ internal static class Parser
                 case "Darp.BinaryObjects.BinaryIgnoreAttribute":
                     return new FieldAttributeData { IsIgnore = true };
                 case "Darp.BinaryObjects.BinaryLengthAttribute":
-                    _binaryLengthAttribute = attributeData;
+                    binaryLengthAttribute = attributeData;
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
                     {
                         // Do not overwrite an already set binary length
@@ -195,15 +246,25 @@ internal static class Parser
                             continue;
                         if (pair is { Key: "length", Value.Value: int lengthValue })
                             binaryLength = lengthValue;
+                        if (pair is { Key: "fieldWithLength", Value.Value: string fieldWithLength })
+                            binaryLengthFieldName = fieldWithLength;
                     }
                     break;
                 case "Darp.BinaryObjects.BinaryElementCountAttribute":
-                    _binaryElementCountAttribute = attributeData;
+                    binaryElementCountAttribute = attributeData;
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
                     {
                         if (pair is { Key: "count", Value.Value: int countValue })
                             binaryElementCount = countValue;
-                        else if (pair is { Key: "elementLength", Value.Value: int elementLength })
+                        else if (pair is { Key: "memberWithLength", Value.Value: string memberWithLength })
+                            binaryElementCountFieldName = memberWithLength;
+                    }
+                    break;
+                case "Darp.BinaryObjects.BinaryElementLengthAttribute":
+                    binaryElementLengthAttribute = attributeData;
+                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
+                    {
+                        if (pair is { Key: "elementLength", Value.Value: int elementLength })
                             binaryLength = elementLength;
                     }
                     break;
@@ -212,10 +273,13 @@ internal static class Parser
         return new FieldAttributeData
         {
             IsIgnore = false,
-            BinaryLengthAttribute = _binaryLengthAttribute,
+            BinaryLengthAttribute = binaryLengthAttribute,
             BinaryLength = binaryLength,
-            BinaryElementCountAttribute = _binaryElementCountAttribute,
+            BinaryLengthFieldName = binaryLengthFieldName,
+            BinaryElementCountAttribute = binaryElementCountAttribute,
             BinaryElementCount = binaryElementCount,
+            BinaryElementCountFieldName = binaryElementCountFieldName,
+            BinaryElementLengthAttribute = binaryElementLengthAttribute,
         };
     }
 
@@ -291,6 +355,11 @@ internal static class Parser
         var implementsBinaryObject = fieldTypeSymbol.AllInterfaces.Any(x =>
             x.ToDisplayString() == $"Darp.BinaryObjects.IBinaryObject<{fieldTypeSymbol.Name}>"
         );
+        var hasBinaryObjectConstraints =
+            fieldTypeSymbol is ITypeParameterSymbol ts
+            && ts.ConstraintTypes.Any(x =>
+                x.ToDisplayString() == $"Darp.BinaryObjects.IBinaryObject<{fieldTypeSymbol.Name}>"
+            );
         ImmutableArray<AttributeData> attributes = fieldTypeSymbol.GetAttributes();
         var hasBinaryObjectAttribute = false;
         foreach (AttributeData attributeData in attributes)
@@ -328,6 +397,20 @@ internal static class Parser
                 IsConstant = false,
                 IsEnum = false,
                 IsBinaryObject = true,
+                IsGenerated = true,
+                ConstantLength = -1,
+            };
+            return true;
+        }
+
+        if (implementsBinaryObject || hasBinaryObjectConstraints)
+        {
+            typeData = new TypeAttributeData
+            {
+                IsConstant = false,
+                IsEnum = false,
+                IsBinaryObject = true,
+                IsGenerated = false,
                 ConstantLength = -1,
             };
             return true;
@@ -342,19 +425,21 @@ internal static class DiagnosticGuard
 {
     public static bool IsAttributeDataInRangeOrAdd(
         (int? Value, int Min, int Max) valueTuple,
-        (AttributeData? Attribute, int ParameterIndex) attribute,
+        AttributeData? attribute,
         List<DiagnosticData> diagnostics
     )
     {
         var (value, min, max) = valueTuple;
         if (value is null || (value >= min && value <= max))
             return true;
-        (AttributeData? attributeData, var parameterIndex) = attribute;
         diagnostics.Add(
             DiagnosticData.Create(
                 DiagnosticDescriptors.InvalidNumericRangeAttributeData,
-                attributeData?.GetLocationOfConstructorArgument(parameterIndex),
-                [attributeData?.AttributeClass?.Name.Replace("Attribute", string.Empty), value, min, max]
+                attribute?.GetLocationOfConstructorArgument(0),
+                attribute?.AttributeClass?.Name.Replace("Attribute", string.Empty),
+                value,
+                min,
+                max
             )
         );
         return false;
@@ -362,19 +447,20 @@ internal static class DiagnosticGuard
 
     public static bool IsAttributeDataAtLeastOrAdd(
         (int? Value, int Min) valueTuple,
-        (AttributeData? Attribute, int ParameterIndex) attribute,
+        AttributeData? attribute,
         List<DiagnosticData> diagnostics
     )
     {
         var (value, min) = valueTuple;
         if (value is null || value >= min)
             return true;
-        (AttributeData? attributeData, var parameterIndex) = attribute;
         diagnostics.Add(
             DiagnosticData.Create(
                 DiagnosticDescriptors.InvalidNumericMinimumAttributeData,
-                attributeData?.GetLocationOfConstructorArgument(parameterIndex),
-                [attributeData?.AttributeClass?.Name.Replace("Attribute", string.Empty), value, min]
+                attribute?.GetLocationOfConstructorArgument(0),
+                attribute?.AttributeClass?.Name.Replace("Attribute", string.Empty),
+                value,
+                min
             )
         );
         return false;
@@ -388,6 +474,7 @@ public sealed record FieldAttributeData
     public int? BinaryLength { get; init; }
     public string? BinaryLengthFieldName { get; init; }
     public AttributeData? BinaryElementCountAttribute { get; init; }
+    public AttributeData? BinaryElementLengthAttribute { get; init; }
     public int? BinaryElementCount { get; init; }
     public string? BinaryElementCountFieldName { get; init; }
 }
@@ -399,6 +486,7 @@ public sealed record TypeAttributeData
     public bool IsConstant { get; init; }
     public bool IsEnum { get; init; }
     public bool IsBinaryObject { get; init; }
+    public bool IsGenerated { get; init; }
 
     public int ConstantLength { get; init; }
 }
@@ -418,8 +506,40 @@ internal partial record BinarySymbol
     /// <summary> The symbol of the field </summary>
     public abstract ISymbol Symbol { get; init; }
 
+    /// <summary> Tracks an object with [ FieldLength: constant ] </summary>
+    /// <code> int A </code>
+    /// <code>
+    /// // An object extending IBinaryObject with BinaryConstant attribute
+    /// ConstantBinaryObject A
+    /// </code>
     partial record ConstantBinarySymbol(ISymbol Symbol, ITypeSymbol FieldType, int FieldLength);
 
+    /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
+    /// <code>
+    /// // An object extending IBinaryObject
+    /// SomeBinaryObject A
+    /// </code>
+    partial record UnknownBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+
+    /// <summary> Tracks an object with [ FieldLength: constant/unknown ] </summary>
+    /// <code>
+    /// // An object with BinaryObject attribute
+    /// GeneratedBinaryObject A
+    /// </code>
+    partial record UnknownGeneratedBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+
+    /// <summary> Tracks an object with [ MaxFieldLength: const FieldLength: variable ] </summary>
+    /// <code> int Length, [property: BinaryLength("Length")] int A </code>
+    partial record VariableBinarySymbol(
+        ISymbol Symbol,
+        ITypeSymbol FieldType,
+        int MaxFieldLength,
+        string FieldLengthName
+    );
+
+    /// <summary> Tracks an array with [ ElementCount: constant, ElementLength: constant, FieldLength: constant ] </summary>
+    /// <code> [property: BinaryLength(8)] int[] A </code>
+    /// <code> [property: BinaryElementCount(2)] int[] A </code>
     partial record ConstantArrayBinarySymbol(
         ISymbol Symbol,
         ITypeSymbol ArrayType,
@@ -431,5 +551,32 @@ internal partial record BinarySymbol
         public int FieldLength => ElementCount * ElementLength;
     }
 
-    partial record UnknownBinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType);
+    /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: undefined ] </summary>
+    /// <code> int[] A </code>
+    partial record VariableArrayBinarySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        ITypeSymbol UnderlyingType,
+        int ElementLength
+    );
+
+    /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: variable ] </summary>
+    /// <code> int Length, [property: BinaryLength("Length")] int[] A </code>
+    partial record ConstantLengthArrayBinarySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        ITypeSymbol UnderlyingType,
+        int ElementLength,
+        string FieldLengthName
+    );
+
+    /// <summary> Tracks an array with [ ElementCount: variable, ElementLength: constant, FieldLength: undefined ] </summary>
+    /// <code> int Length, [property: BinaryElementCount("Length")] int[] A </code>
+    partial record VariableCountArrayBinarySymbol(
+        ISymbol Symbol,
+        ITypeSymbol ArrayType,
+        string ElementCountName,
+        ITypeSymbol UnderlyingType,
+        int ElementLength
+    );
 }

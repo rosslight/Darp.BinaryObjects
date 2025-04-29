@@ -130,10 +130,40 @@ public sealed class ParserTests
     }
 
     [Theory]
+    [InlineData("""int Length, [property: BinaryLength("Length")] int A""", "A", "Int32", 4, "Length")]
+    public void VariableBinarySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        int fieldLength,
+        string fieldLengthName
+    )
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record Object0_1({argument});
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(2);
+        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableBinarySymbol>();
+        VariableBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableBinarySymbol();
+        symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
+        symbol0.FieldType.Name.Should().Be(fieldTypeName);
+        symbol0.MaxFieldLength.Should().Be(fieldLength);
+        symbol0.FieldLengthName.Should().Be(fieldLengthName);
+    }
+
+    [Theory]
     [InlineData("[property: BinaryLength(8)] int[] A", "A", "int[]", "Int32", 2, 4)]
     [InlineData("[property: BinaryLength(10)] ConstantObject[] A", "A", "ConstantObject[]", "ConstantObject", 2, 5)]
     [InlineData("[property: BinaryElementCount(2)] int[] A", "A", "int[]", "Int32", 2, 4)]
-    [InlineData("[property: BinaryElementCount(2, 3)] int[] A", "A", "int[]", "Int32", 2, 3)]
+    [InlineData("[property: BinaryElementCount(2), BinaryElementLength(3)] int[] A", "A", "int[]", "Int32", 2, 3)]
     [InlineData(
         "[property: BinaryElementCount(1)] ConstantObject[] A",
         "A",
@@ -160,7 +190,7 @@ public sealed class ParserTests
     )]
     [InlineData("[property: BinaryLength(8)] string A", "A", "string", "Char", 4, 2)]
     [InlineData("[property: BinaryElementCount(2)] string A", "A", "string", "Char", 2, 2)]
-    [InlineData("[property: BinaryElementCount(4, 1)] string A", "A", "string", "Char", 4, 1)]
+    [InlineData("[property: BinaryElementCount(4), BinaryElementLength(1)] string A", "A", "string", "Char", 4, 1)]
     public void ConstantArrayBinarySymbol(
         string argument,
         string symbolName,
@@ -192,9 +222,16 @@ public sealed class ParserTests
     }
 
     [Theory]
-    [InlineData("GeneratedObject A", "A", "GeneratedObject")]
-    //[InlineData("VariableObject A", "A", "VariableObject")]
-    public void UnknownBinarySymbol(string argument, string symbolName, string fieldTypeName)
+    [InlineData("int[] A", "A", "int[]", "Int32", 4)]
+    [InlineData("[property: BinaryElementLength(3)] int[] A", "A", "int[]", "Int32", 3)]
+    [InlineData("List<int> A", "A", "System.Collections.Generic.List<int>", "Int32", 4)]
+    public void VariableArrayBinarySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        string underlyingType,
+        int elementLength
+    )
     {
         var code = $"""
             {CodeSetUp}
@@ -204,8 +241,135 @@ public sealed class ParserTests
         ParserResult parsingResult = Parser.Parse(symbol, compilation);
 
         parsingResult.TypeName.Name.Should().Be("Object0_1");
-        parsingResult.IsError.Should().BeFalse();
         parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(1);
+        parsingResult.Symbols[0].Should().BeOfType<VariableArrayBinarySymbol>();
+        VariableArrayBinarySymbol symbol0 = parsingResult.Symbols[0].UnwrapVariableArrayBinarySymbol();
+        symbol0.Symbol.Name.Should().Be(symbolName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.ElementLength.Should().Be(elementLength);
+    }
+
+    [Theory]
+    [InlineData("""int Length, [property: BinaryElementCount("Length")] int[] A""", "A", "int[]", "Int32", "Length", 4)]
+    [InlineData(
+        """int Length, [property: BinaryElementCount("Length"), BinaryElementLength(3)] int[] A""",
+        "A",
+        "int[]",
+        "Int32",
+        "Length",
+        3
+    )]
+    public void VariableCountArrayBinarySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        string underlyingType,
+        string elementCountName,
+        int elementLength
+    )
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record Object0_1({argument});
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(2);
+        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<VariableCountArrayBinarySymbol>();
+        VariableCountArrayBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapVariableCountArrayBinarySymbol();
+        symbol0.Symbol.Name.Should().Be(symbolName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.ElementCountName.Should().Be(elementCountName);
+        symbol0.ElementLength.Should().Be(elementLength);
+    }
+
+    [Theory]
+    [InlineData("""int Length, [property: BinaryLength("Length")] int[] A""", "A", "int[]", "Int32", 4, "Length")]
+    [InlineData(
+        """int Length, [property: BinaryLength("Length"), BinaryElementLength(3)] int[] A""",
+        "A",
+        "int[]",
+        "Int32",
+        3,
+        "Length"
+    )]
+    public void ConstantLengthArrayBinarySymbol(
+        string argument,
+        string symbolName,
+        string fieldTypeName,
+        string underlyingType,
+        int elementLength,
+        string fieldLengthName
+    )
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record Object0_1({argument});
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(2);
+        parsingResult.Symbols[0].Should().BeOfType<ConstantBinarySymbol>();
+        parsingResult.Symbols[1].Should().BeOfType<ConstantLengthArrayBinarySymbol>();
+        ConstantLengthArrayBinarySymbol symbol0 = parsingResult.Symbols[1].UnwrapConstantLengthArrayBinarySymbol();
+        symbol0.Symbol.Name.Should().Be(symbolName);
+        symbol0.ArrayType.ToDisplayString().Should().Be(fieldTypeName);
+        symbol0.UnderlyingType.Name.Should().Be(underlyingType);
+        symbol0.ElementLength.Should().Be(elementLength);
+        symbol0.FieldLengthName.Should().Be(fieldLengthName);
+    }
+
+    [Theory]
+    [InlineData("Object0_1(GeneratedObject A)", "A", "GeneratedObject")]
+    public void UnknownGeneratedBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record {argument};
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
+        parsingResult.Symbols.Should().HaveCount(1);
+        parsingResult.Symbols[0].Should().BeOfType<UnknownGeneratedBinaryObjectSymbol>();
+        UnknownGeneratedBinaryObjectSymbol symbol0 = parsingResult
+            .Symbols[0]
+            .UnwrapUnknownGeneratedBinaryObjectSymbol();
+        symbol0.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Should().Be(symbolName);
+        symbol0.FieldType.Name.Should().Be(fieldTypeName);
+    }
+
+    [Theory]
+    [InlineData("Object0_1<T>(T A) where T : IBinaryObject<T>", "A", "T")]
+    [InlineData("Object0_1(VariableObject A)", "A", "VariableObject")]
+    public void UnknownBinaryObjectSymbol(string argument, string symbolName, string fieldTypeName)
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record {argument};
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult = Parser.Parse(symbol, compilation);
+
+        parsingResult.TypeName.Name.Should().Be("Object0_1");
+        parsingResult.Diagnostics.Should().BeEmpty();
+        parsingResult.IsError.Should().BeFalse();
         parsingResult.Symbols.Should().HaveCount(1);
         parsingResult.Symbols[0].Should().BeOfType<UnknownBinaryObjectSymbol>();
         UnknownBinaryObjectSymbol symbol0 = parsingResult.Symbols[0].UnwrapUnknownBinaryObjectSymbol();
@@ -232,8 +396,8 @@ public sealed class ParserTests
         "Attribute 'BinaryElementCount' has invalid data '0'. Has to be at least 1."
     )]
     [InlineData(
-        "[property: BinaryElementCount(2, 0)] int[] A",
-        "Attribute 'BinaryElementCount' has invalid data '0'. Has to be at least 1 and at most 4."
+        "[property: BinaryElementCount(2), BinaryElementLength(0)] int[] A",
+        "Attribute 'BinaryElementLength' has invalid data '0'. Has to be at least 1 and at most 4."
     )]
     public void Invalid(string argument, string diagnosticMessage)
     {
