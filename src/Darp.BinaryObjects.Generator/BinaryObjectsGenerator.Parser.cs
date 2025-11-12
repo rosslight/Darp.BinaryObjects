@@ -450,6 +450,7 @@ partial class BinaryObjectsGenerator
                 .GetMembers()
                 .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
                 .Where(x => !x.IsImplicitlyDeclared)
+                .Where(x => x is not IPropertySymbol { IsReadOnly: true })
         )
         {
             (bool HasAttribute, int? Length) hasElementCountTuple = symbol
