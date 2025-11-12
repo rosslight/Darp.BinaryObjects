@@ -9,6 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
+/*
+- Get parsing information for each BinaryObject in the project
+- Collect all parsing information, create a lookup dictionary for each length
+- Combine both previous and generate code / errors for each binary object
+- Combine generated code and utility classes to generated code
+ */
+
+
 #pragma warning disable CA1031 // Do not catch general exception types - allow for source generator to avoid have it crashing on unexpected behavior
 
 internal readonly record struct BinaryObjectStruct(
@@ -23,22 +31,30 @@ internal readonly record struct BinaryObjectStruct(
 /// used in the pipeline can result in unnecessary recompilation.
 /// </remarks>
 /// <seealso href="https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.RegularExpressions/gen/RegexGenerator.cs#L355"/>
-internal readonly record struct DiagnosticData(
+public readonly record struct DiagnosticData(
     DiagnosticDescriptor Descriptor,
     Location Location,
-    object?[]? MessageArgs
+    object? Arg0,
+    object? Arg1,
+    object? Arg2,
+    object? Arg3
 )
 {
+    public DiagnosticSeverity DefaultSeverity => Descriptor.DefaultSeverity;
+
     /// <summary>Create a <see cref="Diagnostic"/> from the data.</summary>
-    public Diagnostic ToDiagnostic() => Diagnostic.Create(Descriptor, Location, MessageArgs);
+    public Diagnostic ToDiagnostic() => Diagnostic.Create(Descriptor, Location, Arg0, Arg1, Arg2, Arg3);
 
     public static DiagnosticData Create(
         DiagnosticDescriptor descriptor,
-        Location location,
-        object?[]? messageArgs = null
+        Location? location,
+        object? arg0 = null,
+        object? arg1 = null,
+        object? arg2 = null,
+        object? arg3 = null
     )
     {
-        return new DiagnosticData(descriptor, location, messageArgs);
+        return new DiagnosticData(descriptor, location ?? Location.None, arg0, arg1, arg2, arg3);
     }
 }
 
@@ -62,30 +78,43 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValueProvider<AnalyzerConfigOptionsProvider> configProvider = context.AnalyzerConfigOptionsProvider;
-        IncrementalValueProvider<ImmutableArray<BinaryObjectStruct>> attributes = context
-            // Only target specific attributes
-            .SyntaxProvider.ForAttributeWithMetadataName(
+        // Only target specific attributes
+        IncrementalValuesProvider<TargetTypeInfo> binaryObjectProvider =
+            context.SyntaxProvider.ForAttributeWithMetadataName(
                 BinaryObjectAttributeName,
                 static (node, _) => node is TypeDeclarationSyntax,
                 GetTypeInfo
-            )
+            );
+        IncrementalValuesProvider<PreParsedObjectInfo> preparsedBinaryObjectProvider = binaryObjectProvider.Select(
+            static (x, _) => ParseType(x.Symbol)
+        );
+        IncrementalValuesProvider<ParsedObjectInfo> binaryObjectLengthProvider = preparsedBinaryObjectProvider
+            .Collect()
+            .SelectMany(
+                static (infos, _) =>
+                {
+                    Dictionary<ISymbol, ParsedObjectInfo> dictionary = new(SymbolEqualityComparer.Default);
+                    HashSet<ISymbol> workingSet = [];
+                    foreach (PreParsedObjectInfo preParsedObjectInfo in infos)
+                    {
+                        ISymbol symbol = preParsedObjectInfo.Symbol;
+                        workingSet.Add(symbol);
+                        ParsedObjectInfo parsedInfo = GetConstantLength(preParsedObjectInfo, workingSet);
+                        dictionary[symbol] = parsedInfo;
+                        workingSet.Remove(symbol);
+                    }
+                    return dictionary.Values.ToImmutableArray();
+                }
+            );
+        IncrementalValueProvider<ImmutableArray<BinaryObjectStruct>> attributes = binaryObjectLengthProvider
             .Select(
-                static (info, _) =>
+                static (parsedObject, _) =>
                 {
                     try
                     {
-                        if (!TryParseType(info.Symbol, out ParsedObjectInfo parsedObject))
-                        {
-                            return new BinaryObjectStruct(
-                                parsedObject.Diagnostics.ToImmutableEquatableArray(),
-                                null,
-                                ImmutableEquatableArray<UtilityData>.Empty
-                            );
-                        }
-
                         if (
                             !TryEmit(
-                                info,
+                                default!,
                                 parsedObject.MemberGroups,
                                 parsedObject.MembersInitializedByConstructor,
                                 out Aaa2 aaa
@@ -126,8 +155,8 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                     {
                         var diagnostic = DiagnosticData.Create(
                             DiagnosticDescriptors.GeneralError,
-                            info.Symbol.GetSourceLocation(),
-                            [e.Message]
+                            default!, //Symbol.GetSourceLocation(),
+                            e.Message
                         );
                         return new BinaryObjectStruct([diagnostic], null, ImmutableEquatableArray<UtilityData>.Empty);
                     }

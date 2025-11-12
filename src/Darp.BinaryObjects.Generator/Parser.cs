@@ -23,7 +23,11 @@ internal static class Parser
             if (TryParseField(fieldSymbol, compilation, diagnostics, members, out BinarySymbol? parsedSymbol))
                 members.Add(parsedSymbol);
         }
-        return new ParserResult(typeSymbol, members.ToImmutableArray(), diagnostics.ToImmutableArray());
+        return new ParserResult(
+            typeSymbol,
+            members.ToImmutableEquatableArray(),
+            diagnostics.ToImmutableEquatableArray()
+        );
     }
 
     private static bool TryParseField(
@@ -45,6 +49,7 @@ internal static class Parser
         FieldAttributeData attributeData = ParseFieldAttributes(symbol);
         if (attributeData.IsIgnore)
             return false;
+        var isConstructorInitialized = true;
 
         if (fieldType.IsValidArrayType(compilation, out ITypeSymbol? elementTypeSymbol))
         {
@@ -54,6 +59,7 @@ internal static class Parser
             {
                 return TryParseConstantArray(
                     symbol,
+                    isConstructorInitialized,
                     fieldType,
                     elementTypeSymbol,
                     arrayTypeData.ConstantLength,
@@ -67,6 +73,7 @@ internal static class Parser
             {
                 return TryParseBinaryObjectArray(
                     symbol,
+                    isConstructorInitialized,
                     fieldType,
                     elementTypeSymbol,
                     arrayTypeData.IsGenerated,
@@ -95,6 +102,7 @@ internal static class Parser
                     }
                     binarySymbol = new ConstantSymbol(
                         symbol,
+                        isConstructorInitialized,
                         fieldType,
                         attributeData.BinaryLength ?? typeData.ConstantLength
                     );
@@ -103,13 +111,19 @@ internal static class Parser
                 case { IsConstant: true } when attributeData.BinaryLengthFieldName is not null:
                     binarySymbol = new VariableSymbol(
                         symbol,
+                        isConstructorInitialized,
                         fieldType,
                         typeData.ConstantLength,
                         attributeData.BinaryLengthFieldName
                     );
                     return true;
                 case { IsBinaryObject: true }:
-                    binarySymbol = new BinaryObjectSymbol(symbol, fieldType, typeData.IsGenerated);
+                    binarySymbol = new BinaryObjectSymbol(
+                        symbol,
+                        isConstructorInitialized,
+                        fieldType,
+                        typeData.IsGenerated
+                    );
                     return true;
             }
         }
@@ -127,6 +141,7 @@ internal static class Parser
 
     private static bool TryParseConstantArray(
         ISymbol symbol,
+        bool isConstructorInitialized,
         ITypeSymbol arrayTypeSymbol,
         ITypeSymbol elementTypeSymbol,
         int elementLength,
@@ -168,6 +183,7 @@ internal static class Parser
         {
             binarySymbol = new VariableCountArraySymbol(
                 symbol,
+                isConstructorInitialized,
                 arrayTypeSymbol,
                 attributeData.BinaryElementCountFieldName,
                 elementTypeSymbol,
@@ -179,6 +195,7 @@ internal static class Parser
         {
             binarySymbol = new VariableLengthArraySymbol(
                 symbol,
+                isConstructorInitialized,
                 arrayTypeSymbol,
                 elementTypeSymbol,
                 attributeData.BinaryLength ?? elementLength,
@@ -192,6 +209,7 @@ internal static class Parser
             {
                 binarySymbol = new ArraySymbol(
                     symbol,
+                    isConstructorInitialized,
                     arrayTypeSymbol,
                     elementTypeSymbol,
                     attributeData.BinaryLength.Value
@@ -215,15 +233,29 @@ internal static class Parser
         }
         else
         {
-            binarySymbol = new ArraySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, elementLength);
+            binarySymbol = new ArraySymbol(
+                symbol,
+                isConstructorInitialized,
+                arrayTypeSymbol,
+                elementTypeSymbol,
+                elementLength
+            );
             return true;
         }
-        binarySymbol = new ConstantArraySymbol(symbol, arrayTypeSymbol, elementCount, elementTypeSymbol, elementLength);
+        binarySymbol = new ConstantArraySymbol(
+            symbol,
+            isConstructorInitialized,
+            arrayTypeSymbol,
+            elementCount,
+            elementTypeSymbol,
+            elementLength
+        );
         return true;
     }
 
     private static bool TryParseBinaryObjectArray(
         ISymbol symbol,
+        bool isConstructorInitialized,
         ITypeSymbol arrayTypeSymbol,
         ITypeSymbol elementTypeSymbol,
         bool isGenerated,
@@ -238,6 +270,7 @@ internal static class Parser
         {
             binarySymbol = new ConstantCountBinaryObjectArraySymbol(
                 symbol,
+                isConstructorInitialized,
                 arrayTypeSymbol,
                 attributeData.BinaryElementCount.Value,
                 elementTypeSymbol,
@@ -250,6 +283,7 @@ internal static class Parser
         {
             binarySymbol = new VariableCountBinaryObjectArraySymbol(
                 symbol,
+                isConstructorInitialized,
                 arrayTypeSymbol,
                 attributeData.BinaryElementCountFieldName,
                 elementTypeSymbol,
@@ -257,7 +291,13 @@ internal static class Parser
             );
             return true;
         }
-        binarySymbol = new BinaryObjectArraySymbol(symbol, arrayTypeSymbol, elementTypeSymbol, isGenerated);
+        binarySymbol = new BinaryObjectArraySymbol(
+            symbol,
+            isConstructorInitialized,
+            arrayTypeSymbol,
+            elementTypeSymbol,
+            isGenerated
+        );
         return true;
     }
 
@@ -534,8 +574,8 @@ public sealed record TypeAttributeData
 
 internal sealed record ParserResult(
     ITypeSymbol TypeName,
-    ImmutableArray<BinarySymbol> Symbols,
-    ImmutableArray<DiagnosticData> Diagnostics
+    ImmutableEquatableArray<BinarySymbol> Symbols,
+    ImmutableEquatableArray<DiagnosticData> Diagnostics
 )
 {
     public bool IsError => Diagnostics.Any(x => x.DefaultSeverity >= DiagnosticSeverity.Error);
@@ -547,13 +587,21 @@ internal partial record BinarySymbol
     /// <summary> The symbol of the field </summary>
     public abstract ISymbol Symbol { get; init; }
 
+    /// <summary> True, if the symbol is initialized using a constructor </summary>
+    public abstract bool IsConstructorInitialized { get; init; }
+
     /// <summary> Tracks an object with [ FieldLength: constant ] </summary>
     /// <code> int A </code>
     /// <code>
     /// // An object extending IBinaryObject with BinaryConstant attribute
     /// ConstantBinaryObject A
     /// </code>
-    partial record ConstantSymbol(ISymbol Symbol, ITypeSymbol FieldType, int FieldLength);
+    partial record ConstantSymbol(
+        ISymbol Symbol,
+        bool IsConstructorInitialized,
+        ITypeSymbol FieldType,
+        int FieldLength
+    );
 
     /// <summary> Tracks an object with [ FieldLength: constant/unknown, IsGenerated: true/false ] </summary>
     /// <code>
@@ -562,11 +610,22 @@ internal partial record BinarySymbol
     /// // An object extending IBinaryObject
     /// SomeBinaryObject A
     /// </code>
-    partial record BinaryObjectSymbol(ISymbol Symbol, ITypeSymbol FieldType, bool IsGenerated);
+    partial record BinaryObjectSymbol(
+        ISymbol Symbol,
+        bool IsConstructorInitialized,
+        ITypeSymbol FieldType,
+        bool IsGenerated
+    );
 
     /// <summary> Tracks an object with [ MaxFieldLength: const FieldLength: variable ] </summary>
     /// <code> int Length, [property: BinaryLength("Length")] int A </code>
-    partial record VariableSymbol(ISymbol Symbol, ITypeSymbol FieldType, int MaxFieldLength, string FieldLengthName);
+    partial record VariableSymbol(
+        ISymbol Symbol,
+        bool IsConstructorInitialized,
+        ITypeSymbol FieldType,
+        int MaxFieldLength,
+        string FieldLengthName
+    );
 
     /// <summary> Tracks an array with [ ElementCount: constant, ElementLength: constant, FieldLength: constant ] </summary>
     /// <code>
@@ -575,6 +634,7 @@ internal partial record BinarySymbol
     /// </code>
     partial record ConstantArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         int ElementCount,
         ITypeSymbol UnderlyingType,
@@ -588,6 +648,7 @@ internal partial record BinarySymbol
     /// <code> GeneratedObject[] A </code>
     partial record ConstantCountBinaryObjectArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         int ElementCount,
         ITypeSymbol UnderlyingType,
@@ -596,12 +657,19 @@ internal partial record BinarySymbol
 
     /// <summary> Tracks an array with [ ElementCount: undefined, ElementLength: constant, FieldLength: undefined ] </summary>
     /// <code> int[] A </code>
-    partial record ArraySymbol(ISymbol Symbol, ITypeSymbol ArrayType, ITypeSymbol UnderlyingType, int ElementLength);
+    partial record ArraySymbol(
+        ISymbol Symbol,
+        bool IsConstructorInitialized,
+        ITypeSymbol ArrayType,
+        ITypeSymbol UnderlyingType,
+        int ElementLength
+    );
 
     /// <summary> Tracks an array with [ ElementLength: constant/unknown, IsGenerated: true/false ] </summary>
     /// <code> GeneratedObject[] A </code>
     partial record BinaryObjectArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         ITypeSymbol UnderlyingType,
         bool IsGenerated
@@ -611,6 +679,7 @@ internal partial record BinarySymbol
     /// <code> int Length, [property: BinaryLength("Length")] int[] A </code>
     partial record VariableLengthArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         ITypeSymbol UnderlyingType,
         int ElementLength,
@@ -621,6 +690,7 @@ internal partial record BinarySymbol
     /// <code> int Length, [property: BinaryElementCount("Length")] int[] A </code>
     partial record VariableCountArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         string ElementCountName,
         ITypeSymbol UnderlyingType,
@@ -631,6 +701,7 @@ internal partial record BinarySymbol
     /// <code> int Length, [property: BinaryElementCount("Length")] GeneratedObject[] A </code>
     partial record VariableCountBinaryObjectArraySymbol(
         ISymbol Symbol,
+        bool IsConstructorInitialized,
         ITypeSymbol ArrayType,
         string ElementCountName,
         ITypeSymbol UnderlyingType,

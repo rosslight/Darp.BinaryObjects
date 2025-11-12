@@ -76,6 +76,14 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
     );
+    public static readonly DiagnosticDescriptor ParameterWithIgnoredMember = new(
+        id: "DBO001",
+        title: "MemberIgnoredDuplicateName",
+        messageFormat: "Parameter {0} is present in constructor but corresponding member {1} is marked with a BinaryIgnoreAttribute",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor MemberConstructorParameterTypeMismatch = new(
         id: "DBO001",
         title: "MemberConstructorParameterTypeMismatch",
@@ -96,6 +104,42 @@ internal static class DiagnosticDescriptors
         id: "DBO001",
         title: "CollectionParameterInvalidType",
         messageFormat: "The type '{0}' is not allowed for collections",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+
+    public static readonly DiagnosticDescriptor InvalidFieldType = new(
+        id: "DBO001",
+        title: "CollectionParameterInvalidType",
+        messageFormat: "BinaryObjects does not support the type '{0}' of field '{1}'",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+
+    public static readonly DiagnosticDescriptor InvalidNumericRangeAttributeData = new(
+        id: "DBO001",
+        title: "CollectionParameterInvalidType",
+        messageFormat: "Attribute '{0}' has invalid data '{1}'. Has to be at least {2} and at most {3}.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+
+    public static readonly DiagnosticDescriptor InvalidNumericMinimumAttributeData = new(
+        id: "DBO001",
+        title: "CollectionParameterInvalidType",
+        messageFormat: "Attribute '{0}' has invalid data '{1}'. Has to be at least {2}.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+
+    public static readonly DiagnosticDescriptor InvalidMultipleOfAttributeData = new(
+        id: "DBO001",
+        title: "CollectionParameterInvalidType",
+        messageFormat: "Attribute '{0}' has invalid data '{1}'. Has to be multiple of {2}.",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true

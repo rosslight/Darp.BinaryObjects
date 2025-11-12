@@ -21,6 +21,15 @@ internal readonly record struct ParsedObjectInfo(
     }
 }
 
+internal readonly record struct PreParsedMemberData(bool IsConstructorInitialized, ISymbol MemberSymbol);
+
+internal readonly record struct PreParsedObjectInfo(
+    ISymbol Symbol,
+    ImmutableArray<DiagnosticData> Diagnostics,
+    bool IsValid,
+    ImmutableArray<PreParsedMemberData> Members
+);
+
 partial class BinaryObjectsGenerator
 {
     private static bool CanEmitSource(TargetTypeInfo info)
@@ -32,37 +41,95 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool TryParseType(INamedTypeSymbol typeSymbol, out ParsedObjectInfo result)
+    private static PreParsedObjectInfo ParseType(INamedTypeSymbol typeSymbol)
     {
-        List<IMember> membersInitializedByConstructor = [];
-
         List<DiagnosticData> diagnostics = [];
-        List<IMember> members = [];
+        List<PreParsedMemberData> members = [];
 
-        IMethodSymbol? constructor = typeSymbol.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
-        var fieldsOrProperties = typeSymbol
-            .GetMembers()
+        ImmutableArray<IParameterSymbol> constructorParameters =
+            typeSymbol.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared)?.Parameters
+            ?? ImmutableArray<IParameterSymbol>.Empty;
+        ImmutableArray<ISymbol> typeMembers = typeSymbol.GetMembers();
+        var fieldOrProperties = typeMembers
             .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
             .ToImmutableArray();
-        foreach (ISymbol memberSymbol in fieldsOrProperties.Where(x => !x.IsImplicitlyDeclared))
+        foreach (ISymbol fieldOrProperty in fieldOrProperties)
         {
-            (bool IsValid, bool IsConstructorInitialized) validity = IsValidMember(
-                memberSymbol,
-                constructor,
-                fieldsOrProperties,
-                members,
-                diagnostics
+            IParameterSymbol? constructorParameter = constructorParameters.FirstOrDefault(c =>
+                IsNameEquivalent(fieldOrProperty.Name, c.Name)
             );
-            if (!validity.IsValid)
-                continue;
-            if (!TryGet(diagnostics, members, memberSymbol, out IMember? memberInfo))
-                continue;
-            members.Add(memberInfo);
-            if (validity.IsConstructorInitialized)
-                membersInitializedByConstructor.Add(memberInfo);
-        }
+            ImmutableArray<AttributeData> attributes = fieldOrProperty.GetAttributes();
 
-        if ((constructor?.Parameters.Length ?? 0) != membersInitializedByConstructor.Count)
+            // Should member be ignored?
+            if (attributes.ContainsBinaryIgnore())
+            {
+                CheckConstructorParameterWhenMemberIsIgnored(diagnostics, fieldOrProperty, constructorParameter);
+                continue;
+            }
+
+            // Check member if it can be initialized when reading?
+
+            var hasDuplicate = members.Any(x =>
+                x.MemberSymbol.Name.Equals(fieldOrProperty.Name, StringComparison.OrdinalIgnoreCase)
+            );
+            if (hasDuplicate)
+            {
+                var duplicateDiagnostic = DiagnosticData.Create(
+                    DiagnosticDescriptors.MemberIgnoredDuplicateName,
+                    fieldOrProperty.GetSourceLocation(),
+                    fieldOrProperty.Name
+                );
+                diagnostics.Add(duplicateDiagnostic);
+            }
+
+            if (constructorParameter is not null)
+            {
+                // Check if types match
+                if (!IsConstructorTypeValid(fieldOrProperty, constructorParameter, out DiagnosticData? diagnostic))
+                {
+                    diagnostics.Add(diagnostic.Value);
+                    continue;
+                }
+                // TODO: Check for constructor parameters with equal name
+                // Parameter {0} equals other members in the constructor (ignoring the case). This is not allowed for BinaryObjects
+
+                members.Add(new PreParsedMemberData(true, fieldOrProperty));
+                continue;
+            }
+
+            var isReadOnly = fieldOrProperty switch
+            {
+                IFieldSymbol fs => fs.IsReadOnly,
+                IPropertySymbol ps => ps.IsReadOnly,
+                _ => throw new ArgumentOutOfRangeException(nameof(fieldOrProperty)),
+            };
+            // If the property is initialized via constructor assume everything else fine
+            var isAutoProperty = fieldOrProperty switch
+            {
+                IPropertySymbol ps => typeMembers
+                    .Where(x => x.IsImplicitlyDeclared)
+                    .OfType<IFieldSymbol>()
+                    .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, ps)),
+                _ => false,
+            };
+            // Ignore non auto properties without a warning
+            if (!isAutoProperty)
+                continue;
+            if (isReadOnly)
+            {
+                // Ignore readonly properties with a warning
+                var readonlyDiagnostic = DiagnosticData.Create(
+                    DiagnosticDescriptors.MemberIgnoredReadonly,
+                    fieldOrProperty.GetSourceLocation(),
+                    fieldOrProperty.Name
+                );
+                diagnostics.Add(readonlyDiagnostic);
+            }
+
+            members.Add(new PreParsedMemberData(false, fieldOrProperty));
+        }
+        /*
+if ((constructor?.Parameters.Length ?? 0) != membersInitializedByConstructor.Count)
         {
             ImmutableArray<IParameterSymbol> parameters =
                 constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
@@ -83,140 +150,73 @@ partial class BinaryObjectsGenerator
             result = ParsedObjectInfo.Fail(diagnostics);
             return false;
         }
-        var groupedMembers = members.GroupInfos().ToImmutableArray();
-        if (diagnostics.Any(x => x.Descriptor.DefaultSeverity > DiagnosticSeverity.Warning))
+         */
+        var isValid = diagnostics.All(x => x.Descriptor.DefaultSeverity <= DiagnosticSeverity.Warning);
+        return new PreParsedObjectInfo(typeSymbol, diagnostics.ToImmutableArray(), isValid, members.ToImmutableArray());
+    }
+
+    private static bool IsConstructorTypeValid(
+        ISymbol fieldOrProperty,
+        IParameterSymbol constructorParameter,
+        [NotNullWhen(false)] out DiagnosticData? diagnostic
+    )
+    {
+        ITypeSymbol symbolType = fieldOrProperty switch
         {
-            result = ParsedObjectInfo.Fail(diagnostics);
+            IFieldSymbol s => s.Type,
+            IPropertySymbol s => s.Type,
+            _ => throw new ArgumentOutOfRangeException(nameof(fieldOrProperty)),
+        };
+        var isLessNullableType =
+            constructorParameter.Type.NullableAnnotation == NullableAnnotation.Annotated
+            && constructorParameter.Type.Equals(symbolType, SymbolEqualityComparer.Default);
+        var isIdenticalType = constructorParameter.Type.Equals(symbolType, SymbolEqualityComparer.IncludeNullability);
+        if (!(isLessNullableType || isIdenticalType))
+        {
+            diagnostic = DiagnosticData.Create(
+                DiagnosticDescriptors.MemberConstructorParameterTypeMismatch,
+                constructorParameter.GetSourceLocation(),
+                fieldOrProperty.Name,
+                constructorParameter.Type.Name,
+                symbolType.Name
+            );
             return false;
         }
-        result = new ParsedObjectInfo(
-            diagnostics.ToImmutableArray(),
-            groupedMembers,
-            membersInitializedByConstructor.ToImmutableArray()
-        );
+
+        diagnostic = null;
         return true;
     }
 
-    /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
-    private static (bool IsValid, bool IsConstructorInitialized) IsValidMember(
-        ISymbol propertyOrFieldSymbol,
-        IMethodSymbol? constructor,
-        ImmutableArray<ISymbol> typeMembers,
-        List<IMember> previousMembers,
-        List<DiagnosticData> diagnostics
+    private static void CheckConstructorParameterWhenMemberIsIgnored(
+        List<DiagnosticData> diagnostics,
+        ISymbol fieldOrProperty,
+        IParameterSymbol? constructorParameter
     )
     {
-        var shouldBeIgnored = propertyOrFieldSymbol
-            .GetAttributes()
-            .Any(x =>
-                x
-                    .AttributeClass?.ToDisplayString()
-                    .Equals("Darp.BinaryObjects.BinaryIgnoreAttribute", StringComparison.Ordinal)
-                    is true
-            );
-        if (shouldBeIgnored)
-            return (false, default);
-        switch (propertyOrFieldSymbol)
-        {
-            case IPropertySymbol propertySymbol:
-            {
-                var isAutoProperty = typeMembers
-                    .Where(x => x.IsImplicitlyDeclared)
-                    .OfType<IFieldSymbol>()
-                    .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, propertySymbol));
-                (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
-                    propertySymbol,
-                    propertySymbol.Type
-                );
-                // If finding out about constructors failed, return
-                if (!constructorInit.IsValid)
-                    return (false, default);
-                // If the property is initialized via constructor assume everything else fine
-                if (constructorInit.IsConstructorInitialized)
-                    return (true, true);
-                // Ignore non auto properties without a warning
-                if (!isAutoProperty)
-                    return (false, default);
-                if (!propertySymbol.IsReadOnly)
-                    return (true, false);
-                // Ignore readonly properties with a warning
-                var diagnostic = DiagnosticData.Create(
-                    DiagnosticDescriptors.MemberIgnoredReadonly,
-                    propertySymbol.GetSourceLocation(),
-                    [propertySymbol.Name]
-                );
-                diagnostics.Add(diagnostic);
-                return (false, default);
-            }
-            case IFieldSymbol fieldSymbol:
-            {
-                (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
-                    fieldSymbol,
-                    fieldSymbol.Type
-                );
-                // If finding out about constructors failed, return
-                if (!constructorInit.IsValid)
-                    return (false, default);
-                // If the field is initialized via constructor assume everything else fine
-                if (constructorInit.IsConstructorInitialized)
-                    return (true, true);
-                if (!fieldSymbol.IsReadOnly)
-                    return (true, false);
-                // Ignore readonly properties with a warning
-                var diagnostic = DiagnosticData.Create(
-                    DiagnosticDescriptors.MemberIgnoredReadonly,
-                    fieldSymbol.GetSourceLocation(),
-                    [fieldSymbol.Name]
-                );
-                diagnostics.Add(diagnostic);
-                return (false, default);
-            }
-            default:
-                return (false, default);
-        }
+        if (constructorParameter is null)
+            return;
+        // Parameter {0} is present in constructor but corresponding member {1} is marked with a BinaryIgnoreAttribute
+        var duplicateDiagnostic = DiagnosticData.Create(
+            DiagnosticDescriptors.ParameterWithIgnoredMember,
+            constructorParameter.GetSourceLocation(),
+            constructorParameter.Name,
+            fieldOrProperty.Name
+        );
+        diagnostics.Add(duplicateDiagnostic);
+    }
 
-        (bool IsValid, bool IsConstructorInitialized) IsConstructorInitialized(ISymbol symbol, ITypeSymbol symbolType)
-        {
-            IParameterSymbol? constructorParameter = constructor?.Parameters.FirstOrDefault(c =>
-                IsNameEquivalent(symbol.Name, c.Name)
-            );
-            if (constructorParameter is not null)
-            {
-                var isIdenticalType = constructorParameter.Type.Equals(
-                    symbolType,
-                    SymbolEqualityComparer.IncludeNullability
-                );
-                var isLessNullableType =
-                    constructorParameter.Type.NullableAnnotation == NullableAnnotation.Annotated
-                    && constructorParameter.Type.Equals(symbolType, SymbolEqualityComparer.Default);
-                if (isIdenticalType || isLessNullableType)
-                {
-                    var hasDuplicate = previousMembers.Any(x =>
-                        x.MemberSymbol.Name.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase)
-                    );
-                    if (!hasDuplicate)
-                        return (true, true);
-                    // Warning duplicate named readonly members
-                    var duplicateDiagnostic = DiagnosticData.Create(
-                        DiagnosticDescriptors.MemberIgnoredDuplicateName,
-                        symbol.GetSourceLocation(),
-                        [symbol.Name]
-                    );
-                    diagnostics.Add(duplicateDiagnostic);
-                    return (false, default);
-                }
+    private static ParsedObjectInfo GetConstantLength(PreParsedObjectInfo binaryObject, HashSet<ISymbol> workingSet)
+    {
+        List<DiagnosticData> diagnostics = [];
 
-                // Throw error for invalid constructor parameters
-                var typeMismatchDiagnostic = DiagnosticData.Create(
-                    DiagnosticDescriptors.MemberConstructorParameterTypeMismatch,
-                    constructorParameter.GetSourceLocation(),
-                    [symbol.Name, constructorParameter.Type.Name, symbolType.Name]
-                );
-                diagnostics.Add(typeMismatchDiagnostic);
-                return (false, default);
-            }
-            return (true, default);
+        List<IMember> previousMembers = [];
+        foreach (PreParsedMemberData data in binaryObject.Members)
+        {
+            if (!TryGet(diagnostics, previousMembers, data.MemberSymbol, workingSet, out IMember? memberInfo))
+                continue;
+            previousMembers.Add(memberInfo);
         }
+        return ParsedObjectInfo.Fail(diagnostics);
     }
 
     private static bool IsNameEquivalent(string memberName, string constructorName)
@@ -232,6 +232,7 @@ partial class BinaryObjectsGenerator
         List<DiagnosticData> diagnostics,
         IReadOnlyList<IMember> previousMembers,
         ISymbol symbol,
+        HashSet<ISymbol>? workingSet,
         [NotNullWhen(true)] out IMember? info
     )
     {
@@ -289,7 +290,8 @@ partial class BinaryObjectsGenerator
                                     descriptor: DiagnosticDescriptors.MemberDefiningLengthNotFound,
                                     location: attributeData.GetLocationOfConstructorArgument(0)
                                         ?? symbol.GetSourceLocation(),
-                                    messageArgs: [memberName, symbol.Name]
+                                    memberName,
+                                    symbol.Name
                                 );
                                 diagnostics.Add(diagnostic);
                                 return false;
@@ -299,7 +301,8 @@ partial class BinaryObjectsGenerator
                                 var diagnostic = DiagnosticData.Create(
                                     descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
                                     location: previousMember.TypeSymbol.GetSourceLocation(),
-                                    messageArgs: [memberName, symbol.Name]
+                                    memberName,
+                                    symbol.Name
                                 );
                                 diagnostics.Add(diagnostic);
                                 return false;

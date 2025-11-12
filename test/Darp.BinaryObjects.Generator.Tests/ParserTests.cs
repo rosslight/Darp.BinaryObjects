@@ -542,6 +542,22 @@ public sealed class ParserTests
         parsingResult.Symbols.Should().HaveCount(0);
     }
 
+    [Theory]
+    [InlineData("int A")]
+    public void EqualityChecks(string argument)
+    {
+        var code = $"""
+            {CodeSetUp}
+            public partial record Object0_1({argument});
+            """;
+        (INamedTypeSymbol symbol, Compilation compilation) = GetSymbol(code, "Object0_1");
+        ParserResult parsingResult1 = Parser.Parse(symbol, compilation);
+        ParserResult parsingResult2 = Parser.Parse(symbol, compilation);
+
+        var equality = parsingResult1.Equals(parsingResult2);
+        equality.Should().BeTrue();
+    }
+
     private static (INamedTypeSymbol Type, Compilation Compilation) GetSymbol(string code, string typeName)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);

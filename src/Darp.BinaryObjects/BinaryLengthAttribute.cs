@@ -5,10 +5,10 @@ namespace Darp.BinaryObjects;
 public sealed class BinaryLengthAttribute : Attribute
 {
     /// <summary> Use a member which provides the length </summary>
-    /// <param name="memberWithLength"> The name of the member </param>
-    public BinaryLengthAttribute(string memberWithLength)
+    /// <param name="fieldWithLength"> The name of the member </param>
+    public BinaryLengthAttribute(string fieldWithLength)
     {
-        MemberWithLength = memberWithLength;
+        FieldWithLength = fieldWithLength;
     }
 
     /// <summary> Use a constant length </summary>
@@ -19,7 +19,7 @@ public sealed class BinaryLengthAttribute : Attribute
     }
 
     /// <summary> The name of the member to provide the length </summary>
-    public string? MemberWithLength { get; }
+    public string? FieldWithLength { get; }
 
     /// <summary> The number of bytes in the member </summary>
     public int? Length { get; }

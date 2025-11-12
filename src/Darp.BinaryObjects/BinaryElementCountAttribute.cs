@@ -11,16 +11,16 @@ public sealed class BinaryElementCountAttribute : Attribute
         MemberWithLength = memberWithLength;
     }
 
-    /// <summary> Use a constant length </summary>
-    /// <param name="length"> The constant length </param>
-    public BinaryElementCountAttribute(int length)
+    /// <summary> Use a constant number of elements </summary>
+    /// <param name="count"> The constant number of elements </param>
+    public BinaryElementCountAttribute(int count)
     {
-        Length = length;
+        Count = count;
     }
 
     /// <summary> The name of the member to provide the length during reading </summary>
     public string? MemberWithLength { get; }
 
-    /// <summary> The number of items in the array </summary>
-    public int? Length { get; }
+    /// <summary> The number of elements in the array </summary>
+    public int? Count { get; }
 }

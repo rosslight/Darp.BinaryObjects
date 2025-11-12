@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects.Generator;
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
@@ -148,6 +149,16 @@ internal static class BuilderHelper
                 IMember m => [m],
                 _ => [],
             }
+        );
+    }
+
+    public static bool ContainsBinaryIgnore(this ImmutableArray<AttributeData> attributes)
+    {
+        return attributes.Any(x =>
+            x
+                .AttributeClass?.ToDisplayString()
+                .Equals("Darp.BinaryObjects.BinaryIgnoreAttribute", StringComparison.Ordinal)
+                is true
         );
     }
 }
