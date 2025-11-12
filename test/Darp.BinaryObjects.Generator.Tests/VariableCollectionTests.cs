@@ -9,7 +9,12 @@ public sealed class VariableCollectionTests
             using Darp.BinaryObjects;
 
             [BinaryObject]
-            public sealed partial record TestObject(byte Length, [property: BinaryElementCount("Length")] byte[] Value);
+            public sealed partial record TestObject(
+                byte Length,
+                [property: BinaryElementCount("Length")] byte[] Value1,
+                [property: BinaryElementCount("Length")] short[] Value2,
+                [property: BinaryElementCount("Length")] uint[] Value3,
+                [property: BinaryElementCount("Length")] long[] Value4);
             """;
         await VerifyHelper.VerifyBinaryObjectsGenerator(code);
     }

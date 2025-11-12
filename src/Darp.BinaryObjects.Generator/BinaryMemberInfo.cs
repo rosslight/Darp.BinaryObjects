@@ -230,14 +230,13 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             TypeKind,
             TypeSymbol
         );
-        var optionalMinLengthCheck =
-            ArrayMinLength > 0 ? $" || destination.Length < {TypeByteLength * ArrayMinLength}" : "";
+        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {ArrayLengthMemberName} < {ArrayMinLength}" : "";
         writeString = $"""
-            if (destination.Length < this.{ArrayLengthMemberName}{optionalMinLengthCheck})
+            if (destination.Length < {TypeByteLength} * this.{ArrayLengthMemberName}{optionalMinLengthCheck})
                 return false;
-            global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..this.{ArrayLengthMemberName}], {memberName});
+            global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..({TypeByteLength} * this.{ArrayLengthMemberName})], {memberName});
             """;
-        bytesWrittenString = $"this.{ArrayLengthMemberName}";
+        bytesWrittenString = $"({TypeByteLength} * this.{ArrayLengthMemberName})";
         return true;
     }
 
@@ -250,7 +249,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
-        var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
+        var lengthVariableName = $"({TypeByteLength} * {BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName})";
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
