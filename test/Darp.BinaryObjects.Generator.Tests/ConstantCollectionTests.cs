@@ -3,6 +3,38 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class ConstantCollectionTests
 {
     [Fact]
+    public async Task ManualObjectArrayRequiresExplicitElementLength()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record ManualObject : IBinaryObject<ManualObject>
+            {
+                public ushort Value { get; set; }
+                public int GetByteCount() => 3;
+                public bool TryWriteLittleEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+            }
+
+            [BinaryObject]
+            public sealed partial record Parent
+            {
+                [BinaryElementCount(2)]
+                public ManualObject[] Values { get; init; } = Array.Empty<ManualObject>();
+            }
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task InvalidElementCounts_ShouldReportDiagnostics()
     {
         const string code = """

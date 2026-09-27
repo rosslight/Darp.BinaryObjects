@@ -376,6 +376,7 @@ internal sealed class BinaryObjectMemberGroup : IMember, IGroup
 {
     public required ISymbol MemberSymbol { get; init; }
     public required ITypeSymbol TypeSymbol { get; init; }
+    public required bool UseInterfaceDispatch { get; init; }
 
     public WellKnownCollectionKind CollectionKind => WellKnownCollectionKind.None;
     public WellKnownTypeKind TypeKind => WellKnownTypeKind.BinaryObject;
@@ -383,11 +384,17 @@ internal sealed class BinaryObjectMemberGroup : IMember, IGroup
 
     public string GetLengthCodeString() => $"this.{TypeSymbol.ToDisplayString()}.GetByteCount()";
 
-    public string? GetVariableByteLength() => $"this.{MemberSymbol.Name}.GetByteCount()";
+    public string? GetVariableByteLength() =>
+        UseInterfaceDispatch
+            ? $"global::Darp.BinaryObjects.Generated.Utilities.GetBinaryObjectByteCount(this.{MemberSymbol.Name})"
+            : $"this.{MemberSymbol.Name}.GetByteCount()";
 
-    public string GetVariableDocCommentLength() => $"""<see cref="{TypeSymbol.ToDisplayString()}.GetByteCount()"/>""";
+    public string GetVariableDocCommentLength() => GetDocCommentLength();
 
-    public string GetDocCommentLength() => $"""<see cref="{TypeSymbol.ToDisplayString()}.GetByteCount()"/>""";
+    public string GetDocCommentLength() =>
+        UseInterfaceDispatch
+            ? """<see cref="global::Darp.BinaryObjects.IBinaryWritable.GetByteCount()"/>"""
+            : $"""<see cref="{TypeSymbol.ToDisplayString()}.GetByteCount()"/>""";
 }
 
 partial class BinaryObjectsGenerator

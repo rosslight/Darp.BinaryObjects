@@ -1,5 +1,6 @@
 namespace Darp.BinaryObjects.Tests.Generated;
 
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 
 [BinaryObject]
@@ -21,8 +22,216 @@ public sealed partial record TwoUShorts
 [BinaryObject]
 internal sealed partial record NestedTwoUShorts(TwoUShorts Value, byte Tail);
 
+internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
+{
+    public uint Value { get; } = value;
+
+    int IBinaryWritable.GetByteCount() => 3;
+
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        if (destination.Length < 3)
+            return false;
+        destination[0] = (byte)Value;
+        destination[1] = (byte)(Value >> 8);
+        destination[2] = (byte)(Value >> 16);
+        bytesWritten = 3;
+        return true;
+    }
+
+    public bool TryWriteBigEndian(Span<byte> destination) =>
+        ((IBinaryWritable)this).TryWriteBigEndian(destination, out _);
+
+    bool IBinaryWritable.TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        if (destination.Length < 3)
+            return false;
+        destination[0] = (byte)(Value >> 16);
+        destination[1] = (byte)(Value >> 8);
+        destination[2] = (byte)Value;
+        bytesWritten = 3;
+        return true;
+    }
+
+    public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualUInt24? value) =>
+        ReadLittleEndian(source, out value, out _);
+
+    static bool IBinaryReadable<ManualUInt24>.TryReadLittleEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ManualUInt24? value,
+        out int bytesRead
+    ) => ReadLittleEndian(source, out value, out bytesRead);
+
+    private static bool ReadLittleEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ManualUInt24? value,
+        out int bytesRead
+    )
+    {
+        value = null;
+        bytesRead = 0;
+        if (source.Length < 3)
+            return false;
+        value = new ManualUInt24((uint)(source[0] | source[1] << 8 | source[2] << 16));
+        bytesRead = 3;
+        return true;
+    }
+
+    public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualUInt24? value) =>
+        TryReadBigEndian(source, out value, out _);
+
+    public static bool TryReadBigEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ManualUInt24? value,
+        out int bytesRead
+    )
+    {
+        value = null;
+        bytesRead = 0;
+        if (source.Length < 3)
+            return false;
+        value = new ManualUInt24((uint)(source[0] << 16 | source[1] << 8 | source[2]));
+        bytesRead = 3;
+        return true;
+    }
+}
+
+[BinaryObject]
+internal sealed partial record NestedManualUInt24(byte Prefix, ManualUInt24 Value, byte Tail);
+
+internal readonly ref struct ManualBytes(byte[] data) : IBinaryWritable
+{
+    public byte[] Data { get; } = data;
+
+    public int GetByteCount() => Data.Length;
+
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        if (!Data.AsSpan().TryCopyTo(destination))
+            return false;
+        bytesWritten = Data.Length;
+        return true;
+    }
+
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWriteLittleEndian(destination, out bytesWritten);
+}
+
+[BinaryObject(BinaryOptions.Write)]
+internal ref partial struct NestedManualBytes
+{
+    public byte Prefix { get; init; }
+    public ManualBytes Value { get; init; }
+    public byte Tail { get; init; }
+}
+
 public class TwoUShortsTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ManualRefStruct_ShouldRemainComposable(bool littleEndian)
+    {
+        var value = new NestedManualBytes
+        {
+            Prefix = 0xA1,
+            Value = new ManualBytes([0x12, 0x34]),
+            Tail = 0xEF,
+        };
+        var destination = Enumerable.Repeat((byte)0xA5, 5).ToArray();
+        var written = littleEndian
+            ? value.TryWriteLittleEndian(destination, out var bytesWritten)
+            : value.TryWriteBigEndian(destination, out bytesWritten);
+
+        value.GetByteCount().Should().Be(4);
+        written.Should().BeTrue();
+        bytesWritten.Should().Be(4);
+        destination.Should().Equal(0xA1, 0x12, 0x34, 0xEF, 0xA5);
+    }
+
+    [Theory]
+    [InlineData(true, "A1563412EF")]
+    [InlineData(false, "A1123456EF")]
+    public void ManualObject_ShouldUseReportedCountsAndPreserveTrailingField(bool littleEndian, string hexString)
+    {
+        var source = Convert.FromHexString(hexString);
+        NestedManualUInt24? value;
+        int bytesRead;
+        var read = littleEndian
+            ? NestedManualUInt24.TryReadLittleEndian(source, out value, out bytesRead)
+            : NestedManualUInt24.TryReadBigEndian(source, out value, out bytesRead);
+
+        read.Should().BeTrue();
+        Assert.NotNull(value);
+        value.Prefix.Should().Be(0xA1);
+        value.Value.Value.Should().Be(0x123456);
+        value.Tail.Should().Be(0xEF);
+        bytesRead.Should().Be(5);
+        value.GetByteCount().Should().Be(5);
+
+        var writable = new NestedManualUInt24(0xA1, new ManualUInt24(0x123456), 0xEF);
+        var destination = Enumerable.Repeat((byte)0xA5, 6).ToArray();
+        int bytesWritten;
+        var written = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+
+        written.Should().BeTrue();
+        bytesWritten.Should().Be(5);
+        destination.Should().Equal(source.Concat(new byte[] { 0xA5 }));
+    }
+
+    [Theory]
+    [InlineData(true, "", 0)]
+    [InlineData(false, "", 0)]
+    [InlineData(true, "A1", 1)]
+    [InlineData(false, "A1", 1)]
+    [InlineData(true, "A15634", 1)]
+    [InlineData(false, "A11234", 1)]
+    [InlineData(true, "A1563412", 4)]
+    [InlineData(false, "A1123456", 4)]
+    public void ManualObject_ShouldReturnFalseForTruncatedBuffers(
+        bool littleEndian,
+        string hexString,
+        int expectedProgress
+    )
+    {
+        var source = Convert.FromHexString(hexString);
+        NestedManualUInt24? value;
+        int bytesRead;
+        var read = littleEndian
+            ? NestedManualUInt24.TryReadLittleEndian(source, out value, out bytesRead)
+            : NestedManualUInt24.TryReadBigEndian(source, out value, out bytesRead);
+
+        read.Should().BeFalse();
+        value.Should().BeNull();
+        bytesRead.Should().Be(expectedProgress);
+
+        var writable = new NestedManualUInt24(0xA1, new ManualUInt24(0x123456), 0xEF);
+        var destination = Enumerable.Repeat((byte)0xA5, source.Length).ToArray();
+        int bytesWritten;
+        var written = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+
+        written.Should().BeFalse();
+        bytesWritten.Should().Be(expectedProgress);
+        destination.Take(expectedProgress).Should().Equal(source.Take(expectedProgress));
+        destination
+            .Skip(expectedProgress)
+            .Should()
+            .Equal(Enumerable.Repeat((byte)0xA5, source.Length - expectedProgress));
+    }
+
     [Theory]
     [InlineData(true, "3412CDABEF")]
     [InlineData(false, "1234ABCDEF")]

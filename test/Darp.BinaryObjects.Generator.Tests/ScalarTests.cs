@@ -178,6 +178,33 @@ public sealed class ScalarTests
     }
 
     [Fact]
+    public async Task NestedManualObject_UsesReportedByteCounts()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record ManualObject(ushort Value) : IBinaryObject<ManualObject>
+            {
+                int IBinaryWritable.GetByteCount() => 3;
+                bool IBinaryWritable.TryWriteLittleEndian(Span<byte> destination) => throw new NotImplementedException();
+                bool IBinaryWritable.TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                bool IBinaryWritable.TryWriteBigEndian(Span<byte> destination) => throw new NotImplementedException();
+                bool IBinaryWritable.TryWriteBigEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                static bool IBinaryReadable<ManualObject>.TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                static bool IBinaryReadable<ManualObject>.TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+                static bool IBinaryReadable<ManualObject>.TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                static bool IBinaryReadable<ManualObject>.TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+            }
+
+            [BinaryObject]
+            public sealed partial record Parent(ManualObject Value, byte Tail);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task WriteOnly_NestedObjectWithUnboundReadonlyProperty()
     {
         const string code = """

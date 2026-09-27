@@ -4,15 +4,15 @@
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Value"/></term> <description><see cref="ManualObject.GetByteCount()"/></description> </item>
-/// <item> <term> --- </term> <description><see cref="ManualObject.GetByteCount()"/></description> </item>
+/// <item> <term><see cref="Value"/></term> <description><see cref="global::Darp.BinaryObjects.IBinaryWritable.GetByteCount()"/></description> </item>
+/// <item> <term> --- </term> <description><see cref="global::Darp.BinaryObjects.IBinaryWritable.GetByteCount()"/></description> </item>
 /// </list> </remarks>
 public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
 {
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => checked(this.Value.GetByteCount());
+    public int GetByteCount() => checked(global::Darp.BinaryObjects.Generated.Utilities.GetBinaryObjectByteCount(this.Value));
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -23,7 +23,7 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
     {
         bytesWritten = 0;
 
-        if (!this.Value.TryWriteLittleEndian(destination[0..], out var ___bytesWrittenValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
             return false;
         bytesWritten += ___bytesWrittenValue;
 
@@ -38,7 +38,7 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
     {
         bytesWritten = 0;
 
-        if (!this.Value.TryWriteBigEndian(destination[0..], out var ___bytesWrittenValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
             return false;
         bytesWritten += ___bytesWrittenValue;
 
@@ -61,21 +61,11 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteLittleEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectBigEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteBigEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
+        public static int GetBinaryObjectByteCount<T>(T value)
+            where T : IBinaryWritable => value.GetByteCount();
+        public static bool TryWriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteLittleEndian(destination, out bytesWritten);
+        public static bool TryWriteBinaryObjectBigEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteBigEndian(destination, out bytesWritten);
     }
 }
