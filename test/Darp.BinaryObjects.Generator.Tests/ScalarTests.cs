@@ -4,16 +4,19 @@ using static VerifyHelper;
 
 public sealed class ScalarTests
 {
-    [Fact]
-    public async Task Primitives_OneBool()
+    [Theory]
+    [InlineData(BinaryOptions.All)]
+    [InlineData(BinaryOptions.Read)]
+    [InlineData(BinaryOptions.Write)]
+    public async Task Primitives_OneBool(BinaryOptions options)
     {
-        const string code = """
+        var code = $$"""
             using Darp.BinaryObjects;
 
-            [BinaryObject]
+            [BinaryObject(BinaryOptions.{{options}})]
             public sealed partial record TestObject(bool Value);
             """;
-        await VerifyBinaryObjectsGenerator(code);
+        await VerifyBinaryObjectsGenerator(code).UseParameters(options);
     }
 
     [Fact]
@@ -151,6 +154,93 @@ public sealed class ScalarTests
 
             [BinaryObject]
             public sealed partial record TestObject(TestObjectManual Value);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task ReadOnly_NestedObjectWithRemainingBytes()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            [BinaryObject(BinaryOptions.Read)]
+            public sealed partial record Child(byte[] Data)
+            {
+                public bool TryWriteLittleEndian(Span<byte> destination) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Read)]
+            public sealed partial record Parent(Child Value);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task WriteOnly_NestedObjectWithUnboundReadonlyProperty()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Child
+            {
+                public Child(object context) => Value = true;
+                public bool Value { get; }
+                public int Computed => 42;
+                public static readonly byte StaticField = 1;
+                public static byte StaticProperty { get; } = 2;
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, out Child? value) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Parent(Child Value, byte Tail);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task ReadOnly_NestedManualObjectUsesConsumedByteCount()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public sealed record ManualObject(ushort Value) : IBinaryReadable<ManualObject>
+            {
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Read)]
+            public sealed partial record Parent(ManualObject Value);
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task WriteOnly_NestedManualObjectUsesReportedByteCount()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            public sealed record ManualObject(ushort Value) : IBinaryWritable
+            {
+                public int GetByteCount() => 3;
+                public bool TryWriteLittleEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Parent(ManualObject Value);
             """;
         await VerifyBinaryObjectsGenerator(code);
     }
