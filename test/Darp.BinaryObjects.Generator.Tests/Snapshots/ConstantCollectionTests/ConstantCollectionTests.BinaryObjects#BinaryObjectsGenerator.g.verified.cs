@@ -112,7 +112,11 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..2], this.Array);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..2], this.Array, out var ___bytesWrittenArray))
+        {
+            bytesWritten += ___bytesWrittenArray;
+            return false;
+        }
         bytesWritten += 2;
 
         return true;
@@ -128,7 +132,11 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..2], this.Array);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..2], this.Array, out var ___bytesWrittenArray))
+        {
+            bytesWritten += ___bytesWrittenArray;
+            return false;
+        }
         bytesWritten += 2;
 
         return true;
@@ -146,9 +154,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (source.Length < 2)
             return false;
-        var ___readArray = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<TestObjectNested>(source[0..2]);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectLittleEndian<TestObjectNested>(source[0..2], out var ___readArray, out var ___bytesReadArray))
+        {
+            bytesRead += ___bytesReadArray;
+            return false;
+        }
         bytesRead += 2;
-
         value = new TestObject(___readArray);
         return true;
     }
@@ -164,9 +175,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (source.Length < 2)
             return false;
-        var ___readArray = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<TestObjectNested>(source[0..2]);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectBigEndian<TestObjectNested>(source[0..2], out var ___readArray, out var ___bytesReadArray))
+        {
+            bytesRead += ___bytesReadArray;
+            return false;
+        }
         bytesRead += 2;
-
         value = new TestObject(___readArray);
         return true;
     }
@@ -201,39 +215,15 @@ namespace Darp.BinaryObjects.Generated
             bytesRead = source.Length;
             return MemoryMarshal.Cast<byte, bool>(source).ToArray();
         }
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteLittleEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectBigEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteBigEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
-        /// <summary> Reads a <c>T</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadLittleEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
-        /// <summary> Reads a <c>T</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadBigEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
+        public static int GetBinaryObjectByteCount<T>(T value)
+            where T : IBinaryWritable => value.GetByteCount();
+        public static bool TryWriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteLittleEndian(destination, out bytesWritten);
+        public static bool TryWriteBinaryObjectBigEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteBigEndian(destination, out bytesWritten);
+        public static bool TryReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadLittleEndian(source, out value, out bytesRead);
+        public static bool TryReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadBigEndian(source, out value, out bytesRead);
     }
 }

@@ -8,8 +8,53 @@ public sealed partial record MemoryMemberLengthSize(
     [property: BinaryElementCount("Length")] ReadOnlyMemory<byte> Value
 );
 
+[BinaryObject]
+internal sealed partial record CountedPairMemory(
+    byte Count,
+    [property: BinaryElementCount("Count")] ReadOnlyMemory<ManualFixedPair> Values,
+    byte Tail
+);
+
 public class MemoryMemberLengthSizeTests
 {
+    [Theory]
+    [InlineData(true, "02123400FF7800EF", false, 5, "021234A5FFA5A5A5A5")]
+    [InlineData(false, "02123400FF7800EF", false, 5, "021234A5FFA5A5A5A5")]
+    [InlineData(true, "02123400567800EF", true, 8, "021234A55678A5EFA5")]
+    [InlineData(false, "02123400567800EF", true, 8, "021234A55678A5EFA5")]
+    public void CountedObjects_ShouldPreserveDeclaredStrideAndChildProgress(
+        bool littleEndian,
+        string sourceHex,
+        bool expectedSuccess,
+        int expectedProgress,
+        string destinationHex
+    )
+    {
+        var source = Convert.FromHexString(sourceHex);
+        var read = littleEndian
+            ? CountedPairMemory.TryReadLittleEndian(source, out var value, out var bytesRead)
+            : CountedPairMemory.TryReadBigEndian(source, out value, out bytesRead);
+        read.Should().Be(expectedSuccess);
+        bytesRead.Should().Be(expectedProgress);
+        if (expectedSuccess)
+        {
+            Assert.NotNull(value);
+            value.Values.ToArray().Should().Equal(new ManualFixedPair(0x12, 0x34), new ManualFixedPair(0x56, 0x78));
+            value.Tail.Should().Be(0xEF);
+        }
+        else
+            value.Should().BeNull();
+
+        var writable = new CountedPairMemory(2, new ManualFixedPair[] { new(0x12, 0x34), new(source[4], 0x78) }, 0xEF);
+        var destination = Enumerable.Repeat((byte)0xA5, 9).ToArray();
+        var written = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out var bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+        written.Should().Be(expectedSuccess);
+        bytesWritten.Should().Be(expectedProgress);
+        destination.Should().Equal(Convert.FromHexString(destinationHex));
+    }
+
     [Theory]
     [InlineData("0000", "0000", 0)]
     [InlineData("010004", "000104", 1, 0x04)]

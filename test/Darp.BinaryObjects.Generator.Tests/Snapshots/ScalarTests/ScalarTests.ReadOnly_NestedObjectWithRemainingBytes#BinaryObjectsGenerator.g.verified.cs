@@ -113,23 +113,9 @@ namespace Darp.BinaryObjects.Generated
             bytesRead = source.Length;
             return source.ToArray();
         }
-        /// <summary> Reads a <c>T</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadLittleEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
-        /// <summary> Reads a <c>T</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadBigEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
+        public static bool TryReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadLittleEndian(source, out value, out bytesRead);
+        public static bool TryReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadBigEndian(source, out value, out bytesRead);
     }
 }

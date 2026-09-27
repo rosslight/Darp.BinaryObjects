@@ -22,9 +22,12 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
 
         if (source.Length < 4)
             return false;
-        var ___readValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<ManualObject>(source[0..4], 2, out _);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectArrayLittleEndian<ManualObject>(source[0..4], 2, out var ___readValues, out var ___bytesReadValues))
+        {
+            bytesRead += ___bytesReadValues;
+            return false;
+        }
         bytesRead += 4;
-
         value = new Parent(___readValues);
         return true;
     }
@@ -40,9 +43,12 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
 
         if (source.Length < 4)
             return false;
-        var ___readValues = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<ManualObject>(source[0..4], 2, out _);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectArrayBigEndian<ManualObject>(source[0..4], 2, out var ___readValues, out var ___bytesReadValues))
+        {
+            bytesRead += ___bytesReadValues;
+            return false;
+        }
         bytesRead += 4;
-
         value = new Parent(___readValues);
         return true;
     }
@@ -62,37 +68,45 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Reads a <c>T[]</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] ReadBinaryObjectArrayLittleEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
+        public static bool TryReadBinaryObjectArrayLittleEndian<T>(ReadOnlySpan<byte> source, int elementLength, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T[]? value, out int bytesRead)
             where T : IBinaryReadable<T>
         {
+            value = null;
+            bytesRead = 0;
             var numberOfElements = source.Length / elementLength;
-            var array = new T[numberOfElements];
+            var result = new T[numberOfElements];
             for (var i = 0; i < numberOfElements; i++)
             {
-                if (!T.TryReadLittleEndian(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
-                    throw new ArgumentException($"Could not read {typeof(T).Name} from source");
-                array[i] = value;
+                if (!T.TryReadLittleEndian(source.Slice(i * elementLength, elementLength), out var item, out var itemBytesRead))
+                {
+                    bytesRead += itemBytesRead;
+                    return false;
+                }
+                bytesRead += elementLength;
+                result[i] = item;
             }
-            bytesRead = numberOfElements * elementLength;
-            return array;
+            value = result;
+            return true;
         }
-        /// <summary> Reads a <c>T[]</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] ReadBinaryObjectArrayBigEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
+        public static bool TryReadBinaryObjectArrayBigEndian<T>(ReadOnlySpan<byte> source, int elementLength, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T[]? value, out int bytesRead)
             where T : IBinaryReadable<T>
         {
+            value = null;
+            bytesRead = 0;
             var numberOfElements = source.Length / elementLength;
-            var array = new T[numberOfElements];
+            var result = new T[numberOfElements];
             for (var i = 0; i < numberOfElements; i++)
             {
-                if (!T.TryReadBigEndian(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
-                    throw new ArgumentException($"Could not read {typeof(T).Name} from source");
-                array[i] = value;
+                if (!T.TryReadBigEndian(source.Slice(i * elementLength, elementLength), out var item, out var itemBytesRead))
+                {
+                    bytesRead += itemBytesRead;
+                    return false;
+                }
+                bytesRead += elementLength;
+                result[i] = item;
             }
-            bytesRead = numberOfElements * elementLength;
-            return array;
+            value = result;
+            return true;
         }
     }
 }
