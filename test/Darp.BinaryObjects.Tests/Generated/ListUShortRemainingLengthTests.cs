@@ -11,8 +11,59 @@ public sealed partial record ListUShortRemainingLength(
     [property: BinaryMinElementCount(2)] IReadOnlyList<ushort> Value
 );
 
+[BinaryObject]
+internal sealed partial record ObjectUShortList(List<OneUShort> Value);
+
+[BinaryObject]
+internal sealed partial record ObjectUShortArray(OneUShort[] Value);
+
 public class ListUShortRemainingLengthTests
 {
+    [Theory]
+    [InlineData("", "")]
+    [InlineData("3412", "1234", 0x1234)]
+    [InlineData("3412CDAB", "1234ABCD", 0x1234, 0xABCD)]
+    public void ObjectList_ShouldReadElementsInWireOrder(string hexLE, string hexBE, params int[] expectedValues)
+    {
+        var sourceLE = Convert.FromHexString(hexLE);
+        var sourceBE = Convert.FromHexString(hexBE);
+
+        ObjectUShortList.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeTrue();
+        ObjectUShortList.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeTrue();
+
+        Assert.NotNull(valueLE);
+        Assert.NotNull(valueBE);
+        valueLE.Value.Select(x => x.Value).Should().Equal(expectedValues.Select(x => (ushort)x));
+        valueBE.Value.Select(x => x.Value).Should().Equal(expectedValues.Select(x => (ushort)x));
+        bytesReadLE.Should().Be(sourceLE.Length);
+        bytesReadBE.Should().Be(sourceBE.Length);
+        valueLE.GetByteCount().Should().Be(sourceLE.Length);
+        valueBE.GetByteCount().Should().Be(sourceBE.Length);
+    }
+
+    [Theory]
+    [InlineData(true, "3412CDAB")]
+    [InlineData(false, "1234ABCD")]
+    public void ObjectCollections_ShouldLeaveSurplusDestinationUntouched(bool littleEndian, string hexString)
+    {
+        OneUShort[] values = [new(0x1234), new(0xABCD)];
+        IBinaryWritable[] writables = [new ObjectUShortArray(values), new ObjectUShortList(values.ToList())];
+        var expectedBytes = Convert.FromHexString(hexString).Concat(new byte[] { 0xA5, 0xA5, 0xA5 });
+        foreach (IBinaryWritable writable in writables)
+        {
+            var destination = Enumerable.Repeat((byte)0xA5, 7).ToArray();
+            int bytesWritten;
+            var written = littleEndian
+                ? writable.TryWriteLittleEndian(destination, out bytesWritten)
+                : writable.TryWriteBigEndian(destination, out bytesWritten);
+
+            written.Should().BeTrue();
+            bytesWritten.Should().Be(4);
+            writable.GetByteCount().Should().Be(4);
+            destination.Should().Equal(expectedBytes);
+        }
+    }
+
     [Theory]
     [InlineData("01000001", 4, 0x0001, 0x0100)]
     [InlineData("010001000100", 6, 0x0001, 0x0001, 0x0001)]

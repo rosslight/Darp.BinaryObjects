@@ -198,7 +198,7 @@ namespace Darp.BinaryObjects.Generated
             if (value.Length == 0)
                 return 0;
             var elementLength = value[0].GetByteCount();
-            var maxNumberOfElements = destination.Length / elementLength;
+            var maxNumberOfElements = Math.Min(value.Length, destination.Length / elementLength);
             for (var i = 0; i < maxNumberOfElements; i++)
             {
                 if (!value[i].TryWriteLittleEndian(destination.Slice(i * elementLength, elementLength)))
@@ -214,7 +214,7 @@ namespace Darp.BinaryObjects.Generated
             if (value.Length == 0)
                 return 0;
             var elementLength = value[0].GetByteCount();
-            var maxNumberOfElements = destination.Length / elementLength;
+            var maxNumberOfElements = Math.Min(value.Length, destination.Length / elementLength);
             for (var i = 0; i < maxNumberOfElements; i++)
             {
                 if (!value[i].TryWriteBigEndian(destination.Slice(i * elementLength, elementLength)))

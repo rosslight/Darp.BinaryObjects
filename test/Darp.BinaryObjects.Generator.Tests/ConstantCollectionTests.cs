@@ -86,7 +86,8 @@ public sealed class ConstantCollectionTests
             [BinaryObject]
             public sealed partial record TestObject(
                 [property: BinaryElementCount(2)] System.ReadOnlyMemory<TestObjectNested> Value1,
-                [property: BinaryElementCount(2)] TestObjectNested[] Value2
+                [property: BinaryElementCount(2)] TestObjectNested[] Value2,
+                [property: BinaryElementCount(2)] System.Collections.Generic.List<TestObjectNested> Value3
             );
             """;
         await VerifyHelper.VerifyBinaryObjectsGenerator(code);
