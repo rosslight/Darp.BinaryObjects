@@ -3,7 +3,17 @@ namespace Darp.BinaryObjects.Tests.Generated;
 using FluentAssertions;
 
 [BinaryObject]
-public sealed partial record TwoUShorts(ushort Value, ushort ValueTwo);
+public sealed partial record TwoUShorts
+{
+    public TwoUShorts(ushort valueTwo, ushort value)
+    {
+        Value = value;
+        ValueTwo = valueTwo;
+    }
+
+    public ushort Value { get; }
+    public ushort ValueTwo { get; }
+}
 
 public class TwoUShortsTests
 {
@@ -87,7 +97,7 @@ public class TwoUShortsTests
         var bufferBE = new byte[bufferSize];
         var expectedHexBytesLE = Convert.FromHexString(expectedHexStringLE);
         var expectedHexBytesBE = Convert.FromHexString(expectedHexStringBE);
-        var writable = new TwoUShorts(value, valueTwo);
+        var writable = new TwoUShorts(value: value, valueTwo: valueTwo);
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
@@ -98,8 +108,8 @@ public class TwoUShortsTests
         successLE2.Should().BeTrue();
         successBE1.Should().BeTrue();
         successBE2.Should().BeTrue();
-        bufferLE.Should().BeEquivalentTo(expectedHexBytesLE);
-        bufferBE.Should().BeEquivalentTo(expectedHexBytesBE);
+        bufferLE.Should().Equal(expectedHexBytesLE);
+        bufferBE.Should().Equal(expectedHexBytesBE);
         writtenLE.Should().Be(4);
         writtenBE.Should().Be(4);
         writable.GetByteCount().Should().Be(4);
@@ -115,7 +125,7 @@ public class TwoUShortsTests
         var bufferLE = new byte[bufferSize];
         var bufferBE = new byte[bufferSize];
         var expectedHexBytes = Convert.FromHexString(expectedHexString);
-        var writable = new TwoUShorts(value, valueTwo);
+        var writable = new TwoUShorts(value: value, valueTwo: valueTwo);
 
         var successLE1 = writable.TryWriteLittleEndian(bufferLE);
         var successLE2 = writable.TryWriteLittleEndian(bufferLE, out var writtenLE);
@@ -126,8 +136,8 @@ public class TwoUShortsTests
         successLE2.Should().BeFalse();
         successBE1.Should().BeFalse();
         successBE2.Should().BeFalse();
-        bufferLE.Should().BeEquivalentTo(expectedHexBytes);
-        bufferBE.Should().BeEquivalentTo(expectedHexBytes);
+        bufferLE.Should().Equal(expectedHexBytes);
+        bufferBE.Should().Equal(expectedHexBytes);
         writtenLE.Should().Be(0);
         writtenBE.Should().Be(0);
     }

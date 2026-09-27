@@ -3,7 +3,7 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class Tests
 {
     [Fact]
-    public async Task Asd()
+    public async Task ConstructorAndInitializerMembers()
     {
         const string code = """
             using Darp.BinaryObjects;
@@ -44,14 +44,14 @@ public sealed class Tests
             [BinaryObject]
             public sealed partial class OneBool5
             {
-                public OneBool5(bool value1, bool value2)
+                public OneBool5(byte value2, bool value1)
                 {
                     _value1 = value1;
                     _value2 = value2;
                 }
 
                 private readonly bool _value1;
-                private bool _value2;
+                private byte _value2;
             }
             """;
         await VerifyHelper.VerifyBinaryObjectsGenerator(code);
