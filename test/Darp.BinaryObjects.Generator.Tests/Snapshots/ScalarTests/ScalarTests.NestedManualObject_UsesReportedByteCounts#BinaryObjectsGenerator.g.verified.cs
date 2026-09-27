@@ -25,7 +25,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryObject<P
         bytesWritten = 0;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
             return false;
+        }
         destination = destination[___bytesWrittenValue..];
         destination = destination[0..];
         bytesWritten += ___bytesWrittenValue;
@@ -47,7 +50,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryObject<P
         bytesWritten = 0;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
             return false;
+        }
         destination = destination[___bytesWrittenValue..];
         destination = destination[0..];
         bytesWritten += ___bytesWrittenValue;
@@ -71,7 +77,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryObject<P
         value = default;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectLittleEndian<ManualObject>(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         source = source[___bytesReadValue..];
         bytesRead += ___bytesReadValue;
 
@@ -94,7 +103,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryObject<P
         value = default;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectBigEndian<ManualObject>(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         source = source[___bytesReadValue..];
         bytesRead += ___bytesReadValue;
 

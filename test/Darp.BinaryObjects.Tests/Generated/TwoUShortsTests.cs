@@ -32,14 +32,10 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
 
     public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
     {
-        bytesWritten = 0;
-        if (destination.Length < 3)
-            return false;
-        destination[0] = (byte)Value;
-        destination[1] = (byte)(Value >> 8);
-        destination[2] = (byte)(Value >> 16);
-        bytesWritten = 3;
-        return true;
+        bytesWritten = Math.Min(destination.Length, 3);
+        for (var i = 0; i < bytesWritten; i++)
+            destination[i] = (byte)(Value >> (i * 8));
+        return bytesWritten == 3;
     }
 
     public bool TryWriteBigEndian(Span<byte> destination) =>
@@ -47,14 +43,10 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
 
     bool IBinaryWritable.TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
     {
-        bytesWritten = 0;
-        if (destination.Length < 3)
-            return false;
-        destination[0] = (byte)(Value >> 16);
-        destination[1] = (byte)(Value >> 8);
-        destination[2] = (byte)Value;
-        bytesWritten = 3;
-        return true;
+        bytesWritten = Math.Min(destination.Length, 3);
+        for (var i = 0; i < bytesWritten; i++)
+            destination[i] = (byte)(Value >> ((2 - i) * 8));
+        return bytesWritten == 3;
     }
 
     public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualUInt24? value) =>
@@ -73,11 +65,10 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
     )
     {
         value = null;
-        bytesRead = 0;
+        bytesRead = Math.Min(source.Length, 3);
         if (source.Length < 3)
             return false;
         value = new ManualUInt24((uint)(source[0] | source[1] << 8 | source[2] << 16));
-        bytesRead = 3;
         return true;
     }
 
@@ -91,11 +82,10 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
     )
     {
         value = null;
-        bytesRead = 0;
+        bytesRead = Math.Min(source.Length, 3);
         if (source.Length < 3)
             return false;
         value = new ManualUInt24((uint)(source[0] << 16 | source[1] << 8 | source[2]));
-        bytesRead = 3;
         return true;
     }
 }
@@ -195,8 +185,8 @@ public class TwoUShortsTests
     [InlineData(false, "", 0)]
     [InlineData(true, "A1", 1)]
     [InlineData(false, "A1", 1)]
-    [InlineData(true, "A15634", 1)]
-    [InlineData(false, "A11234", 1)]
+    [InlineData(true, "A15634", 3)]
+    [InlineData(false, "A11234", 3)]
     [InlineData(true, "A1563412", 4)]
     [InlineData(false, "A1123456", 4)]
     public void ManualObject_ShouldReturnFalseForTruncatedBuffers(

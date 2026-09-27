@@ -211,9 +211,12 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     ? $"global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObject{endianness}(destination[{currentByteIndex}..], this.{binaryObjectsGroup.MemberSymbol.Name}, out var {bytesWrittenVariable})"
                     : $"this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out var {bytesWrittenVariable})";
                 writer.WriteLine($"if (!{writeCall})");
+                writer.WriteLine("{");
                 writer.Indent++;
+                writer.WriteLine($"bytesWritten += {bytesWrittenVariable};");
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                writer.WriteLine("}");
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"destination = destination[{bytesWrittenVariable}..];");
@@ -334,9 +337,12 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                     ? $"global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObject{endianness}<{binaryObjectsGroup.TypeSymbol.ToDisplayString()}>(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable})"
                     : $"{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable})";
                 writer.WriteLine($"if (!{readCall})");
+                writer.WriteLine("{");
                 writer.Indent++;
+                writer.WriteLine($"bytesRead += {bytesReadVariable};");
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                writer.WriteLine("}");
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"source = source[{bytesReadVariable}..];");

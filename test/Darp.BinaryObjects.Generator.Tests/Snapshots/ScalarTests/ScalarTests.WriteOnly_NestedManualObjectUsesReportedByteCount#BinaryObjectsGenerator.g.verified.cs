@@ -24,7 +24,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
         bytesWritten = 0;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
             return false;
+        }
         bytesWritten += ___bytesWrittenValue;
 
         return true;
@@ -39,7 +42,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
         bytesWritten = 0;
 
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
             return false;
+        }
         bytesWritten += ___bytesWrittenValue;
 
         return true;
