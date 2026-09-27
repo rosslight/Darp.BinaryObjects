@@ -78,7 +78,10 @@ public sealed class ConstantCollectionTests
             using Darp.BinaryObjects;
 
             [BinaryObject]
-            public sealed partial record TestObjectNested(bool Value);
+            public sealed partial record TestObjectNested(bool Value)
+            {
+                public TestObjectNested IgnoredSelfReference => this;
+            }
 
             [BinaryObject]
             public sealed partial record TestObject(

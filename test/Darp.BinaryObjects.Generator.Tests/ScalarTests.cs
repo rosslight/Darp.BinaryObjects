@@ -111,13 +111,17 @@ public sealed class ScalarTests
             using Darp.BinaryObjects;
 
             [BinaryObject]
-            public sealed partial record TestObjectNested(bool Value)
+            public sealed partial record TestObjectNested
             {
+                public TestObjectNested(bool value) => Value = value;
+
+                public bool Value { get; }
+                [BinaryIgnore] public int Ignored { get; init; }
                 public int IgnoredProperty => 1;
             }
 
             [BinaryObject]
-            public sealed partial record TestObject(TestObjectNested Value);
+            public sealed partial record TestObject(TestObjectNested Value, byte Tail);
             """;
         await VerifyBinaryObjectsGenerator(code);
     }
