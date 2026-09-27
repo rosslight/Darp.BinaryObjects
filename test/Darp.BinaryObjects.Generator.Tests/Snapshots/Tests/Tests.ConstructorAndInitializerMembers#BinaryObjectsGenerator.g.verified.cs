@@ -375,7 +375,7 @@ public sealed partial class OneBool5 : global::Darp.BinaryObjects.IBinaryObject<
         if (destination.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this._value1);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[1..2], this._value2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this._value2);
         bytesWritten += 2;
 
         return true;
@@ -392,7 +392,7 @@ public sealed partial class OneBool5 : global::Darp.BinaryObjects.IBinaryObject<
         if (destination.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[0..1], this._value1);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBool(destination[1..2], this._value2);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this._value2);
         bytesWritten += 2;
 
         return true;
@@ -411,10 +411,10 @@ public sealed partial class OneBool5 : global::Darp.BinaryObjects.IBinaryObject<
         if (source.Length < 2)
             return false;
         var ___read_value1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
-        var ___read_value2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
+        var ___read_value2 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
         bytesRead += 2;
 
-        value = new OneBool5(___read_value1, ___read_value2);
+        value = new OneBool5(___read_value2, ___read_value1);
         return true;
     }
     /// <inheritdoc />
@@ -430,10 +430,10 @@ public sealed partial class OneBool5 : global::Darp.BinaryObjects.IBinaryObject<
         if (source.Length < 2)
             return false;
         var ___read_value1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[0..1]);
-        var ___read_value2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBool(source[1..2]);
+        var ___read_value2 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
         bytesRead += 2;
 
-        value = new OneBool5(___read_value1, ___read_value2);
+        value = new OneBool5(___read_value2, ___read_value1);
         return true;
     }
 }
@@ -463,6 +463,18 @@ namespace Darp.BinaryObjects.Generated
         public static bool ReadBool(ReadOnlySpan<byte> source)
         {
             return source[0] > 0;
+        }
+        /// <summary> Writes a <c>byte</c> to the destination </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUInt8(Span<byte> destination, byte value)
+        {
+            destination[0] = value;
+        }
+        /// <summary> Reads a <c>byte</c> from the given source </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte ReadUInt8(ReadOnlySpan<byte> source)
+        {
+            return source[0];
         }
     }
 }

@@ -62,10 +62,9 @@ partial class BinaryObjectsGenerator
                 membersInitializedByConstructor.Add(memberInfo);
         }
 
-        if ((constructor?.Parameters.Length ?? 0) != membersInitializedByConstructor.Count)
+        ImmutableArray<IParameterSymbol> parameters = constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
+        if (parameters.Length != membersInitializedByConstructor.Count)
         {
-            ImmutableArray<IParameterSymbol> parameters =
-                constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
             IEnumerable<DiagnosticData> parameterDiagnostics = parameters
                 .Where(x =>
                     !membersInitializedByConstructor
@@ -92,7 +91,11 @@ partial class BinaryObjectsGenerator
         result = new ParsedObjectInfo(
             diagnostics.ToImmutableArray(),
             groupedMembers,
-            membersInitializedByConstructor.ToImmutableArray()
+            membersInitializedByConstructor
+                .OrderBy(member =>
+                    parameters.First(parameter => IsNameEquivalent(member.MemberSymbol.Name, parameter.Name)).Ordinal
+                )
+                .ToImmutableArray()
         );
         return true;
     }
