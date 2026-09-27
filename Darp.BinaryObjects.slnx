@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/global/">
+    <File Path=".release-please-manifest.json" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+    <File Path="release-please-config.json" />
+  </Folder>
+  <Folder Name="/playground/">
+    <Project Path="playground/ExecutableProject/ExecutableProject.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Darp.BinaryObjects.Generator/Darp.BinaryObjects.Generator.csproj" />
+    <Project Path="src/Darp.BinaryObjects/Darp.BinaryObjects.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path="test/Directory.Build.props" />
+    <Project Path="test/Darp.BinaryObjects.Generator.Tests/Darp.BinaryObjects.Generator.Tests.csproj" />
+    <Project Path="test/Darp.BinaryObjects.Tests/Darp.BinaryObjects.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -247,6 +247,8 @@ public partial record struct YourStruct : global::Darp.BinaryObjects.IBinaryWrit
 
 ## Development
 
+Open `Darp.BinaryObjects.slnx` to work with the full solution.
+
 After cloning the repository, you will find the following project structure:
 
 - `src/Darp.BinaryObjects` contains public APIs and Attributes
