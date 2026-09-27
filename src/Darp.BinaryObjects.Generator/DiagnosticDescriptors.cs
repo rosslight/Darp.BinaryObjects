@@ -100,4 +100,12 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+    public static readonly DiagnosticDescriptor CollectionElementLengthUnknown = new(
+        id: "DBO001",
+        title: "CollectionElementLengthUnknown",
+        messageFormat: "Collection member '{0}' requires a known, positive binary element length. Use BinaryConstant on manual element types.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 }

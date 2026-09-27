@@ -32,7 +32,7 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool TryParseType(INamedTypeSymbol typeSymbol, out ParsedObjectInfo result)
+    private static bool TryParseType(INamedTypeSymbol typeSymbol, bool generateRead, out ParsedObjectInfo result)
     {
         List<IMember> membersInitializedByConstructor = [];
 
@@ -51,19 +51,20 @@ partial class BinaryObjectsGenerator
                 constructor,
                 fieldsOrProperties,
                 members,
-                diagnostics
+                diagnostics,
+                generateRead
             );
             if (!validity.IsValid)
                 continue;
             if (!TryGet(diagnostics, members, memberSymbol, out IMember? memberInfo))
                 continue;
             members.Add(memberInfo);
-            if (validity.IsConstructorInitialized)
+            if (generateRead && validity.IsConstructorInitialized)
                 membersInitializedByConstructor.Add(memberInfo);
         }
 
         ImmutableArray<IParameterSymbol> parameters = constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
-        if (parameters.Length != membersInitializedByConstructor.Count)
+        if (generateRead && parameters.Length != membersInitializedByConstructor.Count)
         {
             IEnumerable<DiagnosticData> parameterDiagnostics = parameters
                 .Where(x =>
@@ -106,7 +107,8 @@ partial class BinaryObjectsGenerator
         IMethodSymbol? constructor,
         ImmutableArray<ISymbol> typeMembers,
         List<IMember> previousMembers,
-        List<DiagnosticData> diagnostics
+        List<DiagnosticData> diagnostics,
+        bool generateRead
     )
     {
         var shouldBeIgnored = propertyOrFieldSymbol
@@ -118,6 +120,8 @@ partial class BinaryObjectsGenerator
                     is true
             );
         if (shouldBeIgnored)
+            return (false, default);
+        if (!generateRead && propertyOrFieldSymbol.IsStatic)
             return (false, default);
         switch (propertyOrFieldSymbol)
         {
@@ -140,7 +144,7 @@ partial class BinaryObjectsGenerator
                 // Ignore non auto properties without a warning
                 if (!isAutoProperty)
                     return (false, default);
-                if (!propertySymbol.IsReadOnly)
+                if (!propertySymbol.IsReadOnly || !generateRead)
                     return (true, false);
                 // Ignore readonly properties with a warning
                 var diagnostic = DiagnosticData.Create(
@@ -163,7 +167,7 @@ partial class BinaryObjectsGenerator
                 // If the field is initialized via constructor assume everything else fine
                 if (constructorInit.IsConstructorInitialized)
                     return (true, true);
-                if (!fieldSymbol.IsReadOnly)
+                if (!fieldSymbol.IsReadOnly || !generateRead)
                     return (true, false);
                 // Ignore readonly properties with a warning
                 var diagnostic = DiagnosticData.Create(
@@ -192,6 +196,8 @@ partial class BinaryObjectsGenerator
                 var isLessNullableType =
                     constructorParameter.Type.NullableAnnotation == NullableAnnotation.Annotated
                     && constructorParameter.Type.Equals(symbolType, SymbolEqualityComparer.Default);
+                if (!generateRead)
+                    return (true, isIdenticalType || isLessNullableType);
                 if (isIdenticalType || isLessNullableType)
                 {
                     var hasDuplicate = previousMembers.Any(x =>
@@ -341,6 +347,17 @@ partial class BinaryObjectsGenerator
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
             var isConstant = IsConstant(typeSymbol, out var constantLength);
+            if (collectionKind is not WellKnownCollectionKind.None && (!isConstant || constantLength <= 0))
+            {
+                diagnostics.Add(
+                    DiagnosticData.Create(
+                        DiagnosticDescriptors.CollectionElementLengthUnknown,
+                        symbol.GetSourceLocation(),
+                        [symbol.Name]
+                    )
+                );
+                return false;
+            }
             if (isConstant)
                 length = constantLength;
             info = (collectionKind, arrayLength, arrayLengthMember, isConstant) switch
@@ -454,6 +471,14 @@ partial class BinaryObjectsGenerator
             return TryGetGeneratedConstantLength(namedType, out totalLength);
 
         totalLength = 0;
+        // Directional manual serializers own their layout; only explicit metadata establishes a fixed size.
+        // Preserve the existing inference for combined IBinaryObject implementations.
+        if (
+            !typeSymbol.AllInterfaces.Any(x =>
+                x.OriginalDefinition.ToDisplayString() == "Darp.BinaryObjects.IBinaryObject<TSelf>"
+            )
+        )
+            return false;
         foreach (
             ISymbol symbol in typeSymbol
                 .GetMembers()
@@ -503,6 +528,13 @@ partial class BinaryObjectsGenerator
     private static bool TryGetGeneratedConstantLength(INamedTypeSymbol namedType, out int totalLength)
     {
         totalLength = 0;
+        AttributeData attribute = namedType
+            .GetAttributes()
+            .First(x => x.AttributeClass?.ToDisplayString() == BinaryObjectAttributeName);
+        BinaryGenerationOptions options = GetGenerationOptions(attribute);
+        if ((options & BinaryGenerationOptions.All) == 0)
+            return false;
+        var generateRead = (options & BinaryGenerationOptions.Read) != 0;
         // Keep nested object graphs variable-sized rather than recursively parsing them.
         IMethodSymbol? constructor = namedType.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
         var fieldsOrProperties = namedType
@@ -521,11 +553,14 @@ partial class BinaryObjectsGenerator
                 continue;
             if (memberType.TryGetArrayType(out _, out ITypeSymbol? elementType))
                 memberType = elementType;
-            if (IsBinaryObject(memberType) && IsValidMember(member, constructor, fieldsOrProperties, [], []).IsValid)
+            if (
+                IsBinaryObject(memberType)
+                && IsValidMember(member, constructor, fieldsOrProperties, [], [], generateRead).IsValid
+            )
                 return false;
         }
 
-        if (!TryParseType(namedType, out ParsedObjectInfo parsedObject))
+        if (!TryParseType(namedType, generateRead, out ParsedObjectInfo parsedObject))
             return false;
         if (parsedObject.MemberGroups.SelectMembers().Any(member => member is not IConstantMember))
             return false;

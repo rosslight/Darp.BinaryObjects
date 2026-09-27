@@ -74,7 +74,10 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                 {
                     try
                     {
-                        if (!TryParseType(info.Symbol, out ParsedObjectInfo parsedObject))
+                        if (!info.GenerateRead && !info.GenerateWrite)
+                            return new BinaryObjectStruct([], null, ImmutableEquatableArray<UtilityData>.Empty);
+
+                        if (!TryParseType(info.Symbol, info.GenerateRead, out ParsedObjectInfo parsedObject))
                         {
                             return new BinaryObjectStruct(
                                 parsedObject.Diagnostics.ToImmutableEquatableArray(),
@@ -109,10 +112,13 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                                     IVariableMemberGroup v => v.TypeByteLength,
                                     _ => UtilityData.UnknownLength,
                                 };
-                                return GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
-                                    .Concat(
-                                        GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
-                                    );
+                                var writeUtilities = info.GenerateWrite
+                                    ? GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    : [];
+                                var readUtilities = info.GenerateRead
+                                    ? GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    : [];
+                                return writeUtilities.Concat(readUtilities);
                             })
                             .Distinct()
                             .ToImmutableEquatableArray();
@@ -204,12 +210,30 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
 
         var type = (INamedTypeSymbol)context.TargetSymbol;
         var node = (TypeDeclarationSyntax)context.TargetNode;
-        return new TargetTypeInfo(type, node, languageVersion);
+        return new TargetTypeInfo(type, node, languageVersion, GetGenerationOptions(context.Attributes[0]));
     }
+
+    private static BinaryGenerationOptions GetGenerationOptions(AttributeData attribute) =>
+        attribute.ConstructorArguments is [{ Value: int value }]
+            ? (BinaryGenerationOptions)value
+            : BinaryGenerationOptions.All;
+}
+
+[Flags]
+internal enum BinaryGenerationOptions
+{
+    Write = 1,
+    Read = 2,
+    All = Write | Read,
 }
 
 internal readonly record struct TargetTypeInfo(
     INamedTypeSymbol Symbol,
     TypeDeclarationSyntax Syntax,
-    LanguageVersion LanguageVersion
-);
+    LanguageVersion LanguageVersion,
+    BinaryGenerationOptions Options
+)
+{
+    public bool GenerateRead => (Options & BinaryGenerationOptions.Read) != 0;
+    public bool GenerateWrite => (Options & BinaryGenerationOptions.Write) != 0;
+}

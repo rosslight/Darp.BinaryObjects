@@ -3,6 +3,22 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class Tests
 {
     [Fact]
+    public async Task NoOptions_ShouldGenerateNothing()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            [BinaryObject((BinaryOptions)0)]
+            public sealed partial record TestObject
+            {
+                public TestObject(object unrelated) { }
+                public object Unsupported { get; init; } = new();
+            }
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task ConstructorAndInitializerMembers()
     {
         const string code = """

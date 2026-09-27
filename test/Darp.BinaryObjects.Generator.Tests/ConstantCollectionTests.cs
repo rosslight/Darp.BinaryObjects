@@ -3,6 +3,75 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class ConstantCollectionTests
 {
     [Fact]
+    public async Task ZeroLengthBinaryObjectArrayIsUnsupported()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Empty;
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Parent
+            {
+                [BinaryElementCount(2)]
+                public Empty[] Values { get; init; } = Array.Empty<Empty>();
+            }
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task WriteOnly_ManualObjectArrayRequiresFixedElementLength()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+
+            public sealed record ManualObject(ushort Value) : IBinaryWritable
+            {
+                public int GetByteCount() => 3;
+                public bool TryWriteLittleEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination) => throw new NotImplementedException();
+                public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial record Parent
+            {
+                [BinaryElementCount(2)]
+                public ManualObject[] Values { get; init; } = Array.Empty<ManualObject>();
+            }
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task ReadOnly_ManualObjectArray()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            [BinaryConstant(2)]
+            public sealed record ManualObject : IBinaryReadable<ManualObject>
+            {
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value) => throw new NotImplementedException();
+                public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualObject? value, out int bytesRead) => throw new NotImplementedException();
+            }
+
+            [BinaryObject(BinaryOptions.Read)]
+            public sealed partial record Parent([property: BinaryElementCount(2)] ManualObject[] Values);
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task Primitives_ByteArray()
     {
         const string code = """
