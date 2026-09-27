@@ -877,7 +877,7 @@ partial class BinaryObjectsGenerator
                         if (value.Length == 0)
                             return 0;
                         var elementLength = value[0].GetByteCount();
-                        var maxNumberOfElements = destination.Length / elementLength;
+                        var maxNumberOfElements = Math.Min(value.Length, destination.Length / elementLength);
                         for (var i = 0; i < maxNumberOfElements; i++)
                         {
                             if (!value[i].TryWrite{{GetEndiannessName(
@@ -1300,7 +1300,7 @@ partial class BinaryObjectsGenerator
                               isLittleEndian
                           )}}(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
                               throw new ArgumentException($"Could not read {typeof(T).Name} from source");
-                          array[i] = value;
+                          array.Add(value);
                       }
                       bytesRead = numberOfElements * elementLength;
                       return array;

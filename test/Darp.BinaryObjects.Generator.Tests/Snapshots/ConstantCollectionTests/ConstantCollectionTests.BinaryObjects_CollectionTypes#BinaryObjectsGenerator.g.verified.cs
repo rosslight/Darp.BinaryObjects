@@ -91,16 +91,17 @@ public sealed partial record TestObjectNested : global::Darp.BinaryObjects.IBina
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
 /// <item> <term><see cref="Value1"/></term> <description>1 * 2</description> </item>
 /// <item> <term><see cref="Value2"/></term> <description>1 * 2</description> </item>
-/// <item> <term> --- </term> <description>4</description> </item>
+/// <item> <term><see cref="Value3"/></term> <description>1 * 2</description> </item>
+/// <item> <term> --- </term> <description>6</description> </item>
 /// </list> </remarks>
-[global::Darp.BinaryObjects.BinaryConstant(4)]
+[global::Darp.BinaryObjects.BinaryConstant(6)]
 public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 4;
+    public int GetByteCount() => 6;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -111,11 +112,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 6)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<TestObjectNested>(destination[0..2], this.Value1.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanLittleEndian<TestObjectNested>(destination[2..4], this.Value2);
-        bytesWritten += 4;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListLittleEndian<TestObjectNested>(destination[4..6], this.Value3);
+        bytesWritten += 6;
 
         return true;
     }
@@ -128,11 +130,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 6)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<TestObjectNested>(destination[0..2], this.Value1.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectSpanBigEndian<TestObjectNested>(destination[2..4], this.Value2);
-        bytesWritten += 4;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectListBigEndian<TestObjectNested>(destination[4..6], this.Value3);
+        bytesWritten += 6;
 
         return true;
     }
@@ -147,13 +150,14 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 4)
+        if (source.Length < 6)
             return false;
         var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<TestObjectNested>(source[0..2], 1, out _);
         var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayLittleEndian<TestObjectNested>(source[2..4], 1, out _);
-        bytesRead += 4;
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListLittleEndian<TestObjectNested>(source[4..6], 1, out _);
+        bytesRead += 6;
 
-        value = new TestObject(___readValue1, ___readValue2);
+        value = new TestObject(___readValue1, ___readValue2, ___readValue3);
         return true;
     }
     /// <inheritdoc />
@@ -166,13 +170,14 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 4)
+        if (source.Length < 6)
             return false;
         var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<TestObjectNested>(source[0..2], 1, out _);
         var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectArrayBigEndian<TestObjectNested>(source[2..4], 1, out _);
-        bytesRead += 4;
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectListBigEndian<TestObjectNested>(source[4..6], 1, out _);
+        bytesRead += 6;
 
-        value = new TestObject(___readValue1, ___readValue2);
+        value = new TestObject(___readValue1, ___readValue2, ___readValue3);
         return true;
     }
 }
@@ -211,7 +216,7 @@ namespace Darp.BinaryObjects.Generated
             if (value.Length == 0)
                 return 0;
             var elementLength = value[0].GetByteCount();
-            var maxNumberOfElements = destination.Length / elementLength;
+            var maxNumberOfElements = Math.Min(value.Length, destination.Length / elementLength);
             for (var i = 0; i < maxNumberOfElements; i++)
             {
                 if (!value[i].TryWriteLittleEndian(destination.Slice(i * elementLength, elementLength)))
@@ -227,7 +232,7 @@ namespace Darp.BinaryObjects.Generated
             if (value.Length == 0)
                 return 0;
             var elementLength = value[0].GetByteCount();
-            var maxNumberOfElements = destination.Length / elementLength;
+            var maxNumberOfElements = Math.Min(value.Length, destination.Length / elementLength);
             for (var i = 0; i < maxNumberOfElements; i++)
             {
                 if (!value[i].TryWriteBigEndian(destination.Slice(i * elementLength, elementLength)))
@@ -263,6 +268,52 @@ namespace Darp.BinaryObjects.Generated
                 if (!T.TryReadBigEndian(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
                     throw new ArgumentException($"Could not read {typeof(T).Name} from source");
                 array[i] = value;
+            }
+            bytesRead = numberOfElements * elementLength;
+            return array;
+        }
+        /// <summary> Writes a <c>List&lt;T&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBinaryObjectListLittleEndian<T>(Span<byte> destination, List<T> value)
+            where T : IBinaryWritable
+        {
+            return WriteBinaryObjectSpanLittleEndian<T>(destination, CollectionsMarshal.AsSpan(value));
+        }
+        /// <summary> Writes a <c>List&lt;T&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBinaryObjectListBigEndian<T>(Span<byte> destination, List<T> value)
+            where T : IBinaryWritable
+        {
+            return WriteBinaryObjectSpanBigEndian<T>(destination, CollectionsMarshal.AsSpan(value));
+        }
+        /// <summary> Reads a <c>List&lt;T&gt;</c> from the given source, as LittleEndian </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<T> ReadBinaryObjectListLittleEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
+            where T : IBinaryReadable<T>
+        {
+            var numberOfElements = source.Length / elementLength;
+            var array = new List<T>(numberOfElements);
+            for (var i = 0; i < numberOfElements; i++)
+            {
+                if (!T.TryReadLittleEndian(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
+                    throw new ArgumentException($"Could not read {typeof(T).Name} from source");
+                array.Add(value);
+            }
+            bytesRead = numberOfElements * elementLength;
+            return array;
+        }
+        /// <summary> Reads a <c>List&lt;T&gt;</c> from the given source, as BigEndian </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<T> ReadBinaryObjectListBigEndian<T>(ReadOnlySpan<byte> source, int elementLength, out int bytesRead)
+            where T : IBinaryReadable<T>
+        {
+            var numberOfElements = source.Length / elementLength;
+            var array = new List<T>(numberOfElements);
+            for (var i = 0; i < numberOfElements; i++)
+            {
+                if (!T.TryReadBigEndian(source.Slice(i * elementLength, elementLength), out T? value, out var tempBytesRead))
+                    throw new ArgumentException($"Could not read {typeof(T).Name} from source");
+                array.Add(value);
             }
             bytesRead = numberOfElements * elementLength;
             return array;
