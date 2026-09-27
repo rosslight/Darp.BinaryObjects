@@ -436,13 +436,7 @@ partial class BinaryObjectsGenerator
 
     internal static WellKnownTypeKind GetWellKnownTypeKind(ITypeSymbol symbol)
     {
-        var hasBinaryObjectAttribute = symbol
-            .GetAttributes()
-            .Any(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryObjectAttribute");
-        var hasBinaryObjectInterface = symbol.AllInterfaces.Any(x =>
-            x.OriginalDefinition.ToDisplayString() == "Darp.BinaryObjects.IBinaryObject<TSelf>"
-        );
-        if (hasBinaryObjectAttribute || hasBinaryObjectInterface)
+        if (IsBinaryObject(symbol))
         {
             return WellKnownTypeKind.BinaryObject;
         }
@@ -481,6 +475,17 @@ partial class BinaryObjectsGenerator
             "System.UInt128" => WellKnownTypeKind.UInt128,
             _ => throw new ArgumentException($"Could get well known type kind for {symbol.ToDisplayString()}"),
         };
+    }
+
+    private static bool IsBinaryObject(ITypeSymbol symbol)
+    {
+        var hasBinaryObjectAttribute = symbol
+            .GetAttributes()
+            .Any(x => x.AttributeClass?.ToDisplayString() == BinaryObjectAttributeName);
+        var hasBinaryObjectInterface = symbol.AllInterfaces.Any(x =>
+            x.OriginalDefinition.ToDisplayString() == "Darp.BinaryObjects.IBinaryObject<TSelf>"
+        );
+        return hasBinaryObjectAttribute || hasBinaryObjectInterface;
     }
 
     private static string GetWellKnownName(WellKnownCollectionKind collectionKind, WellKnownTypeKind typeKind)

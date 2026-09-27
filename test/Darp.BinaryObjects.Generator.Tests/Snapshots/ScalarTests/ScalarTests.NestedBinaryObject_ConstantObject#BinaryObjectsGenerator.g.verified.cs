@@ -90,16 +90,17 @@ public sealed partial record TestObjectNested : global::Darp.BinaryObjects.IBina
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
 /// <item> <term><see cref="Value"/></term> <description>1</description> </item>
-/// <item> <term> --- </term> <description>1</description> </item>
+/// <item> <term><see cref="Tail"/></term> <description>1</description> </item>
+/// <item> <term> --- </term> <description>2</description> </item>
 /// </list> </remarks>
-[global::Darp.BinaryObjects.BinaryConstant(1)]
+[global::Darp.BinaryObjects.BinaryConstant(2)]
 public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 1;
+    public int GetByteCount() => 2;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -110,10 +111,11 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1)
+        if (destination.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..1], this.Value);
-        bytesWritten += 1;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.Tail);
+        bytesWritten += 2;
 
         return true;
     }
@@ -126,10 +128,11 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1)
+        if (destination.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..1], this.Value);
-        bytesWritten += 1;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.Tail);
+        bytesWritten += 2;
 
         return true;
     }
@@ -144,12 +147,13 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 1)
+        if (source.Length < 2)
             return false;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectLittleEndian<TestObjectNested>(source[0..1]);
-        bytesRead += 1;
+        var ___readTail = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
+        bytesRead += 2;
 
-        value = new TestObject(___readValue);
+        value = new TestObject(___readValue, ___readTail);
         return true;
     }
     /// <inheritdoc />
@@ -162,12 +166,13 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 1)
+        if (source.Length < 2)
             return false;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadBinaryObjectBigEndian<TestObjectNested>(source[0..1]);
-        bytesRead += 1;
+        var ___readTail = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[1..2]);
+        bytesRead += 2;
 
-        value = new TestObject(___readValue);
+        value = new TestObject(___readValue, ___readTail);
         return true;
     }
 }
@@ -197,6 +202,18 @@ namespace Darp.BinaryObjects.Generated
         public static bool ReadBool(ReadOnlySpan<byte> source)
         {
             return source[0] > 0;
+        }
+        /// <summary> Writes a <c>byte</c> to the destination </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUInt8(Span<byte> destination, byte value)
+        {
+            destination[0] = value;
+        }
+        /// <summary> Reads a <c>byte</c> from the given source </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte ReadUInt8(ReadOnlySpan<byte> source)
+        {
+            return source[0];
         }
         /// <summary> Writes a <c>T</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

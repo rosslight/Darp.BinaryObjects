@@ -447,6 +447,12 @@ partial class BinaryObjectsGenerator
             return true;
         }
 
+        if (
+            typeSymbol is INamedTypeSymbol namedType
+            && typeSymbol.GetAttributes().Any(x => x.AttributeClass?.ToDisplayString() == BinaryObjectAttributeName)
+        )
+            return TryGetGeneratedConstantLength(namedType, out totalLength);
+
         totalLength = 0;
         foreach (
             ISymbol symbol in typeSymbol
@@ -491,6 +497,39 @@ partial class BinaryObjectsGenerator
                 return false;
             totalLength += length * arrayLength;
         }
+        return true;
+    }
+
+    private static bool TryGetGeneratedConstantLength(INamedTypeSymbol namedType, out int totalLength)
+    {
+        totalLength = 0;
+        // Keep nested object graphs variable-sized rather than recursively parsing them.
+        IMethodSymbol? constructor = namedType.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
+        var fieldsOrProperties = namedType
+            .GetMembers()
+            .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
+            .ToImmutableArray();
+        foreach (ISymbol member in fieldsOrProperties.Where(x => !x.IsImplicitlyDeclared))
+        {
+            ITypeSymbol? memberType = member switch
+            {
+                IFieldSymbol field => field.Type,
+                IPropertySymbol property => property.Type,
+                _ => null,
+            };
+            if (memberType is null)
+                continue;
+            if (memberType.TryGetArrayType(out _, out ITypeSymbol? elementType))
+                memberType = elementType;
+            if (IsBinaryObject(memberType) && IsValidMember(member, constructor, fieldsOrProperties, [], []).IsValid)
+                return false;
+        }
+
+        if (!TryParseType(namedType, out ParsedObjectInfo parsedObject))
+            return false;
+        if (parsedObject.MemberGroups.SelectMembers().Any(member => member is not IConstantMember))
+            return false;
+        totalLength = parsedObject.MemberGroups.Sum(group => group.ConstantByteLength);
         return true;
     }
 }

@@ -13,10 +13,63 @@ public sealed partial record TwoUShorts
 
     public ushort Value { get; }
     public ushort ValueTwo { get; }
+
+    [BinaryIgnore]
+    public byte Ignored { get; init; }
 }
+
+[BinaryObject]
+internal sealed partial record NestedTwoUShorts(TwoUShorts Value, byte Tail);
 
 public class TwoUShortsTests
 {
+    [Theory]
+    [InlineData(true, "3412CDABEF")]
+    [InlineData(false, "1234ABCDEF")]
+    public void NestedObject_ShouldUseSerializedMembersForSize(bool littleEndian, string hexString)
+    {
+        var source = Convert.FromHexString(hexString);
+        NestedTwoUShorts? value;
+        int bytesRead;
+        var read = littleEndian
+            ? NestedTwoUShorts.TryReadLittleEndian(source, out value, out bytesRead)
+            : NestedTwoUShorts.TryReadBigEndian(source, out value, out bytesRead);
+
+        read.Should().BeTrue();
+        Assert.NotNull(value);
+        value.Value.Value.Should().Be(0x1234);
+        value.Value.ValueTwo.Should().Be(0xABCD);
+        value.Tail.Should().Be(0xEF);
+        bytesRead.Should().Be(5);
+        value.GetByteCount().Should().Be(5);
+
+        var writable = new NestedTwoUShorts(new TwoUShorts(value: 0x1234, valueTwo: 0xABCD) { Ignored = 0xFF }, 0xEF);
+        var destination = Enumerable.Repeat((byte)0xA5, 6).ToArray();
+        int bytesWritten;
+        var written = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+
+        written.Should().BeTrue();
+        bytesWritten.Should().Be(5);
+        destination.Should().Equal(source.Concat(new byte[] { 0xA5 }));
+
+        var truncated = source[..4];
+        var readTruncated = littleEndian
+            ? NestedTwoUShorts.TryReadLittleEndian(truncated, out _, out bytesRead)
+            : NestedTwoUShorts.TryReadBigEndian(truncated, out _, out bytesRead);
+        readTruncated.Should().BeFalse();
+        bytesRead.Should().Be(0);
+
+        var shortDestination = Enumerable.Repeat((byte)0xA5, 4).ToArray();
+        var writtenTruncated = littleEndian
+            ? writable.TryWriteLittleEndian(shortDestination, out bytesWritten)
+            : writable.TryWriteBigEndian(shortDestination, out bytesWritten);
+        writtenTruncated.Should().BeFalse();
+        bytesWritten.Should().Be(0);
+        shortDestination.Should().Equal(0xA5, 0xA5, 0xA5, 0xA5);
+    }
+
     [Theory]
     [InlineData("00000000", 0x0000, 0x0000, 0x0000, 0x0000)]
     [InlineData("01000001", 0x0001, 0x0100, 0x0100, 0x0001)]
