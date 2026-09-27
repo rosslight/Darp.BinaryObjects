@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="coverlet.MTP" Version="10.0.1" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" />
+    <!-- Keep the generator compatible with the Roslyn compiler in the .NET 9 SDK. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+    <PackageVersion Include="PolySharp" Version="1.16.0" />
+    <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
+    <!-- Last release before Verify introduced its maintenance fee. -->
+    <PackageVersion Include="Verify.XunitV3" Version="32.0.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
+  </ItemGroup>
+</Project>

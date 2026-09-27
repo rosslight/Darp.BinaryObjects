@@ -4,7 +4,7 @@
 *.cs       text diff=csharp
 *.cshtml   text diff=html
 *.csx      text diff=csharp
-*.sln      text eol=crlf
+*.slnx     text eol=crlf
 *.csproj   text eol=crlf
 
 *.verified.cs text eol=lf working-tree-encoding=UTF-8
