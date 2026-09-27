@@ -3,7 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D6A15359-4AEC-43D0-B82E-7464A138F213}"
 	ProjectSection(SolutionItems) = preProject
 		src\Directory.Build.props = src\Directory.Build.props
-		src\Directory.Build.targets = src\Directory.Build.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34CB9937-9C1C-44BD-B81B-69D0353546B7}"
@@ -23,7 +22,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{3B2E89
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
-		.releaserc = .releaserc
+		Directory.Packages.props = Directory.Packages.props
+		release-please-config.json = release-please-config.json
+		.release-please-manifest.json = .release-please-manifest.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darp.BinaryObjects.Tests", "test\Darp.BinaryObjects.Tests\Darp.BinaryObjects.Tests.csproj", "{A0A0F6BB-B35E-4CF2-B680-A503127BC250}"

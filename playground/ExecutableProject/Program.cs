@@ -43,7 +43,7 @@ static TEnum[] ReadUInt64EnumArrayBigEndian<TEnum>(ReadOnlySpan<byte> source)
     var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
     if (BitConverter.IsLittleEndian)
     {
-        var underlyingArray = MemoryMarshal.Cast<TEnum, ulong>(array);
+        Span<ulong> underlyingArray = MemoryMarshal.Cast<TEnum, ulong>(array.AsSpan());
         BinaryPrimitives.ReverseEndianness(underlyingArray, underlyingArray);
     }
     return array;

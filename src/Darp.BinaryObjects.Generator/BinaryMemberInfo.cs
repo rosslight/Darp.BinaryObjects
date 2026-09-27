@@ -1231,7 +1231,7 @@ partial class BinaryObjectsGenerator
                         var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
                         if ({{CheckForReverseEndianness(isLittleEndian)}})
                         {
-                            var reinterpretedArray = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(array);
+                            Span<{{underlyingTypeName}}> reinterpretedArray = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(array.AsSpan());
                             BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
                         }
                         bytesRead = array.Length * {{byteLength}};

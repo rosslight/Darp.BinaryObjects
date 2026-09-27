@@ -5,10 +5,10 @@
 [![NuGet](https://img.shields.io/nuget/v/Darp.BinaryObjects.svg)](https://www.nuget.org/packages/Darp.BinaryObjects)
 [![Downloads](https://img.shields.io/nuget/dt/Darp.BinaryObjects)](https://www.nuget.org/packages/Darp.BinaryObjects)
 
-![Dotnet Version](https://img.shields.io/badge/dotnet-net8.0%20%7C%20net9.0-blue)
+![Dotnet Version](https://img.shields.io/badge/dotnet-net9.0%20%7C%20net10.0-blue)
 ![Language Version](https://img.shields.io/badge/c%23-11-blue)
 
-[![Tests](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml/badge.svg)](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/test_and_publish.yml)
+[![Tests](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/ci.yml/badge.svg)](https://github.com/rosslight/Darp.BinaryObjects/actions/workflows/ci.yml)
 ![License](https://img.shields.io/github/license/rosslight/Darp.BinaryObjects)
 
 ### A source generator to generate TryRead/Write Little/BigEndian methods for struct/class definitions.
@@ -25,7 +25,7 @@ You should use the source generation when you want:
 - Endianness during serialization
 - Common interfaces for serialization are required which allow implementation of more complex scenarios by hand without the generator
 - Usage of something like BinaryPrimitives but for more complex types
-- Can work with a minimum c# LanguageVersion of 11 and net8.0 / net9.0
+- Can work with a minimum c# LanguageVersion of 11 and net9.0 / net10.0
 
 If these requirements do not meet your expectations, check out those other wonderful projects
 
@@ -257,16 +257,34 @@ After cloning the repository, you will find the following project structure:
 ### Code formatting
 
 This repository uses [CSharpier](https://csharpier.com/) (inspired by prettier) for code formatting.
-CSharpier should be installed automatically when building the solution as a local dotnet tool.
+Install the local tool explicitly with `dotnet tool restore`.
 
 To run it, execute
 ```shell
-dotnet csharpier .
+dotnet csharpier format .
 ```
 
 If you want to format you code on save, check out available [Editor integration](https://csharpier.com/docs/Editors) for your IDE.
 
 ### Testing
 
+Development requires the .NET 10 SDK selected by `global.json` and the .NET 9 runtime.
+Both test projects use xUnit v3 with Microsoft.Testing.Platform and run on .NET 9 and .NET 10:
+
+```shell
+dotnet test
+```
+
+Collect coverage with `dotnet test --coverlet`.
+
+Package versions are managed centrally in `Directory.Packages.props`.
+
 Snapshot tests are done using [Verify](https://github.com/VerifyTests/Verify/). If you want to optimize running these tests in your local IDE, you might adjust some settings.
 Please, check your local configuration in the [VerifyDocs](https://github.com/VerifyTests/Verify/blob/main/docs/wiz/readme.md)
+
+### Releases
+
+Conventional commits on `main` are collected by release-please into a release PR.
+Merging that PR updates the shared package version and changelog, creates a GitHub release,
+and builds, tests, and publishes the package to NuGet using the `NUGET_API_KEY` repository secret.
+Release PR checks created with `GITHUB_TOKEN` may require a maintainer to approve their workflow runs.

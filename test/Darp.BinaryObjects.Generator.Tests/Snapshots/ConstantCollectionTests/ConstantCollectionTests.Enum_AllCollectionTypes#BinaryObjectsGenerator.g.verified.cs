@@ -151,7 +151,7 @@ namespace Darp.BinaryObjects.Generated
             var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
             if (!BitConverter.IsLittleEndian)
             {
-                var reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array);
+                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
                 BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
             }
             bytesRead = array.Length * 4;
@@ -165,7 +165,7 @@ namespace Darp.BinaryObjects.Generated
             var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
             if (BitConverter.IsLittleEndian)
             {
-                var reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array);
+                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
                 BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
             }
             bytesRead = array.Length * 4;

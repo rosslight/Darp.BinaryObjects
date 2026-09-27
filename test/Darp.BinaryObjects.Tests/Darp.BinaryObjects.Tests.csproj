@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <BinaryObjectsGenerator_IsUtilityClassInternal>true</BinaryObjectsGenerator_IsUtilityClassInternal>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <BinaryObjectsGenerator_IsUtilityClassInternal>true</BinaryObjectsGenerator_IsUtilityClassInternal>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Darp.BinaryObjects\Darp.BinaryObjects.csproj" />
-      <ProjectReference Include="..\..\src\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj" OutputItemType="Analyzer"/>
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Darp.BinaryObjects\Darp.BinaryObjects.csproj" />
+    <ProjectReference
+      Include="..\..\src\Darp.BinaryObjects.Generator\Darp.BinaryObjects.Generator.csproj"
+      OutputItemType="Analyzer"
+    />
+  </ItemGroup>
 
   <Import Project="..\..\src\Darp.BinaryObjects.Generator\buildTransitive\Darp.BinaryObjects.Generator.props" />
 </Project>
