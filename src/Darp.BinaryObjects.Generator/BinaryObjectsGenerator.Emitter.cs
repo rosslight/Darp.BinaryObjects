@@ -35,16 +35,22 @@ partial class BinaryObjectsGenerator
         var utilities = new List<UtilityData>();
 
         EmitOptionalNamespaceStart(writer, info.Symbol);
-        EmitAddTypeDeclaration(writer, info.Syntax, memberGroups);
+        EmitAddTypeDeclaration(writer, info, memberGroups);
         writer.WriteLine("{");
         writer.Indent++;
-        EmitGetByteCountMethod(writer, info.Symbol, memberGroups);
-        writer.WriteEmptyLine();
-        EmitWriteImplementationMethod(writer, memberGroups, true, utilities);
-        EmitWriteImplementationMethod(writer, memberGroups, false, utilities);
-        writer.WriteEmptyLine();
-        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, true, utilities);
-        EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, false, utilities);
+        if (info.GenerateWrite)
+        {
+            EmitGetByteCountMethod(writer, info.Symbol, memberGroups);
+            writer.WriteEmptyLine();
+            EmitWriteImplementationMethod(writer, memberGroups, true, utilities);
+            EmitWriteImplementationMethod(writer, memberGroups, false, utilities);
+            writer.WriteEmptyLine();
+        }
+        if (info.GenerateRead)
+        {
+            EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, true, utilities);
+            EmitReadImplementationMethod(writer, info.Symbol, memberGroups, constructorParameters, false, utilities);
+        }
         writer.Indent--;
         writer.WriteLine("}");
         EmitOptionalNamespaceEnd(writer, info.Symbol);
@@ -76,23 +82,33 @@ partial class BinaryObjectsGenerator
 
     private static void EmitAddTypeDeclaration(
         IndentedTextWriter writer,
-        TypeDeclarationSyntax syntax,
+        TargetTypeInfo info,
         ImmutableArray<IGroup> memberGroups
     )
     {
+        TypeDeclarationSyntax syntax = info.Syntax;
         // Add xml docs
         var memberDocs = memberGroups
             .SelectMembers()
             .Select(memberInfo =>
-                $"""/// <item> <term><see cref="{memberInfo.MemberSymbol.Name}"/></term> <description>{memberInfo.GetDocCommentLength()}</description> </item>"""
-            )
+            {
+                var length =
+                    memberInfo is BinaryObjectMemberGroup && !info.GenerateWrite
+                        ? "variable"
+                        : memberInfo.GetDocCommentLength();
+                return $"""/// <item> <term><see cref="{memberInfo.MemberSymbol.Name}"/></term> <description>{length}</description> </item>""";
+            })
             .ToArray();
         //var summedConstantLength = memberGroups.Sum(x => x.ConstantByteLength);
         var summedLength = memberGroups.Length switch
         {
             > 0 => string.Join(
                 " + ",
-                memberGroups.Select(x => x.GetVariableDocCommentLength() ?? $"{x.ConstantByteLength}")
+                memberGroups.Select(x =>
+                    x is BinaryObjectMemberGroup && !info.GenerateWrite
+                        ? "variable"
+                        : x.GetVariableDocCommentLength() ?? $"{x.ConstantByteLength}"
+                )
             ),
             _ => "0",
         };
@@ -123,8 +139,14 @@ partial class BinaryObjectsGenerator
             var constantLength = memberGroups.Sum(x => x.ConstantByteLength);
             writer.WriteLine($"[global::Darp.BinaryObjects.BinaryConstant({constantLength})]");
         }
+        var interfaceName = (info.GenerateRead, info.GenerateWrite) switch
+        {
+            (true, true) => $"IBinaryObject<{syntax.Identifier}>",
+            (true, false) => $"IBinaryReadable<{syntax.Identifier}>",
+            _ => "IBinaryWritable",
+        };
         writer.WriteLine(
-            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : global::Darp.BinaryObjects.IBinaryObject<{syntax.Identifier}>"
+            $"{syntax.Modifiers} {syntax.Keyword}{recordClassOrStruct} {syntax.Identifier} : global::Darp.BinaryObjects.{interfaceName}"
         );
     }
 

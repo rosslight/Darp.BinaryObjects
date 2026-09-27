@@ -5,8 +5,41 @@ using FluentAssertions;
 [BinaryObject]
 public sealed partial record OneUShort(ushort Value);
 
+[BinaryObject(BinaryOptions.Write)]
+internal sealed partial record WriteOnlyUShort
+{
+    public WriteOnlyUShort(object context, ushort value)
+    {
+        Value = value;
+        Tail = 0xAB;
+        this.value = 0xCD12;
+    }
+
+    public readonly ushort Value;
+    public byte Tail { get; }
+    public readonly ushort value;
+}
+
 public class OneUShortTests
 {
+    [Theory]
+    [InlineData(true, "3412AB12CD")]
+    [InlineData(false, "1234ABCD12")]
+    public void WriteOnly_ShouldSerializeReadonlyMembersWithoutConstructorBinding(bool littleEndian, string hexString)
+    {
+        IBinaryWritable writable = new WriteOnlyUShort(new object(), 0x1234);
+        var destination = new byte[5];
+        int bytesWritten;
+        var success = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+
+        success.Should().BeTrue();
+        bytesWritten.Should().Be(5);
+        writable.GetByteCount().Should().Be(5);
+        destination.Should().Equal(Convert.FromHexString(hexString));
+    }
+
     [Theory]
     [InlineData("0000", 0x0000, 0x0000)]
     [InlineData("0100", 0x0001, 0x0100)]

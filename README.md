@@ -77,6 +77,29 @@ There are warnings if:
 - There are multiple constructors but none with a `BinaryConstructorAttribute`
 - A member is readonly and does not have a matching constructor argument or is explicitly ignored
 
+## Choosing generated methods
+
+`[BinaryObject]` defaults to `BinaryOptions.All`, generating `IBinaryObject<T>` with both readers and writers.
+Choose a direction when only one is needed:
+
+```csharp
+[BinaryObject(BinaryOptions.Read)]
+public sealed partial record Incoming(ushort Value, byte[] Data);
+
+[BinaryObject(BinaryOptions.Write)]
+public sealed partial record Outgoing(ushort Value, byte[] Data);
+```
+
+`Read` generates `IBinaryReadable<T>` and `TryReadLittleEndian` / `TryReadBigEndian`.
+`Write` generates `IBinaryWritable`, `GetByteCount`, and `TryWriteLittleEndian` / `TryWriteBigEndian`.
+Both directions include overloads that report the consumed or written byte count.
+Methods in the omitted direction can be implemented by hand. Nested objects must support the direction their parent uses.
+For manual directional serializers, use `BinaryConstant` when a fixed byte length is known; otherwise nested scalar objects use the byte counts reported by their implementation.
+
+Write-only objects can serialize readonly fields and getter-only auto properties without matching constructor parameters;
+they do not need to be reconstructible by the generated reader.
+`[BinaryObject((BinaryOptions)0)]` disables generation, including member diagnostics.
+
 ## How it's supposed to work
 
 Let's pretend we have a series of bytes:

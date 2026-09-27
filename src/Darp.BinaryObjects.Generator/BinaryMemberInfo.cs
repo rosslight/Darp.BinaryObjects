@@ -483,7 +483,9 @@ partial class BinaryObjectsGenerator
             .GetAttributes()
             .Any(x => x.AttributeClass?.ToDisplayString() == BinaryObjectAttributeName);
         var hasBinaryObjectInterface = symbol.AllInterfaces.Any(x =>
-            x.OriginalDefinition.ToDisplayString() == "Darp.BinaryObjects.IBinaryObject<TSelf>"
+            x.OriginalDefinition.ToDisplayString()
+                is "Darp.BinaryObjects.IBinaryWritable"
+                    or "Darp.BinaryObjects.IBinaryReadable<TSelf>"
         );
         return hasBinaryObjectAttribute || hasBinaryObjectInterface;
     }
