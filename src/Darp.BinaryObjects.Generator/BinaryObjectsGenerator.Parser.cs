@@ -347,6 +347,17 @@ partial class BinaryObjectsGenerator
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
             var isConstant = IsConstant(typeSymbol, out var constantLength);
+            if (collectionKind is not WellKnownCollectionKind.None && (!isConstant || constantLength <= 0))
+            {
+                diagnostics.Add(
+                    DiagnosticData.Create(
+                        DiagnosticDescriptors.CollectionElementLengthUnknown,
+                        symbol.GetSourceLocation(),
+                        [symbol.Name]
+                    )
+                );
+                return false;
+            }
             if (isConstant)
                 length = constantLength;
             info = (collectionKind, arrayLength, arrayLengthMember, isConstant) switch

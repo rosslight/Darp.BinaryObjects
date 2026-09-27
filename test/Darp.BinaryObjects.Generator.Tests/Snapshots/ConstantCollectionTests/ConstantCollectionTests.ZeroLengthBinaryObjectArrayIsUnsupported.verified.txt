@@ -1,0 +1,23 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+    [BinaryElementCount(2)]
+    public Empty[] Values { get; init; } = Array.Empty<Empty>();
+                   ^^^^^^
+}
+*/
+ : (10,19)-(10,25),
+      Message: Collection member 'Values' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: CollectionElementLengthUnknown,
+        MessageFormat: Collection member '{0}' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

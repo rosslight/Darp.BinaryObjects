@@ -1,0 +1,23 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+{
+    public ManualObject[] Values { get; init; } = Array.Empty<ManualObject>();
+                          ^^^^^^
+}
+*/
+ : (15,26)-(15,32),
+      Message: Collection member 'Values' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: CollectionElementLengthUnknown,
+        MessageFormat: Collection member '{0}' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

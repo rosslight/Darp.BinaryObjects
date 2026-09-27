@@ -95,6 +95,7 @@ public sealed partial record Outgoing(ushort Value, byte[] Data);
 Both directions include overloads that report the consumed or written byte count.
 Methods in the omitted direction can be implemented by hand. Nested objects must support the direction their parent uses.
 For manual directional serializers, use `BinaryConstant` when a fixed byte length is known; otherwise nested scalar objects use the byte counts reported by their implementation.
+Object collections require a positive fixed binary element length. `BinaryElementCount` defines how many elements are present; manual element types also need `BinaryConstant` to define each element's size.
 
 Write-only objects can serialize readonly fields and getter-only auto properties without matching constructor parameters;
 they do not need to be reconstructible by the generated reader.
