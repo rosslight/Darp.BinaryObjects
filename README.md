@@ -97,6 +97,16 @@ Methods in the omitted direction can be implemented by hand. Nested objects must
 For manual directional serializers, use `BinaryConstant` when a fixed byte length is known; otherwise nested scalar objects use the byte counts reported by their implementation.
 Object collections require a positive fixed binary element length. `BinaryElementCount` defines how many elements are present; manual element types also need `BinaryConstant` to define each element's size.
 
+Collections without `BinaryElementCount` consume all complete elements remaining in the supplied input span.
+They must be the last serialized member, including on write-only objects; ignored and computed members do not affect this rule.
+Pass a span bounded to one message when reading such objects. A nested object that consumes the remaining input also needs a bounded span if its parent has trailing data.
+Use a constant or member-defined `BinaryElementCount` for collections followed by other serialized members.
+
+Generated readers and writers return `false` for negative counts or counts that cannot fit the supplied buffer.
+Constant counts and minimum lengths that cannot form a valid `int` byte length are rejected during generation.
+`GetByteCount` throws `OverflowException` when the required byte count exceeds `int.MaxValue`.
+Failed reads and writes may report partial progress; a failed write can modify the destination.
+
 Write-only objects can serialize readonly fields and getter-only auto properties without matching constructor parameters;
 they do not need to be reconstructible by the generated reader.
 `[BinaryObject((BinaryOptions)0)]` disables generation, including member diagnostics.

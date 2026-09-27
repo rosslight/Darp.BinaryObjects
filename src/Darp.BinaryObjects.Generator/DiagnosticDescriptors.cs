@@ -4,6 +4,30 @@ using Microsoft.CodeAnalysis;
 
 internal static class DiagnosticDescriptors
 {
+    public static readonly DiagnosticDescriptor RemainingCollectionMustBeLast = new(
+        id: "DBO002",
+        title: "RemainingCollectionMustBeLast",
+        messageFormat: "Collection member '{0}' consumes the remaining buffer and must be the last serialized member. Use BinaryElementCount to define its boundary.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor CollectionLengthInvalid = new(
+        id: "DBO003",
+        title: "CollectionLengthInvalid",
+        messageFormat: "Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ObjectLengthTooLarge = new(
+        id: "DBO004",
+        title: "ObjectLengthTooLarge",
+        messageFormat: "The minimum binary object byte length exceeds Int32.MaxValue.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor GeneralError = new(
         id: "DBO001",
         title: "GeneralError",

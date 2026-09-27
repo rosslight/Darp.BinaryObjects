@@ -2,6 +2,21 @@ namespace Darp.BinaryObjects.Generator.Tests;
 
 public sealed class UnboundedCollectionTests
 {
+    [Theory]
+    [InlineData(BinaryOptions.All)]
+    [InlineData(BinaryOptions.Read)]
+    [InlineData(BinaryOptions.Write)]
+    public async Task RemainingCollectionMustBeLast(BinaryOptions options)
+    {
+        var code = $$"""
+            using Darp.BinaryObjects;
+
+            [BinaryObject(BinaryOptions.{{options}})]
+            public sealed partial record TestObject(byte[] Values, ushort Tail);
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code).UseParameters(options);
+    }
+
     [Fact]
     public async Task ReadOnly_ManualObjectArrayRequiresFixedElementLength()
     {
@@ -37,7 +52,11 @@ public sealed class UnboundedCollectionTests
             public sealed partial record TestObject(System.ReadOnlyMemory<byte> Value);
 
             [BinaryObject]
-            public sealed partial record TestObjectWithOffset(byte Offset, uint[] Value);
+            public sealed partial record TestObjectWithOffset(byte Offset, uint[] Value)
+            {
+                [BinaryIgnore] public byte IgnoredTail { get; init; }
+                public int ComputedTail => Value.Length;
+            }
             """;
         await VerifyHelper.VerifyBinaryObjectsGenerator(code);
     }

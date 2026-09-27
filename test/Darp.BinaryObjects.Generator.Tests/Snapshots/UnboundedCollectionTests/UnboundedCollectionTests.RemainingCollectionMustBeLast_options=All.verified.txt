@@ -1,0 +1,22 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject(BinaryOptions.All)]
+public sealed partial record TestObject(byte[] Values, ushort Tail);
+                                               ^^^^^^
+*/
+ : (3,47)-(3,53),
+      Message: Collection member 'Values' consumes the remaining buffer and must be the last serialized member. Use BinaryElementCount to define its boundary.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO002,
+        Title: RemainingCollectionMustBeLast,
+        MessageFormat: Collection member '{0}' consumes the remaining buffer and must be the last serialized member. Use BinaryElementCount to define its boundary.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

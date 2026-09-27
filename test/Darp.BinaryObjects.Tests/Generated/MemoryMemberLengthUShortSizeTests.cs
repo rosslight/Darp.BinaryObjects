@@ -8,8 +8,105 @@ public sealed partial record MemoryMemberLengthUShortSize(
     [property: BinaryElementCount("Length")] ReadOnlyMemory<ushort> Value
 );
 
+[BinaryObject]
+internal sealed partial record IntCountedUIntMemory(
+    int Length,
+    [property: BinaryElementCount("Length")] ReadOnlyMemory<uint> Value,
+    byte Tail
+);
+
 public class MemoryMemberLengthUShortSizeTests
 {
+    [Theory]
+    [InlineData("FFFFFFFF", "FFFFFFFF")]
+    [InlineData("FFFFFF7F", "7FFFFFFF")]
+    [InlineData("00000020", "20000000")]
+    [InlineData("00000040AB", "40000000AB")]
+    [InlineData("0100004078563412AB", "4000000112345678AB")]
+    [InlineData("010000007856", "000000011234")]
+    public void SignedCount_ShouldRejectNegativeOverflowingAndTruncatedPayloads(string hexLE, string hexBE)
+    {
+        var sourceLE = Convert.FromHexString(hexLE);
+        var sourceBE = Convert.FromHexString(hexBE);
+
+        IntCountedUIntMemory.TryReadLittleEndian(sourceLE, out _).Should().BeFalse();
+        IntCountedUIntMemory.TryReadBigEndian(sourceBE, out _).Should().BeFalse();
+        IntCountedUIntMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeFalse();
+        IntCountedUIntMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeFalse();
+        valueLE.Should().BeNull();
+        valueBE.Should().BeNull();
+        bytesReadLE.Should().Be(4);
+        bytesReadBE.Should().Be(4);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(int.MaxValue)]
+    [InlineData(536870912)]
+    [InlineData(1073741824)]
+    [InlineData(1073741825)]
+    public void SignedCount_ShouldRejectWritesThatCannotFit(int count)
+    {
+        var value = new IntCountedUIntMemory(count, new uint[] { 0x12345678 }, 0xAB);
+        var destinationLE = Enumerable.Repeat((byte)0xA5, 9).ToArray();
+        var destinationBE = Enumerable.Repeat((byte)0xA5, 9).ToArray();
+
+        value.TryWriteLittleEndian(destinationLE, out var bytesWrittenLE).Should().BeFalse();
+        value.TryWriteBigEndian(destinationBE, out var bytesWrittenBE).Should().BeFalse();
+        bytesWrittenLE.Should().Be(4);
+        bytesWrittenBE.Should().Be(4);
+        destinationLE.AsSpan(4).ToArray().Should().Equal(0xA5, 0xA5, 0xA5, 0xA5, 0xA5);
+        destinationBE.AsSpan(4).ToArray().Should().Equal(0xA5, 0xA5, 0xA5, 0xA5, 0xA5);
+    }
+
+    [Theory]
+    [InlineData("00000000AB", "00000000AB", 0)]
+    [InlineData("0100000078563412AB", "0000000112345678AB", 1, 0x12345678u)]
+    public void SignedCount_ShouldPreservePayloadAndTrailingField(
+        string hexLE,
+        string hexBE,
+        int count,
+        params uint[] expectedValues
+    )
+    {
+        var sourceLE = Convert.FromHexString(hexLE);
+        var sourceBE = Convert.FromHexString(hexBE);
+
+        IntCountedUIntMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeTrue();
+        IntCountedUIntMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeTrue();
+        Assert.NotNull(valueLE);
+        Assert.NotNull(valueBE);
+        valueLE.Length.Should().Be(count);
+        valueBE.Length.Should().Be(count);
+        valueLE.Value.ToArray().Should().Equal(expectedValues);
+        valueBE.Value.ToArray().Should().Equal(expectedValues);
+        valueLE.Tail.Should().Be(0xAB);
+        valueBE.Tail.Should().Be(0xAB);
+        bytesReadLE.Should().Be(sourceLE.Length);
+        bytesReadBE.Should().Be(sourceBE.Length);
+        valueLE.GetByteCount().Should().Be(sourceLE.Length);
+        valueBE.GetByteCount().Should().Be(sourceBE.Length);
+
+        var destinationLE = new byte[sourceLE.Length];
+        var destinationBE = new byte[sourceBE.Length];
+        valueLE.TryWriteLittleEndian(destinationLE, out var bytesWrittenLE).Should().BeTrue();
+        valueBE.TryWriteBigEndian(destinationBE, out var bytesWrittenBE).Should().BeTrue();
+        destinationLE.Should().Equal(sourceLE);
+        destinationBE.Should().Equal(sourceBE);
+        bytesWrittenLE.Should().Be(sourceLE.Length);
+        bytesWrittenBE.Should().Be(sourceBE.Length);
+    }
+
+    [Theory]
+    [InlineData(536870911)]
+    [InlineData(536870912)]
+    public void GetByteCount_ShouldThrowWhenRequiredSizeExceedsInt32(int count)
+    {
+        var value = new IntCountedUIntMemory(count, ReadOnlyMemory<uint>.Empty, 0);
+
+        Assert.Throws<OverflowException>(() => value.GetByteCount());
+    }
+
     [Theory]
     [InlineData("0000", "0000", 0)]
     [InlineData("01000400", "00010004", 1, 0x04)]

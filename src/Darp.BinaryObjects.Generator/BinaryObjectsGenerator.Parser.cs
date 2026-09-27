@@ -83,12 +83,32 @@ partial class BinaryObjectsGenerator
             result = ParsedObjectInfo.Fail(diagnostics);
             return false;
         }
-        var groupedMembers = members.GroupInfos().ToImmutableArray();
+        for (var index = 0; index + 1 < members.Count; index++)
+        {
+            IMember member = members[index];
+            if (member is ReadRemainingArrayMemberGroup)
+            {
+                diagnostics.Add(
+                    DiagnosticData.Create(
+                        DiagnosticDescriptors.RemainingCollectionMustBeLast,
+                        member.MemberSymbol.GetSourceLocation(),
+                        [member.MemberSymbol.Name]
+                    )
+                );
+            }
+        }
+        if (members.Sum(member => (long)member.ConstantByteLength) > int.MaxValue)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(DiagnosticDescriptors.ObjectLengthTooLarge, typeSymbol.GetSourceLocation())
+            );
+        }
         if (diagnostics.Any(x => x.Descriptor.DefaultSeverity > DiagnosticSeverity.Warning))
         {
             result = ParsedObjectInfo.Fail(diagnostics);
             return false;
         }
+        var groupedMembers = members.GroupInfos().ToImmutableArray();
         result = new ParsedObjectInfo(
             diagnostics.ToImmutableArray(),
             groupedMembers,
@@ -344,9 +364,10 @@ partial class BinaryObjectsGenerator
             }
         }
 
+        var isConstant = false;
         if (typeKind is WellKnownTypeKind.BinaryObject)
         {
-            var isConstant = IsConstant(typeSymbol, out var constantLength);
+            isConstant = IsConstant(typeSymbol, out var constantLength);
             if (collectionKind is not WellKnownCollectionKind.None && (!isConstant || constantLength <= 0))
             {
                 diagnostics.Add(
@@ -360,6 +381,28 @@ partial class BinaryObjectsGenerator
             }
             if (isConstant)
                 length = constantLength;
+        }
+        if (
+            collectionKind is not WellKnownCollectionKind.None
+            && (
+                arrayLength is < 0
+                || arrayMinLength is < 0
+                || (long)length * (arrayLength ?? 0) > int.MaxValue
+                || (long)length * (arrayMinLength ?? 0) > int.MaxValue
+            )
+        )
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.CollectionLengthInvalid,
+                    symbol.GetSourceLocation(),
+                    [symbol.Name]
+                )
+            );
+            return false;
+        }
+        if (typeKind is WellKnownTypeKind.BinaryObject)
+        {
             info = (collectionKind, arrayLength, arrayLengthMember, isConstant) switch
             {
                 (WellKnownCollectionKind.None, _, _, true) => new ConstantWellKnownMember

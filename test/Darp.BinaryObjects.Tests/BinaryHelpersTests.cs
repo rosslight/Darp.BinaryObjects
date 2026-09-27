@@ -6,10 +6,19 @@ using FluentAssertions;
 [BinaryObject]
 internal readonly partial struct TestStruct()
 {
+    [BinaryElementCount(1)]
     public required byte[] Value2 { get; init; }
+
+    [BinaryElementCount(1)]
     public required List<byte> Value3 { get; init; }
+
+    [BinaryElementCount(1)]
     public required IEnumerable<byte> Value4 { get; init; }
+
+    [BinaryElementCount(1)]
     public required ushort[] Value12 { get; init; }
+
+    [BinaryElementCount(1)]
     public required List<ushort> Value13 { get; init; }
     public required IEnumerable<ushort> Value14 { get; init; }
 }
