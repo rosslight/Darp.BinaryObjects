@@ -93,6 +93,71 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
 [BinaryObject]
 internal sealed partial record NestedManualUInt24(byte Prefix, ManualUInt24 Value, byte Tail);
 
+// Two payload bytes in a three-byte fixed slot; the parent owns the reserved byte.
+[BinaryConstant(3)]
+internal sealed record ManualFixedPair(byte First, byte Second) : IBinaryObject<ManualFixedPair>
+{
+    public int GetByteCount() => 2;
+
+    public bool TryWriteLittleEndian(Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+
+    public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        if (destination.Length < 2)
+            return false;
+        destination[0] = First;
+        bytesWritten = 1;
+        if (First == 0xFF)
+            return false;
+        if (First == 0xEE)
+            throw new InvalidOperationException("Rejected pair");
+        destination[1] = Second;
+        bytesWritten = 2;
+        return true;
+    }
+
+    public bool TryWriteBigEndian(Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+
+    public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten) =>
+        TryWriteLittleEndian(destination, out bytesWritten);
+
+    public static bool TryReadLittleEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualFixedPair? value) =>
+        TryReadLittleEndian(source, out value, out _);
+
+    public static bool TryReadLittleEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ManualFixedPair? value,
+        out int bytesRead
+    )
+    {
+        value = null;
+        bytesRead = 0;
+        if (source.Length < 2)
+            return false;
+        bytesRead = 1;
+        if (source[0] == 0xFF)
+            return false;
+        if (source[0] == 0xEE)
+            throw new FormatException("Rejected pair");
+        value = new ManualFixedPair(source[0], source[1]);
+        bytesRead = 2;
+        return true;
+    }
+
+    public static bool TryReadBigEndian(ReadOnlySpan<byte> source, [NotNullWhen(true)] out ManualFixedPair? value) =>
+        TryReadLittleEndian(source, out value, out _);
+
+    public static bool TryReadBigEndian(
+        ReadOnlySpan<byte> source,
+        [NotNullWhen(true)] out ManualFixedPair? value,
+        out int bytesRead
+    ) => TryReadLittleEndian(source, out value, out bytesRead);
+}
+
+[BinaryObject]
+internal sealed partial record NestedManualFixedPair(byte Prefix, ManualFixedPair Value, byte Tail);
+
 internal readonly ref struct ManualBytes(byte[] data) : IBinaryWritable
 {
     public byte[] Data { get; } = data;
@@ -126,6 +191,94 @@ internal ref partial struct NestedManualBytes
 
 public class TwoUShortsTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FixedSizeChild_ShouldPropagateFailureAndProgress(bool littleEndian)
+    {
+        var source = Convert.FromHexString("A1FF3400EF");
+        var read = littleEndian
+            ? NestedManualFixedPair.TryReadLittleEndian(source, out var value, out var bytesRead)
+            : NestedManualFixedPair.TryReadBigEndian(source, out value, out bytesRead);
+        read.Should().BeFalse();
+        value.Should().BeNull();
+        bytesRead.Should().Be(2);
+
+        var writable = new NestedManualFixedPair(0xA1, new ManualFixedPair(0xFF, 0x34), 0xEF);
+        var destination = Enumerable.Repeat((byte)0xA5, 5).ToArray();
+        var written = littleEndian
+            ? writable.TryWriteLittleEndian(destination, out var bytesWritten)
+            : writable.TryWriteBigEndian(destination, out bytesWritten);
+        written.Should().BeFalse();
+        bytesWritten.Should().Be(2);
+        destination.Should().Equal(0xA1, 0xFF, 0xA5, 0xA5, 0xA5);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FixedSizeChild_ShouldPreserveDeclaredOffsetsAndBufferGuard(bool littleEndian)
+    {
+        var source = Convert.FromHexString("A1123400EF");
+        var read = littleEndian
+            ? NestedManualFixedPair.TryReadLittleEndian(source, out var value, out var bytesRead)
+            : NestedManualFixedPair.TryReadBigEndian(source, out value, out bytesRead);
+        read.Should().BeTrue();
+        Assert.NotNull(value);
+        value.Value.Should().Be(new ManualFixedPair(0x12, 0x34));
+        value.Tail.Should().Be(0xEF);
+        bytesRead.Should().Be(5);
+        value.GetByteCount().Should().Be(5);
+
+        var destination = Enumerable.Repeat((byte)0xA5, 6).ToArray();
+        var written = littleEndian
+            ? value.TryWriteLittleEndian(destination, out var bytesWritten)
+            : value.TryWriteBigEndian(destination, out bytesWritten);
+        written.Should().BeTrue();
+        bytesWritten.Should().Be(5);
+        destination.Should().Equal(0xA1, 0x12, 0x34, 0xA5, 0xEF, 0xA5);
+
+        var shortSource = source[..4];
+        var shortRead = littleEndian
+            ? NestedManualFixedPair.TryReadLittleEndian(shortSource, out _, out bytesRead)
+            : NestedManualFixedPair.TryReadBigEndian(shortSource, out _, out bytesRead);
+        shortRead.Should().BeFalse();
+        bytesRead.Should().Be(0);
+        var shortDestination = Enumerable.Repeat((byte)0xA5, 4).ToArray();
+        var shortWrite = littleEndian
+            ? value.TryWriteLittleEndian(shortDestination, out bytesWritten)
+            : value.TryWriteBigEndian(shortDestination, out bytesWritten);
+        shortWrite.Should().BeFalse();
+        bytesWritten.Should().Be(0);
+        shortDestination.Should().Equal(0xA5, 0xA5, 0xA5, 0xA5);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FixedSizeChild_ShouldPreserveChildExceptions(bool littleEndian)
+    {
+        var source = Convert.FromHexString("A1EE3400EF");
+        Action read = () =>
+        {
+            if (littleEndian)
+                NestedManualFixedPair.TryReadLittleEndian(source, out _);
+            else
+                NestedManualFixedPair.TryReadBigEndian(source, out _);
+        };
+        read.Should().Throw<FormatException>().WithMessage("Rejected pair");
+
+        var value = new NestedManualFixedPair(0xA1, new ManualFixedPair(0xEE, 0x34), 0xEF);
+        Action write = () =>
+        {
+            if (littleEndian)
+                value.TryWriteLittleEndian(source);
+            else
+                value.TryWriteBigEndian(source);
+        };
+        write.Should().Throw<InvalidOperationException>().WithMessage("Rejected pair");
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

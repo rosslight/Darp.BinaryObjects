@@ -107,6 +107,8 @@ Generated readers and writers return `false` for negative counts or counts that 
 Constant counts and minimum lengths that cannot form a valid `int` byte length are rejected during generation.
 `GetByteCount` throws `OverflowException` when the required byte count exceeds `int.MaxValue`.
 Failed reads and writes may report partial progress; a failed write can modify the destination.
+Nested child serializers returning `false` cause the generated parent to return `false`, including for fixed-size objects and object collections. The parent includes the child's reported progress on failure. Exceptions thrown by the child itself propagate.
+Fixed-size children and collection elements retain their declared slices and strides on success, even when a manual serializer reports fewer bytes.
 
 Write-only objects can serialize readonly fields and getter-only auto properties without matching constructor parameters;
 they do not need to be reconstructible by the generated reader.

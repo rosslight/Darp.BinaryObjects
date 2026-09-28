@@ -47,8 +47,7 @@ internal readonly record struct UtilityData(
     WellKnownCollectionKind CollectionKind,
     WellKnownTypeKind TypeKind,
     int? ByteLength,
-    bool EmitLittleAndBigEndian,
-    bool UseReportedByteCounts = false
+    bool EmitLittleAndBigEndian
 )
 {
     public static int? UnknownLength { get; } = null!;
@@ -119,15 +118,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                                 var readUtilities = info.GenerateRead
                                     ? GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
                                     : [];
-                                return writeUtilities
-                                    .Concat(readUtilities)
-                                    .Select(utility =>
-                                        utility with
-                                        {
-                                            UseReportedByteCounts =
-                                                x is BinaryObjectMemberGroup { UseInterfaceDispatch: true },
-                                        }
-                                    );
+                                return writeUtilities.Concat(readUtilities);
                             })
                             .Distinct()
                             .ToImmutableEquatableArray();

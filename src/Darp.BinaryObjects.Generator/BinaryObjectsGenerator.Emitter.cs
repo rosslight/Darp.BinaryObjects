@@ -261,6 +261,7 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                var countedByteIndex = 0;
                 foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
                     if (
@@ -274,14 +275,22 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     {
                         continue;
                     }
+                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject && currentByteIndex > countedByteIndex)
+                        writer.WriteLine($"bytesWritten += {currentByteIndex - countedByteIndex};");
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesWritten;
+                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject)
+                    {
+                        writer.WriteLine($"bytesWritten += {bytesWritten};");
+                        countedByteIndex = currentByteIndex;
+                    }
                 }
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"destination = destination[{currentByteIndex}..];");
                 }
-                writer.WriteLine($"bytesWritten += {currentByteIndex};");
+                if (currentByteIndex > countedByteIndex)
+                    writer.WriteLine($"bytesWritten += {currentByteIndex - countedByteIndex};");
                 writer.WriteEmptyLine();
             }
         }
@@ -379,6 +388,7 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                var countedByteIndex = 0;
                 foreach (IConstantMember memberInfo in constantGroup.Members)
                 {
                     if (
@@ -392,16 +402,23 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                     {
                         continue;
                     }
+                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject && currentByteIndex > countedByteIndex)
+                        writer.WriteLine($"bytesRead += {currentByteIndex - countedByteIndex};");
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesRead;
+                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject)
+                    {
+                        writer.WriteLine($"bytesRead += {bytesRead};");
+                        countedByteIndex = currentByteIndex;
+                    }
                 }
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"source = source[{currentByteIndex}..];");
                 }
-                if (constantGroup.Members.Count > 0)
+                if (currentByteIndex > countedByteIndex)
                 {
-                    writer.WriteLine($"bytesRead += {currentByteIndex};");
+                    writer.WriteLine($"bytesRead += {currentByteIndex - countedByteIndex};");
                     writer.WriteEmptyLine();
                 }
             }
@@ -477,12 +494,14 @@ namespace Darp.BinaryObjects.Generated
                 WellKnownCollectionKind collectionKind,
                 WellKnownTypeKind typeKind,
                 var constLength,
-                var emitLittleAndBigEndian,
-                var useReportedByteCounts
+                var emitLittleAndBigEndian
             ) = utilityData;
-            if (useReportedByteCounts)
+            if (typeKind is WellKnownTypeKind.BinaryObject)
             {
-                EmitManualObjectUtilities(writer, isReadUtility);
+                if (collectionKind is WellKnownCollectionKind.None)
+                    EmitBinaryObjectScalarUtilities(writer, isReadUtility);
+                else
+                    EmitBinaryObjectCollectionUtilities(writer, collectionKind, isReadUtility);
                 continue;
             }
             if (isReadUtility)
@@ -500,7 +519,7 @@ namespace Darp.BinaryObjects.Generated
         writer.WriteLine("}");
     }
 
-    private static void EmitManualObjectUtilities(IndentedTextWriter writer, bool generateRead)
+    private static void EmitBinaryObjectScalarUtilities(IndentedTextWriter writer, bool generateRead)
     {
         writer.WriteMultiLine(
             generateRead

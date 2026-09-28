@@ -77,9 +77,14 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectLittleEndian(destination[0..1], this.Value);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..1], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
+            return false;
+        }
+        bytesWritten += 1;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.Tail);
-        bytesWritten += 2;
+        bytesWritten += 1;
 
         return true;
     }
@@ -94,9 +99,14 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
 
         if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteBinaryObjectBigEndian(destination[0..1], this.Value);
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..1], this.Value, out var ___bytesWrittenValue))
+        {
+            bytesWritten += ___bytesWrittenValue;
+            return false;
+        }
+        bytesWritten += 1;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[1..2], this.Tail);
-        bytesWritten += 2;
+        bytesWritten += 1;
 
         return true;
     }
@@ -129,21 +139,11 @@ namespace Darp.BinaryObjects.Generated
         {
             destination[0] = value;
         }
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteLittleEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
-        /// <summary> Writes a <c>T</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBinaryObjectBigEndian<T>(Span<byte> destination, T value)
-            where T : IBinaryWritable
-        {
-            if (!value.TryWriteBigEndian(destination))
-                throw new ArgumentOutOfRangeException(nameof(value));
-        }
+        public static int GetBinaryObjectByteCount<T>(T value)
+            where T : IBinaryWritable => value.GetByteCount();
+        public static bool TryWriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteLittleEndian(destination, out bytesWritten);
+        public static bool TryWriteBinaryObjectBigEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+            where T : IBinaryWritable => value.TryWriteBigEndian(destination, out bytesWritten);
     }
 }

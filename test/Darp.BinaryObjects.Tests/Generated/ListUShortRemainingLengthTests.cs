@@ -17,8 +17,56 @@ internal sealed partial record ObjectUShortList(List<OneUShort> Value);
 [BinaryObject]
 internal sealed partial record ObjectUShortArray(OneUShort[] Value);
 
+[BinaryObject]
+internal sealed partial record RemainingPairEnumerable(byte Prefix, IEnumerable<ManualFixedPair> Values);
+
 public class ListUShortRemainingLengthTests
 {
+    [Theory]
+    [InlineData(true, 0xFF, false, 5, "A11234A5FFA5A5A5", "A1123400FF7800")]
+    [InlineData(false, 0xFF, false, 5, "A11234A5FFA5A5A5", "A1123400FF7800")]
+    [InlineData(true, 0x56, true, 7, "A11234A55678A5A5", "A1123400567800")]
+    [InlineData(false, 0x56, true, 7, "A11234A55678A5A5", "A1123400567800")]
+    public void ObjectIterator_ShouldPreserveDeclaredStrideAndChildProgress(
+        bool littleEndian,
+        byte secondFirst,
+        bool expectedSuccess,
+        int expectedProgress,
+        string destinationHex,
+        string sourceHex
+    )
+    {
+        var value = new RemainingPairEnumerable(0xA1, EnumeratePairs(secondFirst));
+        var destination = Enumerable.Repeat((byte)0xA5, 8).ToArray();
+        var written = littleEndian
+            ? value.TryWriteLittleEndian(destination, out var bytesWritten)
+            : value.TryWriteBigEndian(destination, out bytesWritten);
+        written.Should().Be(expectedSuccess);
+        bytesWritten.Should().Be(expectedProgress);
+        value.GetByteCount().Should().Be(7);
+        destination.Should().Equal(Convert.FromHexString(destinationHex));
+
+        var source = Convert.FromHexString(sourceHex);
+        var read = littleEndian
+            ? RemainingPairEnumerable.TryReadLittleEndian(source, out var parsed, out var bytesRead)
+            : RemainingPairEnumerable.TryReadBigEndian(source, out parsed, out bytesRead);
+        read.Should().Be(expectedSuccess);
+        bytesRead.Should().Be(expectedProgress);
+        if (expectedSuccess)
+        {
+            Assert.NotNull(parsed);
+            parsed.Values.Should().Equal(new ManualFixedPair(0x12, 0x34), new ManualFixedPair(0x56, 0x78));
+        }
+        else
+            parsed.Should().BeNull();
+    }
+
+    private static IEnumerable<ManualFixedPair> EnumeratePairs(byte secondFirst)
+    {
+        yield return new ManualFixedPair(0x12, 0x34);
+        yield return new ManualFixedPair(secondFirst, 0x78);
+    }
+
     [Theory]
     [InlineData("", "")]
     [InlineData("3412", "1234", 0x1234)]
