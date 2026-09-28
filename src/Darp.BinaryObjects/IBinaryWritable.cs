@@ -5,6 +5,7 @@ public interface IBinaryWritable
 {
     /// <summary> Gets the number of bytes that are required for <see cref="TryWriteLittleEndian(System.Span{byte})" />. </summary>
     /// <returns> The number of bytes that are required for <see cref="TryWriteBigEndian(System.Span{byte})" />. </returns>
+    /// <exception cref="OverflowException"> The required byte count exceeds <see cref="int.MaxValue"/>. </exception>
     public int GetByteCount();
 
     /// <summary> Tries to write the current value, in little-endian format, to a given span. </summary>

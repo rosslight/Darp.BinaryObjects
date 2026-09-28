@@ -12,7 +12,7 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryWritable
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => this.Value.GetByteCount();
+    public int GetByteCount() => checked(this.Value.GetByteCount());
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]

@@ -12,7 +12,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 1 * this.Value.Length;
+    public int GetByteCount() => checked(1 * this.Value.Length);
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -23,7 +23,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1 * this.Value.Length)
+        if (this.Value.Length > destination.Length / 1)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination, this.Value.Span);
 
@@ -38,7 +38,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 1 * this.Value.Length)
+        if (this.Value.Length > destination.Length / 1)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination, this.Value.Span);
 
@@ -90,7 +90,7 @@ public sealed partial record TestObjectWithOffset : global::Darp.BinaryObjects.I
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 1 + 4 * this.Value.Length;
+    public int GetByteCount() => checked(1 + 4 * this.Value.Length);
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -107,7 +107,7 @@ public sealed partial record TestObjectWithOffset : global::Darp.BinaryObjects.I
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < 4 * this.Value.Length)
+        if (this.Value.Length > destination.Length / 4)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination, this.Value);
 
@@ -128,7 +128,7 @@ public sealed partial record TestObjectWithOffset : global::Darp.BinaryObjects.I
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < 4 * this.Value.Length)
+        if (this.Value.Length > destination.Length / 4)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination, this.Value);
 

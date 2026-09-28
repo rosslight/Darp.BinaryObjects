@@ -1,0 +1,99 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+{
+    [BinaryElementCount(-1)] public ushort[] Values { get; init; }
+                                             ^^^^^^
+}
+*/
+ : (5,45)-(5,51),
+      Message: Collection member 'Values' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO003,
+        Title: CollectionLengthInvalid,
+        MessageFormat: Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+{
+    [BinaryElementCount(int.MaxValue)] public ushort[] Values { get; init; }
+                                                       ^^^^^^
+}
+*/
+ : (11,55)-(11,61),
+      Message: Collection member 'Values' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO003,
+        Title: CollectionLengthInvalid,
+        MessageFormat: Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+{
+    [BinaryMinElementCount(-1)] public byte[] Values { get; init; }
+                                              ^^^^^^
+}
+*/
+ : (17,46)-(17,52),
+      Message: Collection member 'Values' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO003,
+        Title: CollectionLengthInvalid,
+        MessageFormat: Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+{
+    [BinaryMinElementCount(int.MaxValue)] public ushort[] Values { get; init; }
+                                                          ^^^^^^
+}
+*/
+ : (23,58)-(23,64),
+      Message: Collection member 'Values' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO003,
+        Title: CollectionLengthInvalid,
+        MessageFormat: Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+[BinaryObject]
+public sealed partial record OverflowingObjectLength
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+{
+*/
+ : (27,29)-(27,52),
+      Message: The minimum binary object byte length exceeds Int32.MaxValue.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO004,
+        Title: ObjectLengthTooLarge,
+        MessageFormat: The minimum binary object byte length exceeds Int32.MaxValue.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

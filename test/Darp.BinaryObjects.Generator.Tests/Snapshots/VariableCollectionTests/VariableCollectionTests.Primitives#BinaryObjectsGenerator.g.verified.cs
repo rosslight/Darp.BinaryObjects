@@ -16,7 +16,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 1 + 1 * this.Length + 2 * this.Length + 4 * this.Length + 8 * this.Length;
+    public int GetByteCount() => checked(1 + 1 * this.Length + 2 * this.Length + 4 * this.Length + 8 * this.Length);
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -33,28 +33,32 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < 1 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..(1 * this.Length)], this.Value1);
-        destination = destination[(1 * this.Length)..];
-        bytesWritten += (1 * this.Length);
+        var ___byteLengthValue1 = 1 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..___byteLengthValue1], this.Value1);
+        destination = destination[___byteLengthValue1..];
+        bytesWritten += ___byteLengthValue1;
 
-        if (destination.Length < 2 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanLittleEndian(destination[0..(2 * this.Length)], this.Value2);
-        destination = destination[(2 * this.Length)..];
-        bytesWritten += (2 * this.Length);
+        var ___byteLengthValue2 = 2 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanLittleEndian(destination[0..___byteLengthValue2], this.Value2);
+        destination = destination[___byteLengthValue2..];
+        bytesWritten += ___byteLengthValue2;
 
-        if (destination.Length < 4 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination[0..(4 * this.Length)], this.Value3);
-        destination = destination[(4 * this.Length)..];
-        bytesWritten += (4 * this.Length);
+        var ___byteLengthValue3 = 4 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination[0..___byteLengthValue3], this.Value3);
+        destination = destination[___byteLengthValue3..];
+        bytesWritten += ___byteLengthValue3;
 
-        if (destination.Length < 8 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 8)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanLittleEndian(destination[0..(8 * this.Length)], this.Value4);
-        bytesWritten += (8 * this.Length);
+        var ___byteLengthValue4 = 8 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanLittleEndian(destination[0..___byteLengthValue4], this.Value4);
+        bytesWritten += ___byteLengthValue4;
 
         return true;
     }
@@ -73,28 +77,32 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (destination.Length < 1 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..(1 * this.Length)], this.Value1);
-        destination = destination[(1 * this.Length)..];
-        bytesWritten += (1 * this.Length);
+        var ___byteLengthValue1 = 1 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..___byteLengthValue1], this.Value1);
+        destination = destination[___byteLengthValue1..];
+        bytesWritten += ___byteLengthValue1;
 
-        if (destination.Length < 2 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanBigEndian(destination[0..(2 * this.Length)], this.Value2);
-        destination = destination[(2 * this.Length)..];
-        bytesWritten += (2 * this.Length);
+        var ___byteLengthValue2 = 2 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanBigEndian(destination[0..___byteLengthValue2], this.Value2);
+        destination = destination[___byteLengthValue2..];
+        bytesWritten += ___byteLengthValue2;
 
-        if (destination.Length < 4 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 4)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination[0..(4 * this.Length)], this.Value3);
-        destination = destination[(4 * this.Length)..];
-        bytesWritten += (4 * this.Length);
+        var ___byteLengthValue3 = 4 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination[0..___byteLengthValue3], this.Value3);
+        destination = destination[___byteLengthValue3..];
+        bytesWritten += ___byteLengthValue3;
 
-        if (destination.Length < 8 * this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 8)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanBigEndian(destination[0..(8 * this.Length)], this.Value4);
-        bytesWritten += (8 * this.Length);
+        var ___byteLengthValue4 = 8 * this.Length;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanBigEndian(destination[0..___byteLengthValue4], this.Value4);
+        bytesWritten += ___byteLengthValue4;
 
         return true;
     }
@@ -115,28 +123,32 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         source = source[1..];
         bytesRead += 1;
 
-        if (source.Length < (1 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 1)
             return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..(1 * ___readLength)], out _);
-        source = source[(1 * ___readLength)..];
-        bytesRead += (1 * ___readLength);
+        var ___byteLengthValue1 = 1 * ___readLength;
+        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..___byteLengthValue1], out _);
+        source = source[___byteLengthValue1..];
+        bytesRead += ___byteLengthValue1;
 
-        if (source.Length < (2 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 2)
             return false;
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayLittleEndian(source[0..(2 * ___readLength)], out _);
-        source = source[(2 * ___readLength)..];
-        bytesRead += (2 * ___readLength);
+        var ___byteLengthValue2 = 2 * ___readLength;
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayLittleEndian(source[0..___byteLengthValue2], out _);
+        source = source[___byteLengthValue2..];
+        bytesRead += ___byteLengthValue2;
 
-        if (source.Length < (4 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 4)
             return false;
-        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayLittleEndian(source[0..(4 * ___readLength)], out _);
-        source = source[(4 * ___readLength)..];
-        bytesRead += (4 * ___readLength);
+        var ___byteLengthValue3 = 4 * ___readLength;
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayLittleEndian(source[0..___byteLengthValue3], out _);
+        source = source[___byteLengthValue3..];
+        bytesRead += ___byteLengthValue3;
 
-        if (source.Length < (8 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 8)
             return false;
-        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64ArrayLittleEndian(source[0..(8 * ___readLength)], out _);
-        bytesRead += (8 * ___readLength);
+        var ___byteLengthValue4 = 8 * ___readLength;
+        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64ArrayLittleEndian(source[0..___byteLengthValue4], out _);
+        bytesRead += ___byteLengthValue4;
 
         value = new TestObject(___readLength, ___readValue1, ___readValue2, ___readValue3, ___readValue4);
         return true;
@@ -157,28 +169,32 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         source = source[1..];
         bytesRead += 1;
 
-        if (source.Length < (1 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 1)
             return false;
-        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..(1 * ___readLength)], out _);
-        source = source[(1 * ___readLength)..];
-        bytesRead += (1 * ___readLength);
+        var ___byteLengthValue1 = 1 * ___readLength;
+        var ___readValue1 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..___byteLengthValue1], out _);
+        source = source[___byteLengthValue1..];
+        bytesRead += ___byteLengthValue1;
 
-        if (source.Length < (2 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 2)
             return false;
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayBigEndian(source[0..(2 * ___readLength)], out _);
-        source = source[(2 * ___readLength)..];
-        bytesRead += (2 * ___readLength);
+        var ___byteLengthValue2 = 2 * ___readLength;
+        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayBigEndian(source[0..___byteLengthValue2], out _);
+        source = source[___byteLengthValue2..];
+        bytesRead += ___byteLengthValue2;
 
-        if (source.Length < (4 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 4)
             return false;
-        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayBigEndian(source[0..(4 * ___readLength)], out _);
-        source = source[(4 * ___readLength)..];
-        bytesRead += (4 * ___readLength);
+        var ___byteLengthValue3 = 4 * ___readLength;
+        var ___readValue3 = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt32ArrayBigEndian(source[0..___byteLengthValue3], out _);
+        source = source[___byteLengthValue3..];
+        bytesRead += ___byteLengthValue3;
 
-        if (source.Length < (8 * ___readLength))
+        if (___readLength < 0 || ___readLength > source.Length / 8)
             return false;
-        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64ArrayBigEndian(source[0..(8 * ___readLength)], out _);
-        bytesRead += (8 * ___readLength);
+        var ___byteLengthValue4 = 8 * ___readLength;
+        var ___readValue4 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt64ArrayBigEndian(source[0..___byteLengthValue4], out _);
+        bytesRead += ___byteLengthValue4;
 
         value = new TestObject(___readLength, ___readValue1, ___readValue2, ___readValue3, ___readValue4);
         return true;

@@ -3,6 +3,46 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class ConstantCollectionTests
 {
     [Fact]
+    public async Task InvalidElementCounts_ShouldReportDiagnostics()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            [BinaryObject]
+            public sealed partial record NegativeCount
+            {
+                [BinaryElementCount(-1)] public ushort[] Values { get; init; }
+            }
+
+            [BinaryObject]
+            public sealed partial record OverflowingCount
+            {
+                [BinaryElementCount(int.MaxValue)] public ushort[] Values { get; init; }
+            }
+
+            [BinaryObject]
+            public sealed partial record NegativeMinimum
+            {
+                [BinaryMinElementCount(-1)] public byte[] Values { get; init; }
+            }
+
+            [BinaryObject]
+            public sealed partial record OverflowingMinimum
+            {
+                [BinaryMinElementCount(int.MaxValue)] public ushort[] Values { get; init; }
+            }
+
+            [BinaryObject]
+            public sealed partial record OverflowingObjectLength
+            {
+                [BinaryElementCount(1073741824)] public byte[] First { get; init; }
+                [BinaryElementCount(1073741824)] public byte[] Second { get; init; }
+            }
+            """;
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task ZeroLengthBinaryObjectArrayIsUnsupported()
     {
         const string code = """

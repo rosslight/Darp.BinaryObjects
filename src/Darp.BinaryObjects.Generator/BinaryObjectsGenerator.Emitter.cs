@@ -165,6 +165,8 @@ partial class BinaryObjectsGenerator
         var isPure = memberGroups.SelectMembers().All(x => x is IConstantMember);
         if (isPure)
             writer.WriteLine("[global::System.Diagnostics.Contracts.Pure]");
+        else
+            summedLength = $"checked({summedLength})";
         writer.WriteMultiLine(
             $"""
 [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
