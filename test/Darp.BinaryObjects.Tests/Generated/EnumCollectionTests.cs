@@ -32,6 +32,9 @@ internal sealed partial record EnumCollectionVariants(
     SignedByteEnumValue[] Remaining
 );
 
+[BinaryObject]
+internal sealed partial record EmptyEnumEnumerable([property: BinaryElementCount(0)] IEnumerable<UInt16EnumValue> Values);
+
 public sealed class EnumCollectionTests
 {
     [Theory]
@@ -73,6 +76,16 @@ public sealed class EnumCollectionTests
     {
         yield return UInt16EnumValue.First;
         yield return UInt16EnumValue.Second;
+        throw new InvalidOperationException("The writer advanced past the declared element count.");
+    }
+
+    [Fact]
+    public void EmptyEnumEnumerable_ShouldNotAdvanceIterator()
+    {
+        var value = new EmptyEnumEnumerable(EnumerateValues());
+
+        value.TryWriteLittleEndian(Span<byte>.Empty, out var bytesWritten).Should().BeTrue();
+        bytesWritten.Should().Be(0);
     }
 
     [Theory]

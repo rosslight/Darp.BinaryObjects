@@ -1109,15 +1109,17 @@ partial class BinaryObjectsGenerator
                         )}}{{GetTypeParameter(typeKind)}}(destination, listValue);
                         }
                         var maxElementLength = destination.Length / {{byteLength}};
+                        if (maxElementLength == 0)
+                            return 0;
                         var index = 0;
                         foreach (var val in value)
                         {
-                            if (index >= maxElementLength)
-                                break;
                             var item = val;
                             ReadOnlySpan<{{typeName}}> element = MemoryMarshal.CreateReadOnlySpan(ref item, 1);
                             {{GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, isLittleEndian)}}{{GetTypeParameter(typeKind)}}(destination.Slice(index * {{byteLength}}, {{byteLength}}), element);
                             index++;
+                            if (index >= maxElementLength)
+                                return index * {{byteLength}};
                         }
                         return index * {{byteLength}};
                         """,
