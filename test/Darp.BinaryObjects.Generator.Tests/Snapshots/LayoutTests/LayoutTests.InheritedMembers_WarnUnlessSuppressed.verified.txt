@@ -1,0 +1,44 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject]
+public partial class Packet : Header
+                     ^^^^^^
+{
+*/
+ : (8,21)-(8,27),
+      Message: Inherited instance fields and properties of 'Packet' are not serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: InheritedMembersIgnored,
+        MessageFormat: Inherited instance fields and properties of '{0}' are not serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+[BinaryObject]
+public partial class IntentionalPacket : Header
+                     ^^^^^^^^^^^^^^^^^
+{
+*/
+ : (15,21)-(15,38),
+      Message: Inherited instance fields and properties of 'IntentionalPacket' are not serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: InheritedMembersIgnored,
+        MessageFormat: Inherited instance fields and properties of '{0}' are not serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

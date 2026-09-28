@@ -44,10 +44,10 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
-    public static readonly DiagnosticDescriptor InheritanceNotSupported = new(
-        id: "DBO001",
-        title: "InheritanceNotSupported",
-        messageFormat: "Properties from base classes are not respected during binary operations",
+    public static readonly DiagnosticDescriptor InheritedMembersIgnored = new(
+        id: "DBO005",
+        title: "InheritedMembersIgnored",
+        messageFormat: "Inherited instance fields and properties of '{0}' are not serialized. Suppress DBO005 if this is intentional.",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true

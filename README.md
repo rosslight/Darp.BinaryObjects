@@ -95,6 +95,7 @@ public sealed partial record Outgoing(ushort Value, byte[] Data);
 Both directions include overloads that report the consumed or written byte count.
 Methods in the omitted direction can be implemented by hand. Nested objects must support the direction their parent uses.
 For any manual serializer, including `IBinaryObject<T>`, use `BinaryConstant` when a fixed byte length is known; otherwise nested scalar objects use the byte counts reported by their implementation.
+Only members declared on an annotated type are serialized. Inherited instance fields and properties omitted from the layout can trigger warning `DBO005`; suppress it when excluding them is intentional.
 The generator does not infer a handwritten serializer's wire layout from its fields or properties.
 Object collections require a positive fixed binary element length. `BinaryElementCount` defines how many elements are present; manual element types also need `BinaryConstant` to define each element's size.
 

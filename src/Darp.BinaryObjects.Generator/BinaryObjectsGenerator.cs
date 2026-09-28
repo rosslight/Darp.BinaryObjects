@@ -77,7 +77,14 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                         if (!info.GenerateRead && !info.GenerateWrite)
                             return new BinaryObjectStruct([], null, ImmutableEquatableArray<UtilityData>.Empty);
 
-                        if (!TryParseType(info.Symbol, info.GenerateRead, out ParsedObjectInfo parsedObject))
+                        if (
+                            !TryParseType(
+                                info.Symbol,
+                                info.GenerateRead,
+                                out ParsedObjectInfo parsedObject,
+                                info.Syntax.Identifier.GetLocation()
+                            )
+                        )
                         {
                             return new BinaryObjectStruct(
                                 parsedObject.Diagnostics.ToImmutableEquatableArray(),

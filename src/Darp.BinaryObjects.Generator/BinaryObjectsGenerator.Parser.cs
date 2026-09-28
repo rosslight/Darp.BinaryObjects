@@ -32,7 +32,12 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool TryParseType(INamedTypeSymbol typeSymbol, bool generateRead, out ParsedObjectInfo result)
+    private static bool TryParseType(
+        INamedTypeSymbol typeSymbol,
+        bool generateRead,
+        out ParsedObjectInfo result,
+        Location? warningLocation = null
+    )
     {
         List<IMember> membersInitializedByConstructor = [];
 
@@ -61,6 +66,49 @@ partial class BinaryObjectsGenerator
             members.Add(memberInfo);
             if (generateRead && validity.IsConstructorInitialized)
                 membersInitializedByConstructor.Add(memberInfo);
+        }
+
+        if (typeSymbol.TypeKind is TypeKind.Class)
+        {
+            for (
+                INamedTypeSymbol? baseType = typeSymbol.BaseType;
+                baseType is not null && baseType.SpecialType is not SpecialType.System_Object;
+                baseType = baseType.BaseType
+            )
+            {
+                if (
+                    !baseType
+                        .GetMembers()
+                        .Any(member =>
+                            member is IFieldSymbol or IPropertySymbol
+                            && !member.IsImplicitlyDeclared
+                            && !member.IsStatic
+                            && member.DeclaredAccessibility is not Accessibility.Private
+                            && !member
+                                .GetAttributes()
+                                .Any(attribute =>
+                                    attribute.AttributeClass?.ToDisplayString()
+                                    == "Darp.BinaryObjects.BinaryIgnoreAttribute"
+                                )
+                            && (
+                                member is not IPropertySymbol baseProperty
+                                || !members.Any(serialized =>
+                                    serialized.MemberSymbol is IPropertySymbol derivedProperty
+                                    && IsOverrideOf(derivedProperty, baseProperty)
+                                )
+                            )
+                        )
+                )
+                    continue;
+                diagnostics.Add(
+                    DiagnosticData.Create(
+                        DiagnosticDescriptors.InheritedMembersIgnored,
+                        warningLocation ?? typeSymbol.GetSourceLocation(),
+                        [typeSymbol.Name]
+                    )
+                );
+                break;
+            }
         }
 
         ImmutableArray<IParameterSymbol> parameters = constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
@@ -119,6 +167,20 @@ partial class BinaryObjectsGenerator
                 .ToImmutableArray()
         );
         return true;
+    }
+
+    private static bool IsOverrideOf(IPropertySymbol property, IPropertySymbol baseProperty)
+    {
+        for (
+            IPropertySymbol? overridden = property.OverriddenProperty;
+            overridden is not null;
+            overridden = overridden.OverriddenProperty
+        )
+        {
+            if (SymbolEqualityComparer.Default.Equals(overridden, baseProperty))
+                return true;
+        }
+        return false;
     }
 
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
