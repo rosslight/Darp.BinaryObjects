@@ -292,9 +292,12 @@ namespace Darp.BinaryObjects.Generated
             var index = 0;
             foreach (var val in value)
             {
-                BinaryPrimitives.WriteUInt16LittleEndian(destination[(2 * index++)..], val);
                 if (index >= maxElementLength)
-                    return index * 2;
+                    break;
+                var item = val;
+                ReadOnlySpan<ushort> element = MemoryMarshal.CreateReadOnlySpan(ref item, 1);
+                WriteUInt16SpanLittleEndian(destination.Slice(index * 2, 2), element);
+                index++;
             }
             return index * 2;
         }
@@ -313,9 +316,12 @@ namespace Darp.BinaryObjects.Generated
             var index = 0;
             foreach (var val in value)
             {
-                BinaryPrimitives.WriteUInt16BigEndian(destination[(2 * index++)..], val);
                 if (index >= maxElementLength)
-                    return index * 2;
+                    break;
+                var item = val;
+                ReadOnlySpan<ushort> element = MemoryMarshal.CreateReadOnlySpan(ref item, 1);
+                WriteUInt16SpanBigEndian(destination.Slice(index * 2, 2), element);
+                index++;
             }
             return index * 2;
         }

@@ -268,8 +268,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         out string? bytesWrittenString
     )
     {
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
-        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
+        var memberName = $"this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -315,7 +314,6 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         var countVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -328,7 +326,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             if ({countVariableName} < 0 || {countVariableName} > source.Length / {TypeByteLength}{optionalMinLengthCheck})
                 return false;
             var {lengthVariableName} = {TypeByteLength} * {countVariableName};
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -367,7 +365,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
             WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array =>
                 $"this.{MemberSymbol.Name}.Length",
             WellKnownCollectionKind.List => $"this.{MemberSymbol.Name}.Count",
-            WellKnownCollectionKind.Enumerable => $"this.{MemberSymbol.Name}.Count()",
+            WellKnownCollectionKind.Enumerable => $"global::System.Linq.Enumerable.Count(this.{MemberSymbol.Name})",
             _ => throw new ArgumentException($"Could not get variable length because {CollectionKind} is unknown"),
         };
 
@@ -392,8 +390,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         out string? bytesWrittenString
     )
     {
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
-        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
+        var memberName = $"this.{MemberSymbol.Name}";
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -438,7 +435,6 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var variableBytesReadName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -447,7 +443,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var optionalNumberOfElements =
             TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
         readString = $"""
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -698,6 +694,15 @@ partial class BinaryObjectsGenerator
             _ => throw new ArgumentException($"Could get well known display name for enum {typeKind}"),
         };
     }
+
+    private static string GetFloatingPointIntegerDisplayName(WellKnownTypeKind typeKind) =>
+        typeKind switch
+        {
+            WellKnownTypeKind.Half => "ushort",
+            WellKnownTypeKind.Float => "uint",
+            WellKnownTypeKind.Double => "ulong",
+            _ => throw new ArgumentException($"Could not get integer representation for {typeKind}"),
+        };
 
     private static string GetEndiannessName(WellKnownTypeKind typeKind, bool isLittleEndian)
     {
@@ -981,14 +986,11 @@ partial class BinaryObjectsGenerator
                     _,
                     _
                 ) =>
-                {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
-                    return $"""
+                    """
                         var length = Math.Min(value.Length, destination.Length);
-                        MemoryMarshal.Cast<TEnum, {underlyingTypeName}>(value.Slice(0, length)).CopyTo(destination);
+                        MemoryMarshal.Cast<TEnum, byte>(value.Slice(0, length)).CopyTo(destination);
                         return length;
-                        """;
-                },
+                        """,
                 (
                     WellKnownCollectionKind.Span,
                     WellKnownTypeKind.EnumUShort
@@ -1010,6 +1012,26 @@ partial class BinaryObjectsGenerator
                             return length * {{byteLength}};
                         }
                         MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
+                        return length * {{byteLength}};
+                        """;
+                },
+                (WellKnownCollectionKind.Span, WellKnownTypeKind.Half or WellKnownTypeKind.Float or WellKnownTypeKind.Double) => (
+                    _,
+                    typeName,
+                    isLittleEndian
+                ) =>
+                {
+                    var integerTypeName = GetFloatingPointIntegerDisplayName(typeKind);
+                    return $$"""
+                        var length = Math.Min(value.Length, destination.Length / {{byteLength}});
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            ReadOnlySpan<{{integerTypeName}}> bits = MemoryMarshal.Cast<{{typeName}}, {{integerTypeName}}>(value[..length]);
+                            Span<{{integerTypeName}}> target = MemoryMarshal.Cast<byte, {{integerTypeName}}>(destination);
+                            BinaryPrimitives.ReverseEndianness(bits, target);
+                            return length * {{byteLength}};
+                        }
+                        MemoryMarshal.Cast<{{typeName}}, byte>(value[..length]).CopyTo(destination);
                         return length * {{byteLength}};
                         """;
                 },
@@ -1078,25 +1100,24 @@ partial class BinaryObjectsGenerator
                             WellKnownCollectionKind.Span,
                             typeKind,
                             isLittleEndian
-                        )}}(destination, arrayValue);
+                        )}}{{GetTypeParameter(typeKind)}}(destination, arrayValue);
                             case List<{{typeName}}> listValue:
                                 return {{GetWriteMethodName(
                             WellKnownCollectionKind.List,
                             typeKind,
                             isLittleEndian
-                        )}}(destination, listValue);
+                        )}}{{GetTypeParameter(typeKind)}}(destination, listValue);
                         }
                         var maxElementLength = destination.Length / {{byteLength}};
                         var index = 0;
                         foreach (var val in value)
                         {
-                            BinaryPrimitives.{{GetWriteMethodName(
-                            WellKnownCollectionKind.None,
-                            typeKind,
-                            isLittleEndian
-                        )}}(destination[({{typeKind.GetLength()}} * index++)..], val);
                             if (index >= maxElementLength)
-                                return index * {{byteLength}};
+                                break;
+                            var item = val;
+                            ReadOnlySpan<{{typeName}}> element = MemoryMarshal.CreateReadOnlySpan(ref item, 1);
+                            {{GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, isLittleEndian)}}{{GetTypeParameter(typeKind)}}(destination.Slice(index * {{byteLength}}, {{byteLength}}), element);
+                            index++;
                         }
                         return index * {{byteLength}};
                         """,
@@ -1271,13 +1292,22 @@ partial class BinaryObjectsGenerator
                         or WellKnownTypeKind.EnumSByte,
                     _
                 ) => (_, _, _) =>
-                {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
-                    return $"""
+                    """
                         bytesRead = source.Length;
-                        return MemoryMarshal.Cast<{underlyingTypeName}, TEnum>(source).ToArray();
-                        """;
-                },
+                        return MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
+                        """,
+                (
+                    WellKnownCollectionKind.List,
+                    WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte,
+                    _
+                ) => (_, _, _) =>
+                    """
+                        ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
+                        var list = new List<TEnum>(span.Length);
+                        list.AddRange(span);
+                        bytesRead = list.Count;
+                        return list;
+                        """,
                 (
                     WellKnownCollectionKind.Memory
                         or WellKnownCollectionKind.Array,
@@ -1334,6 +1364,44 @@ partial class BinaryObjectsGenerator
                         {
                             var reinterpretedList = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(CollectionsMarshal.AsSpan(list));
                             BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
+                        }
+                        bytesRead = list.Count * {{byteLength}};
+                        return list;
+                        """;
+                },
+                (
+                    WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable,
+                    WellKnownTypeKind.Half or WellKnownTypeKind.Float or WellKnownTypeKind.Double,
+                    not null
+                ) => (_, typeName, isLittleEndian) =>
+                {
+                    var integerTypeName = GetFloatingPointIntegerDisplayName(typeKind);
+                    return $$"""
+                        var array = MemoryMarshal.Cast<byte, {{typeName}}>(source).ToArray();
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            Span<{{integerTypeName}}> bits = MemoryMarshal.Cast<{{typeName}}, {{integerTypeName}}>(array.AsSpan());
+                            BinaryPrimitives.ReverseEndianness(bits, bits);
+                        }
+                        bytesRead = array.Length * {{byteLength}};
+                        return array;
+                        """;
+                },
+                (WellKnownCollectionKind.List, WellKnownTypeKind.Half or WellKnownTypeKind.Float or WellKnownTypeKind.Double, not null) => (
+                    _,
+                    typeName,
+                    isLittleEndian
+                ) =>
+                {
+                    var integerTypeName = GetFloatingPointIntegerDisplayName(typeKind);
+                    return $$"""
+                        ReadOnlySpan<{{typeName}}> span = MemoryMarshal.Cast<byte, {{typeName}}>(source);
+                        var list = new List<{{typeName}}>(span.Length);
+                        list.AddRange(span);
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            Span<{{integerTypeName}}> bits = MemoryMarshal.Cast<{{typeName}}, {{integerTypeName}}>(CollectionsMarshal.AsSpan(list));
+                            BinaryPrimitives.ReverseEndianness(bits, bits);
                         }
                         bytesRead = list.Count * {{byteLength}};
                         return list;
