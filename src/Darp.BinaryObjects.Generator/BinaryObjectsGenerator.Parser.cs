@@ -36,8 +36,7 @@ partial class BinaryObjectsGenerator
         INamedTypeSymbol typeSymbol,
         bool generateRead,
         out ParsedObjectInfo result,
-        Location? warningLocation = null,
-        Compilation? compilation = null
+        Location? warningLocation = null
     )
     {
         List<IMember> membersInitializedByConstructor = [];
@@ -69,45 +68,18 @@ partial class BinaryObjectsGenerator
                 membersInitializedByConstructor.Add(memberInfo);
         }
 
-        if (typeSymbol.TypeKind is TypeKind.Class && compilation is not null)
+        if (
+            typeSymbol.TypeKind is TypeKind.Class
+            && typeSymbol.BaseType is { SpecialType: not SpecialType.System_Object }
+        )
         {
-            for (
-                INamedTypeSymbol? baseType = typeSymbol.BaseType;
-                baseType is not null && baseType.SpecialType is not SpecialType.System_Object;
-                baseType = baseType.BaseType
-            )
-            {
-                ImmutableArray<ISymbol> baseMembers = baseType.GetMembers();
-                if (
-                    !baseMembers.Any(member =>
-                            member is IFieldSymbol or IPropertySymbol
-                            && !member.IsImplicitlyDeclared
-                            && !member.IsStatic
-                            && compilation.IsSymbolAccessibleWithin(member, typeSymbol, typeSymbol)
-                            && !HasBinaryIgnore(member)
-                            && (
-                                member is not IPropertySymbol baseProperty
-                                || (
-                                    HasAutoPropertyBackingField(baseMembers, baseProperty)
-                                    && !HasIgnoredOverride(typeSymbol, baseProperty)
-                                    && !members.Any(serialized =>
-                                        serialized.MemberSymbol is IPropertySymbol derivedProperty
-                                        && IsOverrideOf(derivedProperty, baseProperty)
-                                    )
-                                )
-                            )
-                        )
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.BaseClassNotSerialized,
+                    warningLocation ?? typeSymbol.GetSourceLocation(),
+                    [typeSymbol.Name]
                 )
-                    continue;
-                diagnostics.Add(
-                    DiagnosticData.Create(
-                        DiagnosticDescriptors.InheritedMembersIgnored,
-                        warningLocation ?? typeSymbol.GetSourceLocation(),
-                        [typeSymbol.Name]
-                    )
-                );
-                break;
-            }
+            );
         }
 
         ImmutableArray<IParameterSymbol> parameters = constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
@@ -168,56 +140,6 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool IsOverrideOf(IPropertySymbol property, IPropertySymbol baseProperty)
-    {
-        for (
-            IPropertySymbol? overridden = property.OverriddenProperty;
-            overridden is not null;
-            overridden = overridden.OverriddenProperty
-        )
-        {
-            if (SymbolEqualityComparer.Default.Equals(overridden, baseProperty))
-                return true;
-        }
-        return false;
-    }
-
-    private static bool HasIgnoredOverride(INamedTypeSymbol typeSymbol, IPropertySymbol baseProperty)
-    {
-        for (
-            INamedTypeSymbol? current = typeSymbol;
-            current is not null
-            && !SymbolEqualityComparer.Default.Equals(current, baseProperty.ContainingType);
-            current = current.BaseType
-        )
-        {
-            if (
-                current
-                    .GetMembers()
-                    .OfType<IPropertySymbol>()
-                    .Any(property => IsOverrideOf(property, baseProperty) && HasBinaryIgnore(property))
-            )
-                return true;
-        }
-        return false;
-    }
-
-    private static bool HasBinaryIgnore(ISymbol member) =>
-        member
-            .GetAttributes()
-            .Any(attribute =>
-                attribute.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryIgnoreAttribute"
-            );
-
-    private static bool HasAutoPropertyBackingField(
-        IEnumerable<ISymbol> typeMembers,
-        IPropertySymbol property
-    ) =>
-        typeMembers
-            .Where(member => member.IsImplicitlyDeclared)
-            .OfType<IFieldSymbol>()
-            .Any(field => SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, property));
-
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
     private static (bool IsValid, bool IsConstructorInitialized) IsValidMember(
         ISymbol propertyOrFieldSymbol,
@@ -228,7 +150,15 @@ partial class BinaryObjectsGenerator
         bool generateRead
     )
     {
-        if (HasBinaryIgnore(propertyOrFieldSymbol))
+        var shouldBeIgnored = propertyOrFieldSymbol
+            .GetAttributes()
+            .Any(x =>
+                x
+                    .AttributeClass?.ToDisplayString()
+                    .Equals("Darp.BinaryObjects.BinaryIgnoreAttribute", StringComparison.Ordinal)
+                    is true
+            );
+        if (shouldBeIgnored)
             return (false, default);
         if (!generateRead && propertyOrFieldSymbol.IsStatic)
             return (false, default);
@@ -236,7 +166,10 @@ partial class BinaryObjectsGenerator
         {
             case IPropertySymbol propertySymbol:
             {
-                var isAutoProperty = HasAutoPropertyBackingField(typeMembers, propertySymbol);
+                var isAutoProperty = typeMembers
+                    .Where(x => x.IsImplicitlyDeclared)
+                    .OfType<IFieldSymbol>()
+                    .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, propertySymbol));
                 (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
                     propertySymbol,
                     propertySymbol.Type

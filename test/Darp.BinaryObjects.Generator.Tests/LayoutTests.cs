@@ -2,24 +2,10 @@ namespace Darp.BinaryObjects.Generator.Tests;
 
 using static VerifyHelper;
 
-public class ExternalInaccessibleBase
-{
-    internal byte InternalValue { get; init; }
-    private protected byte PrivateProtectedValue { get; init; }
-    public byte Computed => InternalValue;
-}
-
-public class ExternalFieldBase
-{
-#pragma warning disable CA1051 // An exposed field is the behavior under test.
-    public byte Prefix;
-#pragma warning restore CA1051
-}
-
 public class LayoutTests
 {
     [Fact]
-    public async Task InheritedMembers_WarnUnlessSuppressed()
+    public async Task DerivedClasses_WarnUnlessSuppressed()
     {
         const string code = """
             using Darp.BinaryObjects;
@@ -43,54 +29,16 @@ public class LayoutTests
             }
             #pragma warning restore DBO005
 
-            public class BehaviorBase
-            {
-                public void Ping() { }
-                public bool IsValid => true;
-            }
+            public class EmptyBase { }
 
             [BinaryObject]
-            public partial class BehaviorPacket : BehaviorBase
-            {
-                public byte Data { get; init; }
-            }
-
-            public class VirtualBase
-            {
-                public virtual byte Value { get; init; }
-            }
-
-            [BinaryObject]
-            public partial class OverridePacket : VirtualBase
-            {
-                public override byte Value { get; init; }
-            }
-
-            [BinaryObject]
-            public partial class IgnoredOverridePacket : VirtualBase
-            {
-                [BinaryIgnore]
-                public override byte Value { get; init; }
-                public byte Data { get; init; }
-            }
-            """;
-        await VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
-    public async Task InheritedMembers_ExternalBaseAccessibility()
-    {
-        const string code = """
-            using Darp.BinaryObjects;
-
-            [BinaryObject]
-            public partial class ExternalHiddenPacket : Darp.BinaryObjects.Generator.Tests.ExternalInaccessibleBase
+            public partial class EmptyDerived : EmptyBase
             {
                 public byte Data { get; init; }
             }
 
             [BinaryObject]
-            public partial class ExternalFieldPacket : Darp.BinaryObjects.Generator.Tests.ExternalFieldBase
+            public partial class Standalone
             {
                 public byte Data { get; init; }
             }

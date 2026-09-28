@@ -82,8 +82,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                                 info.Symbol,
                                 info.GenerateRead,
                                 out ParsedObjectInfo parsedObject,
-                                info.Syntax.Identifier.GetLocation(),
-                                info.Compilation
+                                info.Syntax.Identifier.GetLocation()
                             )
                         )
                         {
@@ -218,13 +217,7 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
 
         var type = (INamedTypeSymbol)context.TargetSymbol;
         var node = (TypeDeclarationSyntax)context.TargetNode;
-        return new TargetTypeInfo(
-            type,
-            node,
-            languageVersion,
-            GetGenerationOptions(context.Attributes[0]),
-            context.SemanticModel.Compilation
-        );
+        return new TargetTypeInfo(type, node, languageVersion, GetGenerationOptions(context.Attributes[0]));
     }
 
     private static BinaryGenerationOptions GetGenerationOptions(AttributeData attribute) =>
@@ -245,8 +238,7 @@ internal readonly record struct TargetTypeInfo(
     INamedTypeSymbol Symbol,
     TypeDeclarationSyntax Syntax,
     LanguageVersion LanguageVersion,
-    BinaryGenerationOptions Options,
-    Compilation Compilation
+    BinaryGenerationOptions Options
 )
 {
     public bool GenerateRead => (Options & BinaryGenerationOptions.Read) != 0;
