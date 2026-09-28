@@ -12,7 +12,7 @@
       Severity: Warning,
       WarningLevel: 1,
       Descriptor: {
-        Id: DBO001,
+        Id: DBO007,
         Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
         Category: DarpBinaryObjectsGenerator,
@@ -32,7 +32,7 @@
       Severity: Warning,
       WarningLevel: 1,
       Descriptor: {
-        Id: DBO001,
+        Id: DBO007,
         Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
         Category: DarpBinaryObjectsGenerator,
@@ -52,7 +52,7 @@
       Severity: Warning,
       WarningLevel: 1,
       Descriptor: {
-        Id: DBO001,
+        Id: DBO008,
         Title: MemberIgnoredDuplicateName,
         MessageFormat: Member '{0}' is ignored. Cannot have two readonly members with an equal name.,
         Category: DarpBinaryObjectsGenerator,
@@ -72,7 +72,7 @@
       Severity: Warning,
       WarningLevel: 1,
       Descriptor: {
-        Id: DBO001,
+        Id: DBO007,
         Title: MemberIgnoredReadonly,
         MessageFormat: Member '{0}' is ignored. Cannot read types with readonly members.,
         Category: DarpBinaryObjectsGenerator,
