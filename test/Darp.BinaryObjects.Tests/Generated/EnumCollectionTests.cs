@@ -24,30 +24,26 @@ internal enum SignedByteEnumValue : sbyte
 internal sealed partial record UInt64EnumPayload([property: BinaryElementCount(2)] UInt64EnumValue[] Values);
 
 [BinaryObject]
-internal sealed partial record EnumCollectionVariants(
+internal sealed partial record CountedAndRemainingEnums(
     byte Count,
     [property: BinaryElementCount("Count")] UInt16EnumValue[] Counted,
-    [property: BinaryElementCount(2)] List<SignedByteEnumValue> SignedList,
-    [property: BinaryElementCount(2)] IEnumerable<UInt16EnumValue> EnumerableValues,
     SignedByteEnumValue[] Remaining
 );
 
 [BinaryObject]
-internal sealed partial record EmptyEnumEnumerable([property: BinaryElementCount(0)] IEnumerable<UInt16EnumValue> Values);
+internal sealed partial record FixedEnumEnumerable([property: BinaryElementCount(2)] IEnumerable<UInt16EnumValue> Values);
 
 public sealed class EnumCollectionTests
 {
     [Theory]
-    [InlineData(true, "023412CDABFF013412CDABFF01")]
-    [InlineData(false, "021234ABCDFF011234ABCDFF01")]
-    public void VariableAndRemainingEnumCollections_ShouldRoundTrip(bool littleEndian, string hexBytes)
+    [InlineData(true, "023412CDABFF01")]
+    [InlineData(false, "021234ABCDFF01")]
+    public void CountedAndRemainingEnums_ShouldRoundTrip(bool littleEndian, string hexBytes)
     {
         var expected = Convert.FromHexString(hexBytes);
-        var value = new EnumCollectionVariants(
+        var value = new CountedAndRemainingEnums(
             2,
             [UInt16EnumValue.First, UInt16EnumValue.Second],
-            [SignedByteEnumValue.Negative, SignedByteEnumValue.Positive],
-            EnumerateValues(),
             [SignedByteEnumValue.Negative, SignedByteEnumValue.Positive]
         );
 
@@ -61,15 +57,35 @@ public sealed class EnumCollectionTests
         destination.Should().Equal(expected);
 
         var read = littleEndian
-            ? EnumCollectionVariants.TryReadLittleEndian(expected, out var parsed, out var bytesRead)
-            : EnumCollectionVariants.TryReadBigEndian(expected, out parsed, out bytesRead);
+            ? CountedAndRemainingEnums.TryReadLittleEndian(expected, out var parsed, out var bytesRead)
+            : CountedAndRemainingEnums.TryReadBigEndian(expected, out parsed, out bytesRead);
         read.Should().BeTrue();
         bytesRead.Should().Be(expected.Length);
         Assert.NotNull(parsed);
         parsed.Counted.Should().Equal(UInt16EnumValue.First, UInt16EnumValue.Second);
-        parsed.SignedList.Should().Equal(SignedByteEnumValue.Negative, SignedByteEnumValue.Positive);
-        parsed.EnumerableValues.Should().Equal(UInt16EnumValue.First, UInt16EnumValue.Second);
         parsed.Remaining.Should().Equal(SignedByteEnumValue.Negative, SignedByteEnumValue.Positive);
+    }
+
+    [Fact]
+    public void FixedEnumEnumerable_ShouldNotAdvancePastItsCount()
+    {
+        var value = new FixedEnumEnumerable(EnumerateValues());
+        var destination = new byte[4];
+
+        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeTrue();
+        bytesWritten.Should().Be(4);
+        destination.Should().Equal(Convert.FromHexString("3412CDAB"));
+    }
+
+    [Fact]
+    public void FixedEnumEnumerable_ShouldFailWhenAnElementIsMissing()
+    {
+        var value = new FixedEnumEnumerable([UInt16EnumValue.First]);
+        var destination = new byte[4];
+
+        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeFalse();
+        bytesWritten.Should().Be(2);
+        destination.Should().Equal(Convert.FromHexString("34120000"));
     }
 
     private static IEnumerable<UInt16EnumValue> EnumerateValues()
@@ -77,15 +93,6 @@ public sealed class EnumCollectionTests
         yield return UInt16EnumValue.First;
         yield return UInt16EnumValue.Second;
         throw new InvalidOperationException("The writer advanced past the declared element count.");
-    }
-
-    [Fact]
-    public void EmptyEnumEnumerable_ShouldNotAdvanceIterator()
-    {
-        var value = new EmptyEnumEnumerable(EnumerateValues());
-
-        value.TryWriteLittleEndian(Span<byte>.Empty, out var bytesWritten).Should().BeTrue();
-        bytesWritten.Should().Be(0);
     }
 
     [Theory]

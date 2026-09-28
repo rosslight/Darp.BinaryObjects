@@ -275,11 +275,14 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     {
                         continue;
                     }
-                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject && currentByteIndex > countedByteIndex)
+                    var mayFail = memberInfo.TypeKind is WellKnownTypeKind.BinaryObject
+                        || memberInfo.CollectionKind is not WellKnownCollectionKind.None
+                            && EnumCollectionCode.IsEnum(memberInfo.TypeKind);
+                    if (mayFail && currentByteIndex > countedByteIndex)
                         writer.WriteLine($"bytesWritten += {currentByteIndex - countedByteIndex};");
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesWritten;
-                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject)
+                    if (mayFail)
                     {
                         writer.WriteLine($"bytesWritten += {bytesWritten};");
                         countedByteIndex = currentByteIndex;

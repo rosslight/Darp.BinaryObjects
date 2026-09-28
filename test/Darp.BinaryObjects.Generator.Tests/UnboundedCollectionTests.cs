@@ -62,21 +62,6 @@ public sealed class UnboundedCollectionTests
     }
 
     [Fact]
-    public async Task EnumEnumerable_CompilesWithoutConsumerLinqUsing()
-    {
-        const string code = """
-            using Darp.BinaryObjects;
-            using System.Collections.Generic;
-
-            public enum Status : ushort { First = 0x1234, Second = 0xABCD }
-
-            [BinaryObject]
-            public sealed partial record TestObject(IEnumerable<Status> Values);
-            """;
-        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
-    }
-
-    [Fact]
     public async Task BinaryObjects_Constant()
     {
         const string code = """

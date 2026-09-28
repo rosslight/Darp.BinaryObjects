@@ -29,10 +29,27 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 24)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[8..16], this.ValueArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumListLittleEndian<IntEnum>(destination[16..24], this.ValueList);
-        bytesWritten += 24;
+        if (this.ValueMemory.Span.Length < 2)
+            return false;
+        for (var ___enumIndexValueMemory = 0; ___enumIndexValueMemory < 2; ___enumIndexValueMemory++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(___enumIndexValueMemory * 4, 4), (int)this.ValueMemory.Span[___enumIndexValueMemory]);
+        }
+        bytesWritten += 8;
+        if (this.ValueArray.Length < 2)
+            return false;
+        for (var ___enumIndexValueArray = 0; ___enumIndexValueArray < 2; ___enumIndexValueArray++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(8 + ___enumIndexValueArray * 4, 4), (int)this.ValueArray[___enumIndexValueArray]);
+        }
+        bytesWritten += 8;
+        if (this.ValueList.Count < 2)
+            return false;
+        for (var ___enumIndexValueList = 0; ___enumIndexValueList < 2; ___enumIndexValueList++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(16 + ___enumIndexValueList * 4, 4), (int)this.ValueList[___enumIndexValueList]);
+        }
+        bytesWritten += 8;
 
         return true;
     }
@@ -47,10 +64,27 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (destination.Length < 24)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[8..16], this.ValueArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumListBigEndian<IntEnum>(destination[16..24], this.ValueList);
-        bytesWritten += 24;
+        if (this.ValueMemory.Span.Length < 2)
+            return false;
+        for (var ___enumIndexValueMemory = 0; ___enumIndexValueMemory < 2; ___enumIndexValueMemory++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(destination.Slice(___enumIndexValueMemory * 4, 4), (int)this.ValueMemory.Span[___enumIndexValueMemory]);
+        }
+        bytesWritten += 8;
+        if (this.ValueArray.Length < 2)
+            return false;
+        for (var ___enumIndexValueArray = 0; ___enumIndexValueArray < 2; ___enumIndexValueArray++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(destination.Slice(8 + ___enumIndexValueArray * 4, 4), (int)this.ValueArray[___enumIndexValueArray]);
+        }
+        bytesWritten += 8;
+        if (this.ValueList.Count < 2)
+            return false;
+        for (var ___enumIndexValueList = 0; ___enumIndexValueList < 2; ___enumIndexValueList++)
+        {
+            global::System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(destination.Slice(16 + ___enumIndexValueList * 4, 4), (int)this.ValueList[___enumIndexValueList]);
+        }
+        bytesWritten += 8;
 
         return true;
     }
@@ -67,9 +101,24 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (source.Length < 24)
             return false;
-        var ___readValueMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayLittleEndian<IntEnum>(source[0..8], out _);
-        var ___readValueArray = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayLittleEndian<IntEnum>(source[8..16], out _);
-        var ___readValueList = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumListLittleEndian<IntEnum>(source[16..24], out _);
+        var ___enumCountValueMemory = 2;
+        var ___readValueMemory = new global::IntEnum[___enumCountValueMemory];
+        for (var ___enumIndexValueMemory = 0; ___enumIndexValueMemory < ___enumCountValueMemory; ___enumIndexValueMemory++)
+        {
+            ___readValueMemory[___enumIndexValueMemory] = (global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(source.Slice(___enumIndexValueMemory * 4, 4));
+        }
+        var ___enumCountValueArray = 2;
+        var ___readValueArray = new global::IntEnum[___enumCountValueArray];
+        for (var ___enumIndexValueArray = 0; ___enumIndexValueArray < ___enumCountValueArray; ___enumIndexValueArray++)
+        {
+            ___readValueArray[___enumIndexValueArray] = (global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(source.Slice(8 + ___enumIndexValueArray * 4, 4));
+        }
+        var ___enumCountValueList = 2;
+        var ___readValueList = new global::System.Collections.Generic.List<global::IntEnum>(___enumCountValueList);
+        for (var ___enumIndexValueList = 0; ___enumIndexValueList < ___enumCountValueList; ___enumIndexValueList++)
+        {
+            ___readValueList.Add((global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(source.Slice(16 + ___enumIndexValueList * 4, 4)));
+        }
         bytesRead += 24;
 
         value = new TestObject(___readValueMemory, ___readValueArray, ___readValueList);
@@ -87,9 +136,24 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
 
         if (source.Length < 24)
             return false;
-        var ___readValueMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayBigEndian<IntEnum>(source[0..8], out _);
-        var ___readValueArray = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumArrayBigEndian<IntEnum>(source[8..16], out _);
-        var ___readValueList = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32EnumListBigEndian<IntEnum>(source[16..24], out _);
+        var ___enumCountValueMemory = 2;
+        var ___readValueMemory = new global::IntEnum[___enumCountValueMemory];
+        for (var ___enumIndexValueMemory = 0; ___enumIndexValueMemory < ___enumCountValueMemory; ___enumIndexValueMemory++)
+        {
+            ___readValueMemory[___enumIndexValueMemory] = (global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(source.Slice(___enumIndexValueMemory * 4, 4));
+        }
+        var ___enumCountValueArray = 2;
+        var ___readValueArray = new global::IntEnum[___enumCountValueArray];
+        for (var ___enumIndexValueArray = 0; ___enumIndexValueArray < ___enumCountValueArray; ___enumIndexValueArray++)
+        {
+            ___readValueArray[___enumIndexValueArray] = (global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(source.Slice(8 + ___enumIndexValueArray * 4, 4));
+        }
+        var ___enumCountValueList = 2;
+        var ___readValueList = new global::System.Collections.Generic.List<global::IntEnum>(___enumCountValueList);
+        for (var ___enumIndexValueList = 0; ___enumIndexValueList < ___enumCountValueList; ___enumIndexValueList++)
+        {
+            ___readValueList.Add((global::IntEnum)global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(source.Slice(16 + ___enumIndexValueList * 4, 4)));
+        }
         bytesRead += 24;
 
         value = new TestObject(___readValueMemory, ___readValueArray, ___readValueList);
@@ -97,125 +161,3 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     }
 }
 
-namespace Darp.BinaryObjects.Generated
-{
-    using Darp.BinaryObjects;
-    using System;
-    using System.Buffers.Binary;
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
-
-    /// <summary>Helper methods used by generated BinaryObjects.</summary>
-    [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    file static class Utilities
-    {
-        /// <summary> Writes a <c>ReadOnlySpan&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumSpanLittleEndian<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            var length = Math.Min(value.Length, destination.Length / 4);
-            if (!BitConverter.IsLittleEndian)
-            {
-                ReadOnlySpan<int> reinterpretedValue = MemoryMarshal.Cast<TEnum, int>(value);
-                Span<int> reinterpretedDestination = MemoryMarshal.Cast<byte, int>(destination);
-                BinaryPrimitives.ReverseEndianness(reinterpretedValue[..length], reinterpretedDestination);
-                return length * 4;
-            }
-            MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
-            return length * 4;
-        }
-        /// <summary> Writes a <c>ReadOnlySpan&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumSpanBigEndian<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            var length = Math.Min(value.Length, destination.Length / 4);
-            if (BitConverter.IsLittleEndian)
-            {
-                ReadOnlySpan<int> reinterpretedValue = MemoryMarshal.Cast<TEnum, int>(value);
-                Span<int> reinterpretedDestination = MemoryMarshal.Cast<byte, int>(destination);
-                BinaryPrimitives.ReverseEndianness(reinterpretedValue[..length], reinterpretedDestination);
-                return length * 4;
-            }
-            MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
-            return length * 4;
-        }
-        /// <summary> Reads a <c>TEnum[]</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TEnum[] ReadInt32EnumArrayLittleEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
-            where TEnum : unmanaged, Enum
-        {
-            var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
-            if (!BitConverter.IsLittleEndian)
-            {
-                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
-                BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
-            }
-            bytesRead = array.Length * 4;
-            return array;
-        }
-        /// <summary> Reads a <c>TEnum[]</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TEnum[] ReadInt32EnumArrayBigEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
-            where TEnum : unmanaged, Enum
-        {
-            var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
-            if (BitConverter.IsLittleEndian)
-            {
-                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
-                BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
-            }
-            bytesRead = array.Length * 4;
-            return array;
-        }
-        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumListLittleEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            return WriteInt32EnumSpanLittleEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
-        }
-        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumListBigEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            return WriteInt32EnumSpanBigEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
-        }
-        /// <summary> Reads a <c>List&lt;TEnum&gt;</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static List<TEnum> ReadInt32EnumListLittleEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
-            where TEnum : unmanaged, Enum
-        {
-            ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
-            var list = new List<TEnum>(span.Length);
-            list.AddRange(span);
-            if (!BitConverter.IsLittleEndian)
-            {
-                var reinterpretedList = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
-                BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
-            }
-            bytesRead = list.Count * 4;
-            return list;
-        }
-        /// <summary> Reads a <c>List&lt;TEnum&gt;</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static List<TEnum> ReadInt32EnumListBigEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
-            where TEnum : unmanaged, Enum
-        {
-            ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
-            var list = new List<TEnum>(span.Length);
-            list.AddRange(span);
-            if (BitConverter.IsLittleEndian)
-            {
-                var reinterpretedList = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
-                BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
-            }
-            bytesRead = list.Count * 4;
-            return list;
-        }
-    }
-}
