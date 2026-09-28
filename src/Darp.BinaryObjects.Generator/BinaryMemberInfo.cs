@@ -246,7 +246,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public string GetVariableByteLength()
     {
         if (ArrayMinLength > 0)
-            return $"{TypeByteLength} * global::System.Math.Max(this.{ArrayLengthMemberName}, {ArrayMinLength})";
+            return $"{TypeByteLength} * global::System.Math.Max((int)this.{ArrayLengthMemberName}, {ArrayMinLength})";
         return $"{TypeByteLength} * this.{ArrayLengthMemberName}";
     }
 

@@ -17,7 +17,7 @@ internal sealed partial record IntCountedUIntMemory(
 
 [BinaryObject]
 internal sealed partial record MinimumCountedUShortMemory(
-    int Count,
+    ushort Count,
     [property: BinaryElementCount("Count"), BinaryMinElementCount(2)] ReadOnlyMemory<ushort> Values,
     ushort Tail
 );
@@ -27,26 +27,26 @@ public class MemoryMemberLengthUShortSizeTests
     [Fact]
     public void MinimumElementCount_ShouldRejectDeclaredCountEvenWhenTailProvidesEnoughBytes()
     {
-        var sourceLE = Convert.FromHexString("010000003412CDAB");
-        var sourceBE = Convert.FromHexString("000000011234ABCD");
+        var sourceLE = Convert.FromHexString("01003412CDAB");
+        var sourceBE = Convert.FromHexString("00011234ABCD");
 
         MinimumCountedUShortMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeFalse();
         MinimumCountedUShortMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeFalse();
         valueLE.Should().BeNull();
         valueBE.Should().BeNull();
-        bytesReadLE.Should().Be(4);
-        bytesReadBE.Should().Be(4);
+        bytesReadLE.Should().Be(2);
+        bytesReadBE.Should().Be(2);
 
         var value = new MinimumCountedUShortMemory(1, new ushort[] { 0x1234 }, 0xABCD);
-        value.TryWriteLittleEndian(new byte[8], out _).Should().BeFalse();
-        value.TryWriteBigEndian(new byte[8], out _).Should().BeFalse();
+        value.TryWriteLittleEndian(new byte[6], out _).Should().BeFalse();
+        value.TryWriteBigEndian(new byte[6], out _).Should().BeFalse();
     }
 
     [Fact]
     public void MinimumElementCount_ShouldAcceptDeclaredMinimum()
     {
-        var sourceLE = Convert.FromHexString("0200000034127856CDAB");
-        var sourceBE = Convert.FromHexString("0000000212345678ABCD");
+        var sourceLE = Convert.FromHexString("020034127856CDAB");
+        var sourceBE = Convert.FromHexString("000212345678ABCD");
 
         MinimumCountedUShortMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeTrue();
         MinimumCountedUShortMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeTrue();
@@ -58,6 +58,8 @@ public class MemoryMemberLengthUShortSizeTests
         valueBE.Tail.Should().Be(0xABCD);
         bytesReadLE.Should().Be(sourceLE.Length);
         bytesReadBE.Should().Be(sourceBE.Length);
+        valueLE.GetByteCount().Should().Be(sourceLE.Length);
+        valueBE.GetByteCount().Should().Be(sourceBE.Length);
     }
 
     [Theory]
