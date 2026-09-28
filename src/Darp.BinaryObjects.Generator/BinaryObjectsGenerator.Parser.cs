@@ -32,7 +32,12 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    private static bool TryParseType(INamedTypeSymbol typeSymbol, bool generateRead, out ParsedObjectInfo result)
+    private static bool TryParseType(
+        INamedTypeSymbol typeSymbol,
+        bool generateRead,
+        out ParsedObjectInfo result,
+        Location? warningLocation = null
+    )
     {
         List<IMember> membersInitializedByConstructor = [];
 
@@ -61,6 +66,20 @@ partial class BinaryObjectsGenerator
             members.Add(memberInfo);
             if (generateRead && validity.IsConstructorInitialized)
                 membersInitializedByConstructor.Add(memberInfo);
+        }
+
+        if (
+            typeSymbol.TypeKind is TypeKind.Class
+            && typeSymbol.BaseType is { SpecialType: not SpecialType.System_Object }
+        )
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.BaseClassNotSerialized,
+                    warningLocation ?? typeSymbol.GetSourceLocation(),
+                    [typeSymbol.Name]
+                )
+            );
         }
 
         ImmutableArray<IParameterSymbol> parameters = constructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;

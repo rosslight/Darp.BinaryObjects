@@ -1,0 +1,64 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject]
+public partial class Packet : Header
+                     ^^^^^^
+{
+*/
+ : (8,21)-(8,27),
+      Message: Class 'Packet' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: BaseClassNotSerialized,
+        MessageFormat: Class '{0}' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+[BinaryObject]
+public partial class IntentionalPacket : Header
+                     ^^^^^^^^^^^^^^^^^
+{
+*/
+ : (15,21)-(15,38),
+      Message: Class 'IntentionalPacket' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: BaseClassNotSerialized,
+        MessageFormat: Class '{0}' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+[BinaryObject]
+public partial class EmptyDerived : EmptyBase
+                     ^^^^^^^^^^^^
+{
+*/
+ : (24,21)-(24,33),
+      Message: Class 'EmptyDerived' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: BaseClassNotSerialized,
+        MessageFormat: Class '{0}' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

@@ -15,7 +15,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor CollectionLengthInvalid = new(
         id: "DBO003",
         title: "CollectionLengthInvalid",
-        messageFormat: "Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue.",
+        messageFormat: "Collection member '{0}' requires nonnegative element counts and a byte length no greater than Int32.MaxValue",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -23,7 +23,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ObjectLengthTooLarge = new(
         id: "DBO004",
         title: "ObjectLengthTooLarge",
-        messageFormat: "The minimum binary object byte length exceeds Int32.MaxValue.",
+        messageFormat: "The minimum binary object byte length exceeds Int32.MaxValue",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -44,16 +44,16 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
-    public static readonly DiagnosticDescriptor InheritanceNotSupported = new(
-        id: "DBO001",
-        title: "InheritanceNotSupported",
-        messageFormat: "Properties from base classes are not respected during binary operations",
+    public static readonly DiagnosticDescriptor BaseClassNotSerialized = new(
+        id: "DBO005",
+        title: "BaseClassNotSerialized",
+        messageFormat: "Class '{0}' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
     );
     public static readonly DiagnosticDescriptor MemberTypeNotSupported = new(
-        id: "DBO001",
+        id: "DBO006",
         title: "MemberTypeNotSupported",
         messageFormat: "The type {0} of member {1} is not supported. The member will be skipped.",
         category: "DarpBinaryObjectsGenerator",
@@ -85,7 +85,7 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true
     );
     public static readonly DiagnosticDescriptor MemberIgnoredReadonly = new(
-        id: "DBO001",
+        id: "DBO007",
         title: "MemberIgnoredReadonly",
         messageFormat: "Member '{0}' is ignored. Cannot read types with readonly members.",
         category: "DarpBinaryObjectsGenerator",
@@ -93,7 +93,7 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true
     );
     public static readonly DiagnosticDescriptor MemberIgnoredDuplicateName = new(
-        id: "DBO001",
+        id: "DBO008",
         title: "MemberIgnoredDuplicateName",
         messageFormat: "Member '{0}' is ignored. Cannot have two readonly members with an equal name.",
         category: "DarpBinaryObjectsGenerator",

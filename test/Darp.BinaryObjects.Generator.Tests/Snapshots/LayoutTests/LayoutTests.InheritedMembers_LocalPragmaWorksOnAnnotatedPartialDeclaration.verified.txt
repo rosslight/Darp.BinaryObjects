@@ -1,0 +1,24 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject]
+public partial class SplitPacket
+                     ^^^^^^^^^^^
+{
+*/
+ : (11,21)-(11,32),
+      Message: Class 'SplitPacket' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO005,
+        Title: BaseClassNotSerialized,
+        MessageFormat: Class '{0}' has a base class; only its declared members are serialized. Suppress DBO005 if this is intentional.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

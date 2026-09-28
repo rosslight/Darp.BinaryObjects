@@ -5,6 +5,72 @@ using static VerifyHelper;
 public class LayoutTests
 {
     [Fact]
+    public async Task DerivedClasses_WarnUnlessSuppressed()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            public class Header
+            {
+                public byte Prefix { get; init; }
+            }
+
+            [BinaryObject]
+            public partial class Packet : Header
+            {
+                public byte Data { get; init; }
+            }
+
+            #pragma warning disable DBO005
+            [BinaryObject]
+            public partial class IntentionalPacket : Header
+            {
+                public byte Data { get; init; }
+            }
+            #pragma warning restore DBO005
+
+            public class EmptyBase { }
+
+            [BinaryObject]
+            public partial class EmptyDerived : EmptyBase
+            {
+                public byte Data { get; init; }
+            }
+
+            [BinaryObject]
+            public partial class Standalone
+            {
+                public byte Data { get; init; }
+            }
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task InheritedMembers_LocalPragmaWorksOnAnnotatedPartialDeclaration()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            public class Header
+            {
+                public byte Prefix { get; init; }
+            }
+
+            public partial class SplitPacket : Header { }
+
+            #pragma warning disable DBO005
+            [BinaryObject]
+            public partial class SplitPacket
+            {
+                public byte Data { get; init; }
+            }
+            #pragma warning restore DBO005
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
     public async Task TwoClasses_NoNamespaces()
     {
         const string code = """
