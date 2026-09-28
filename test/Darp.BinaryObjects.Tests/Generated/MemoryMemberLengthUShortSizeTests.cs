@@ -15,8 +15,51 @@ internal sealed partial record IntCountedUIntMemory(
     byte Tail
 );
 
+[BinaryObject]
+internal sealed partial record MinimumCountedUShortMemory(
+    int Count,
+    [property: BinaryElementCount("Count"), BinaryMinElementCount(2)] ReadOnlyMemory<ushort> Values,
+    ushort Tail
+);
+
 public class MemoryMemberLengthUShortSizeTests
 {
+    [Fact]
+    public void MinimumElementCount_ShouldRejectDeclaredCountEvenWhenTailProvidesEnoughBytes()
+    {
+        var sourceLE = Convert.FromHexString("010000003412CDAB");
+        var sourceBE = Convert.FromHexString("000000011234ABCD");
+
+        MinimumCountedUShortMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeFalse();
+        MinimumCountedUShortMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeFalse();
+        valueLE.Should().BeNull();
+        valueBE.Should().BeNull();
+        bytesReadLE.Should().Be(4);
+        bytesReadBE.Should().Be(4);
+
+        var value = new MinimumCountedUShortMemory(1, new ushort[] { 0x1234 }, 0xABCD);
+        value.TryWriteLittleEndian(new byte[8], out _).Should().BeFalse();
+        value.TryWriteBigEndian(new byte[8], out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void MinimumElementCount_ShouldAcceptDeclaredMinimum()
+    {
+        var sourceLE = Convert.FromHexString("0200000034127856CDAB");
+        var sourceBE = Convert.FromHexString("0000000212345678ABCD");
+
+        MinimumCountedUShortMemory.TryReadLittleEndian(sourceLE, out var valueLE, out var bytesReadLE).Should().BeTrue();
+        MinimumCountedUShortMemory.TryReadBigEndian(sourceBE, out var valueBE, out var bytesReadBE).Should().BeTrue();
+        Assert.NotNull(valueLE);
+        Assert.NotNull(valueBE);
+        valueLE.Values.ToArray().Should().Equal(0x1234, 0x5678);
+        valueBE.Values.ToArray().Should().Equal(0x1234, 0x5678);
+        valueLE.Tail.Should().Be(0xABCD);
+        valueBE.Tail.Should().Be(0xABCD);
+        bytesReadLE.Should().Be(sourceLE.Length);
+        bytesReadBE.Should().Be(sourceBE.Length);
+    }
+
     [Theory]
     [InlineData("FFFFFFFF", "FFFFFFFF")]
     [InlineData("FFFFFF7F", "7FFFFFFF")]
