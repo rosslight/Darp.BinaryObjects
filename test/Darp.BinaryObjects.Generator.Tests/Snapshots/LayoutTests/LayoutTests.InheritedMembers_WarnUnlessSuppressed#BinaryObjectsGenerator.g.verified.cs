@@ -366,6 +366,97 @@ public partial class OverridePacket : global::Darp.BinaryObjects.IBinaryObject<O
     }
 }
 
+/// <remarks> <list type="table">
+/// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
+/// <item> <term><see cref="Data"/></term> <description>1</description> </item>
+/// <item> <term> --- </term> <description>1</description> </item>
+/// </list> </remarks>
+[global::Darp.BinaryObjects.BinaryConstant(1)]
+public partial class IgnoredOverridePacket : global::Darp.BinaryObjects.IBinaryObject<IgnoredOverridePacket>
+{
+    /// <inheritdoc />
+    [global::System.Diagnostics.Contracts.Pure]
+    [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public int GetByteCount() => 1;
+
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination) => TryWriteLittleEndian(destination, out _);
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public bool TryWriteLittleEndian(global::System.Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+
+        if (destination.Length < 1)
+            return false;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Data);
+        bytesWritten += 1;
+
+        return true;
+    }
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public bool TryWriteBigEndian(global::System.Span<byte> destination) => TryWriteBigEndian(destination, out _);
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public bool TryWriteBigEndian(global::System.Span<byte> destination, out int bytesWritten)
+    {
+        bytesWritten = 0;
+
+        if (destination.Length < 1)
+            return false;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Data);
+        bytesWritten += 1;
+
+        return true;
+    }
+
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IgnoredOverridePacket? value) => TryReadLittleEndian(source, out value, out _);
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IgnoredOverridePacket? value, out int bytesRead)
+    {
+        bytesRead = 0;
+        value = default;
+
+        if (source.Length < 1)
+            return false;
+        var ___readData = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        bytesRead += 1;
+
+        value = new IgnoredOverridePacket()
+        {
+            Data = ___readData,
+        };
+        return true;
+    }
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IgnoredOverridePacket? value) => TryReadBigEndian(source, out value, out _);
+    /// <inheritdoc />
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IgnoredOverridePacket? value, out int bytesRead)
+    {
+        bytesRead = 0;
+        value = default;
+
+        if (source.Length < 1)
+            return false;
+        var ___readData = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        bytesRead += 1;
+
+        value = new IgnoredOverridePacket()
+        {
+            Data = ___readData,
+        };
+        return true;
+    }
+}
+
 namespace Darp.BinaryObjects.Generated
 {
     using Darp.BinaryObjects;

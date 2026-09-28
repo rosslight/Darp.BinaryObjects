@@ -65,6 +65,14 @@ public class LayoutTests
             {
                 public override byte Value { get; init; }
             }
+
+            [BinaryObject]
+            public partial class IgnoredOverridePacket : VirtualBase
+            {
+                [BinaryIgnore]
+                public override byte Value { get; init; }
+                public byte Data { get; init; }
+            }
             """;
         await VerifyBinaryObjectsGenerator(code);
     }

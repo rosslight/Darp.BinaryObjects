@@ -84,16 +84,12 @@ partial class BinaryObjectsGenerator
                             && !member.IsImplicitlyDeclared
                             && !member.IsStatic
                             && compilation.IsSymbolAccessibleWithin(member, typeSymbol, typeSymbol)
-                            && !member
-                                .GetAttributes()
-                                .Any(attribute =>
-                                    attribute.AttributeClass?.ToDisplayString()
-                                    == "Darp.BinaryObjects.BinaryIgnoreAttribute"
-                                )
+                            && !HasBinaryIgnore(member)
                             && (
                                 member is not IPropertySymbol baseProperty
                                 || (
                                     HasAutoPropertyBackingField(baseMembers, baseProperty)
+                                    && !HasIgnoredOverride(typeSymbol, baseProperty)
                                     && !members.Any(serialized =>
                                         serialized.MemberSymbol is IPropertySymbol derivedProperty
                                         && IsOverrideOf(derivedProperty, baseProperty)
@@ -186,6 +182,33 @@ partial class BinaryObjectsGenerator
         return false;
     }
 
+    private static bool HasIgnoredOverride(INamedTypeSymbol typeSymbol, IPropertySymbol baseProperty)
+    {
+        for (
+            INamedTypeSymbol? current = typeSymbol;
+            current is not null
+            && !SymbolEqualityComparer.Default.Equals(current, baseProperty.ContainingType);
+            current = current.BaseType
+        )
+        {
+            if (
+                current
+                    .GetMembers()
+                    .OfType<IPropertySymbol>()
+                    .Any(property => IsOverrideOf(property, baseProperty) && HasBinaryIgnore(property))
+            )
+                return true;
+        }
+        return false;
+    }
+
+    private static bool HasBinaryIgnore(ISymbol member) =>
+        member
+            .GetAttributes()
+            .Any(attribute =>
+                attribute.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryIgnoreAttribute"
+            );
+
     private static bool HasAutoPropertyBackingField(
         IEnumerable<ISymbol> typeMembers,
         IPropertySymbol property
@@ -205,15 +228,7 @@ partial class BinaryObjectsGenerator
         bool generateRead
     )
     {
-        var shouldBeIgnored = propertyOrFieldSymbol
-            .GetAttributes()
-            .Any(x =>
-                x
-                    .AttributeClass?.ToDisplayString()
-                    .Equals("Darp.BinaryObjects.BinaryIgnoreAttribute", StringComparison.Ordinal)
-                    is true
-            );
-        if (shouldBeIgnored)
+        if (HasBinaryIgnore(propertyOrFieldSymbol))
             return (false, default);
         if (!generateRead && propertyOrFieldSymbol.IsStatic)
             return (false, default);
