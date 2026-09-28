@@ -323,7 +323,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         );
         var optionalNumberOfElements =
             TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
-        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || source.Length < {TypeByteLength * ArrayMinLength}" : "";
+        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {countVariableName} < {ArrayMinLength}" : "";
         readString = $"""
             if ({countVariableName} < 0 || {countVariableName} > source.Length / {TypeByteLength}{optionalMinLengthCheck})
                 return false;

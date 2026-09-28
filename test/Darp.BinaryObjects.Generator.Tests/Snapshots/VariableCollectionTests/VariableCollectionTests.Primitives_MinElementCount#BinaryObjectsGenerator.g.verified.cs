@@ -89,7 +89,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         source = source[4..];
         bytesRead += 4;
 
-        if (___readLength < 0 || ___readLength > source.Length / 2 || source.Length < 2)
+        if (___readLength < 0 || ___readLength > source.Length / 2 || ___readLength < 1)
             return false;
         var ___byteLengthValue = 2 * ___readLength;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayLittleEndian(source[0..___byteLengthValue], out _);
@@ -120,7 +120,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         source = source[4..];
         bytesRead += 4;
 
-        if (___readLength < 0 || ___readLength > source.Length / 2 || source.Length < 2)
+        if (___readLength < 0 || ___readLength > source.Length / 2 || ___readLength < 1)
             return false;
         var ___byteLengthValue = 2 * ___readLength;
         var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadInt16ArrayBigEndian(source[0..___byteLengthValue], out _);
