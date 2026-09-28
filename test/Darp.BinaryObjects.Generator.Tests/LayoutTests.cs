@@ -2,6 +2,20 @@ namespace Darp.BinaryObjects.Generator.Tests;
 
 using static VerifyHelper;
 
+public class ExternalInaccessibleBase
+{
+    internal byte InternalValue { get; init; }
+    private protected byte PrivateProtectedValue { get; init; }
+    public byte Computed => InternalValue;
+}
+
+public class ExternalFieldBase
+{
+#pragma warning disable CA1051 // An exposed field is the behavior under test.
+    public byte Prefix;
+#pragma warning restore CA1051
+}
+
 public class LayoutTests
 {
     [Fact]
@@ -32,6 +46,7 @@ public class LayoutTests
             public class BehaviorBase
             {
                 public void Ping() { }
+                public bool IsValid => true;
             }
 
             [BinaryObject]
@@ -49,6 +64,27 @@ public class LayoutTests
             public partial class OverridePacket : VirtualBase
             {
                 public override byte Value { get; init; }
+            }
+            """;
+        await VerifyBinaryObjectsGenerator(code);
+    }
+
+    [Fact]
+    public async Task InheritedMembers_ExternalBaseAccessibility()
+    {
+        const string code = """
+            using Darp.BinaryObjects;
+
+            [BinaryObject]
+            public partial class ExternalHiddenPacket : Darp.BinaryObjects.Generator.Tests.ExternalInaccessibleBase
+            {
+                public byte Data { get; init; }
+            }
+
+            [BinaryObject]
+            public partial class ExternalFieldPacket : Darp.BinaryObjects.Generator.Tests.ExternalFieldBase
+            {
+                public byte Data { get; init; }
             }
             """;
         await VerifyBinaryObjectsGenerator(code);

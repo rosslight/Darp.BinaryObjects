@@ -36,7 +36,8 @@ partial class BinaryObjectsGenerator
         INamedTypeSymbol typeSymbol,
         bool generateRead,
         out ParsedObjectInfo result,
-        Location? warningLocation = null
+        Location? warningLocation = null,
+        Compilation? compilation = null
     )
     {
         List<IMember> membersInitializedByConstructor = [];
@@ -68,7 +69,7 @@ partial class BinaryObjectsGenerator
                 membersInitializedByConstructor.Add(memberInfo);
         }
 
-        if (typeSymbol.TypeKind is TypeKind.Class)
+        if (typeSymbol.TypeKind is TypeKind.Class && compilation is not null)
         {
             for (
                 INamedTypeSymbol? baseType = typeSymbol.BaseType;
@@ -76,14 +77,13 @@ partial class BinaryObjectsGenerator
                 baseType = baseType.BaseType
             )
             {
+                ImmutableArray<ISymbol> baseMembers = baseType.GetMembers();
                 if (
-                    !baseType
-                        .GetMembers()
-                        .Any(member =>
+                    !baseMembers.Any(member =>
                             member is IFieldSymbol or IPropertySymbol
                             && !member.IsImplicitlyDeclared
                             && !member.IsStatic
-                            && member.DeclaredAccessibility is not Accessibility.Private
+                            && compilation.IsSymbolAccessibleWithin(member, typeSymbol, typeSymbol)
                             && !member
                                 .GetAttributes()
                                 .Any(attribute =>
@@ -92,9 +92,12 @@ partial class BinaryObjectsGenerator
                                 )
                             && (
                                 member is not IPropertySymbol baseProperty
-                                || !members.Any(serialized =>
-                                    serialized.MemberSymbol is IPropertySymbol derivedProperty
-                                    && IsOverrideOf(derivedProperty, baseProperty)
+                                || (
+                                    HasAutoPropertyBackingField(baseMembers, baseProperty)
+                                    && !members.Any(serialized =>
+                                        serialized.MemberSymbol is IPropertySymbol derivedProperty
+                                        && IsOverrideOf(derivedProperty, baseProperty)
+                                    )
                                 )
                             )
                         )
@@ -183,6 +186,15 @@ partial class BinaryObjectsGenerator
         return false;
     }
 
+    private static bool HasAutoPropertyBackingField(
+        IEnumerable<ISymbol> typeMembers,
+        IPropertySymbol property
+    ) =>
+        typeMembers
+            .Where(member => member.IsImplicitlyDeclared)
+            .OfType<IFieldSymbol>()
+            .Any(field => SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, property));
+
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
     private static (bool IsValid, bool IsConstructorInitialized) IsValidMember(
         ISymbol propertyOrFieldSymbol,
@@ -209,10 +221,7 @@ partial class BinaryObjectsGenerator
         {
             case IPropertySymbol propertySymbol:
             {
-                var isAutoProperty = typeMembers
-                    .Where(x => x.IsImplicitlyDeclared)
-                    .OfType<IFieldSymbol>()
-                    .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, propertySymbol));
+                var isAutoProperty = HasAutoPropertyBackingField(typeMembers, propertySymbol);
                 (bool IsValid, bool IsConstructorInitialized) constructorInit = IsConstructorInitialized(
                     propertySymbol,
                     propertySymbol.Type
