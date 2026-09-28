@@ -61,7 +61,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
         value = default;
 
         if (!Child.TryReadLittleEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         bytesRead += ___bytesReadValue;
 
         value = new Parent(___readValue);
@@ -78,7 +81,10 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
         value = default;
 
         if (!Child.TryReadBigEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         bytesRead += ___bytesReadValue;
 
         value = new Parent(___readValue);

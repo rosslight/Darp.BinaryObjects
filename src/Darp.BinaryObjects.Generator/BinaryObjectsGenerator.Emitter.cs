@@ -207,12 +207,16 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
             {
                 var endianness = littleEndian ? "LittleEndian" : "BigEndian";
                 var bytesWrittenVariable = $"{Prefix}bytesWritten{binaryObjectsGroup.MemberSymbol.Name}";
-                writer.WriteLine(
-                    $"if (!this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out var {bytesWrittenVariable}))"
-                );
+                var writeCall = binaryObjectsGroup.UseInterfaceDispatch
+                    ? $"global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObject{endianness}(destination[{currentByteIndex}..], this.{binaryObjectsGroup.MemberSymbol.Name}, out var {bytesWrittenVariable})"
+                    : $"this.{binaryObjectsGroup.MemberSymbol.Name}.TryWrite{endianness}(destination[{currentByteIndex}..], out var {bytesWrittenVariable})";
+                writer.WriteLine($"if (!{writeCall})");
+                writer.WriteLine("{");
                 writer.Indent++;
+                writer.WriteLine($"bytesWritten += {bytesWrittenVariable};");
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                writer.WriteLine("}");
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"destination = destination[{bytesWrittenVariable}..];");
@@ -329,12 +333,16 @@ public static bool TryRead{{methodNameEndianness}}(global::System.ReadOnlySpan<b
                 var endianness = littleEndian ? "LittleEndian" : "BigEndian";
                 var variableName = $"{Prefix}read{binaryObjectsGroup.MemberSymbol.Name}";
                 var bytesReadVariable = $"{Prefix}bytesRead{binaryObjectsGroup.MemberSymbol.Name}";
-                writer.WriteLine(
-                    $"if (!{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable}))"
-                );
+                var readCall = binaryObjectsGroup.UseInterfaceDispatch
+                    ? $"global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObject{endianness}<{binaryObjectsGroup.TypeSymbol.ToDisplayString()}>(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable})"
+                    : $"{binaryObjectsGroup.TypeSymbol.ToDisplayString()}.TryRead{endianness}(source[{currentByteIndex}..], out var {variableName}, out var {bytesReadVariable})";
+                writer.WriteLine($"if (!{readCall})");
+                writer.WriteLine("{");
                 writer.Indent++;
+                writer.WriteLine($"bytesRead += {bytesReadVariable};");
                 writer.WriteLine("return false;");
                 writer.Indent--;
+                writer.WriteLine("}");
                 if (index != memberGroups.Length - 1)
                 {
                     writer.WriteLine($"source = source[{bytesReadVariable}..];");
@@ -469,8 +477,14 @@ namespace Darp.BinaryObjects.Generated
                 WellKnownCollectionKind collectionKind,
                 WellKnownTypeKind typeKind,
                 var constLength,
-                var emitLittleAndBigEndian
+                var emitLittleAndBigEndian,
+                var useReportedByteCounts
             ) = utilityData;
+            if (useReportedByteCounts)
+            {
+                EmitManualObjectUtilities(writer, isReadUtility);
+                continue;
+            }
             if (isReadUtility)
             {
                 EmitReadUtility(writer, collectionKind, typeKind, constLength, emitLittleAndBigEndian);
@@ -484,5 +498,26 @@ namespace Darp.BinaryObjects.Generated
         writer.WriteLine("}");
         writer.Indent--;
         writer.WriteLine("}");
+    }
+
+    private static void EmitManualObjectUtilities(IndentedTextWriter writer, bool generateRead)
+    {
+        writer.WriteMultiLine(
+            generateRead
+                ? """
+public static bool TryReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+    where T : IBinaryReadable<T> => T.TryReadLittleEndian(source, out value, out bytesRead);
+public static bool TryReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+    where T : IBinaryReadable<T> => T.TryReadBigEndian(source, out value, out bytesRead);
+"""
+                : """
+public static int GetBinaryObjectByteCount<T>(T value)
+    where T : IBinaryWritable => value.GetByteCount();
+public static bool TryWriteBinaryObjectLittleEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+    where T : IBinaryWritable => value.TryWriteLittleEndian(destination, out bytesWritten);
+public static bool TryWriteBinaryObjectBigEndian<T>(Span<byte> destination, T value, out int bytesWritten)
+    where T : IBinaryWritable => value.TryWriteBigEndian(destination, out bytesWritten);
+"""
+        );
     }
 }

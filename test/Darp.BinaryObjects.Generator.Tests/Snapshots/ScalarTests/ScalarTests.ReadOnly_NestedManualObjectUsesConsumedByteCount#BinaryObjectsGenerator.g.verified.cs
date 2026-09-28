@@ -19,8 +19,11 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
         bytesRead = 0;
         value = default;
 
-        if (!ManualObject.TryReadLittleEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectLittleEndian<ManualObject>(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         bytesRead += ___bytesReadValue;
 
         value = new Parent(___readValue);
@@ -36,8 +39,11 @@ public sealed partial record Parent : global::Darp.BinaryObjects.IBinaryReadable
         bytesRead = 0;
         value = default;
 
-        if (!ManualObject.TryReadBigEndian(source[0..], out var ___readValue, out var ___bytesReadValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryReadBinaryObjectBigEndian<ManualObject>(source[0..], out var ___readValue, out var ___bytesReadValue))
+        {
+            bytesRead += ___bytesReadValue;
             return false;
+        }
         bytesRead += ___bytesReadValue;
 
         value = new Parent(___readValue);
@@ -59,23 +65,9 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Reads a <c>T</c> from the given source, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadLittleEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
-        /// <summary> Reads a <c>T</c> from the given source, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source)
-            where T : IBinaryReadable<T>
-        {
-            if (!T.TryReadBigEndian(source, out var value))
-                throw new ArgumentOutOfRangeException(nameof(source));
-            return value;
-        }
+        public static bool TryReadBinaryObjectLittleEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadLittleEndian(source, out value, out bytesRead);
+        public static bool TryReadBinaryObjectBigEndian<T>(ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out T? value, out int bytesRead)
+            where T : IBinaryReadable<T> => T.TryReadBigEndian(source, out value, out bytesRead);
     }
 }

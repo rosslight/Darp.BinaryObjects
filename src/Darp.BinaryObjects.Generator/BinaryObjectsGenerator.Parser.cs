@@ -416,6 +416,12 @@ partial class BinaryObjectsGenerator
                 {
                     MemberSymbol = symbol,
                     TypeSymbol = typeSymbol,
+                    // Ref-like serializers retain direct calls; generic helpers also serve C# 11 consumers.
+                    UseInterfaceDispatch =
+                        typeSymbol is not INamedTypeSymbol { IsRefLikeType: true }
+                        && !typeSymbol
+                            .GetAttributes()
+                            .Any(attribute => attribute.AttributeClass?.ToDisplayString() == BinaryObjectAttributeName),
                 },
                 (not WellKnownCollectionKind.None, not null, _, true) => info = new ConstantArrayMember
                 {
@@ -514,58 +520,8 @@ partial class BinaryObjectsGenerator
             return TryGetGeneratedConstantLength(namedType, out totalLength);
 
         totalLength = 0;
-        // Directional manual serializers own their layout; only explicit metadata establishes a fixed size.
-        // Preserve the existing inference for combined IBinaryObject implementations.
-        if (
-            !typeSymbol.AllInterfaces.Any(x =>
-                x.OriginalDefinition.ToDisplayString() == "Darp.BinaryObjects.IBinaryObject<TSelf>"
-            )
-        )
-            return false;
-        foreach (
-            ISymbol symbol in typeSymbol
-                .GetMembers()
-                .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
-                .Where(x => !x.IsImplicitlyDeclared)
-                .Where(x => x is not IPropertySymbol { IsReadOnly: true })
-        )
-        {
-            (bool HasAttribute, int? Length) hasElementCountTuple = symbol
-                .GetAttributes()
-                .Select(a =>
-                {
-                    if (a.AttributeClass?.ToDisplayString() != "Darp.BinaryObjects.BinaryElementCountAttribute")
-                        return (false, 1);
-                    if (
-                        !a.GetArguments()
-                            .ToDictionary(x => x.Key, x => x.Value)
-                            .TryGetValue("length", out TypedConstant lengthValue)
-                    )
-                        return (false, 1);
-                    return (true, (int?)lengthValue.Value);
-                })
-                .FirstOrDefault(x => x.Item1);
-            var arrayLength = hasElementCountTuple.Length ?? 1;
-            ITypeSymbol memberTypeSymbol = symbol switch
-            {
-                IFieldSymbol s => s.Type,
-                IPropertySymbol s => s.Type,
-                _ => throw new ArgumentException($"Invalid symbol type {symbol.ToDisplayString()}"),
-            };
-            if (memberTypeSymbol.TryGetArrayType(out _, out ITypeSymbol? arrayTypeSymbol))
-            {
-                if (!hasElementCountTuple.HasAttribute)
-                    return false;
-                memberTypeSymbol = arrayTypeSymbol;
-            }
-            WellKnownTypeKind typeKind = GetWellKnownTypeKind(memberTypeSymbol);
-            if (typeKind is WellKnownTypeKind.BinaryObject)
-                return false;
-            if (!typeKind.TryGetLength(out var length))
-                return false;
-            totalLength += length * arrayLength;
-        }
-        return true;
+        // Handwritten serializers own their layout; only explicit metadata establishes a fixed size.
+        return false;
     }
 
     private static bool TryGetGeneratedConstantLength(INamedTypeSymbol namedType, out int totalLength)
