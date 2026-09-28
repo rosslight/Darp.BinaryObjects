@@ -452,6 +452,20 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var memberName = $"this.{MemberSymbol.Name}";
         if (EnumCollectionCode.IsEnum(TypeKind))
         {
+            if (CollectionKind is WellKnownCollectionKind.Enumerable)
+            {
+                writeString = EnumCollectionCode.WriteRemainingEnumerable(
+                    TypeKind,
+                    memberName,
+                    currentByteIndex,
+                    TypeByteLength,
+                    ArrayMinLength,
+                    isLittleEndian,
+                    MemberSymbol.Name
+                );
+                bytesWrittenString = null;
+                return true;
+            }
             var minimumCheck = ArrayMinLength > 0 ? $" || destination.Length < {TypeByteLength * ArrayMinLength}" : string.Empty;
             var countName = $"{BinaryObjectsGenerator.Prefix}enumCount{MemberSymbol.Name}";
             writeString = $$"""

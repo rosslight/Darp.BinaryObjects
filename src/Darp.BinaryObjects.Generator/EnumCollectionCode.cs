@@ -91,6 +91,43 @@ internal static class EnumCollectionCode
         return bytesReadName is null ? code : $"{code}\nvar {bytesReadName} = {count} * {elementSize};";
     }
 
+    public static string WriteRemainingEnumerable(
+        WellKnownTypeKind typeKind,
+        string memberName,
+        int destinationOffset,
+        int elementSize,
+        int minimumCount,
+        bool littleEndian,
+        string identifier
+    )
+    {
+        var index = $"___enumIndex{identifier}";
+        var enumerator = $"___enumEnumerator{identifier}";
+        var write = WriteElement(typeKind, $"{enumerator}.Current", index, destinationOffset, elementSize, littleEndian);
+        var minimumCheck = minimumCount > 0
+            ? $"if ({index} < {minimumCount})\n{{\n    bytesWritten += {index} * {elementSize};\n    return false;\n}}"
+            : string.Empty;
+        var code = $$"""
+            using var {{enumerator}} = {{memberName}}.GetEnumerator();
+            var {{index}} = 0;
+            while ({{enumerator}}.MoveNext())
+            {
+                if ({{index}} >= destination.Length / {{elementSize}})
+                {
+                    bytesWritten += {{index}} * {{elementSize}};
+                    return false;
+                }
+                {{write}}
+                {{index}}++;
+            }
+            {{minimumCheck}}
+            bytesWritten += {{index}} * {{elementSize}};
+            """;
+        return minimumCount is 0
+            ? code
+            : $"if (destination.Length < {minimumCount * elementSize})\n    return false;\n{code}";
+    }
+
     private static string WriteElement(
         WellKnownTypeKind typeKind,
         string value,
