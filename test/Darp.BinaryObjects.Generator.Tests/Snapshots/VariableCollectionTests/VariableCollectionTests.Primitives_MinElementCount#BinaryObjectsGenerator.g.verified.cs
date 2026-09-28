@@ -14,7 +14,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     /// <inheritdoc />
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => checked(4 + 2 * global::System.Math.Max(this.Length, 1) + 4 * global::System.Math.Max(this.Value2.Length, 3));
+    public int GetByteCount() => checked(4 + 2 * global::System.Math.Max((int)this.Length, 1) + 4 * global::System.Math.Max(this.Value2.Length, 3));
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
