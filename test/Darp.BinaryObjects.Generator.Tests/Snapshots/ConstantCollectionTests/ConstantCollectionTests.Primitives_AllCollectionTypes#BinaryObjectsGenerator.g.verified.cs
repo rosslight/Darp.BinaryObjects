@@ -7,11 +7,11 @@
 /// <item> <term><see cref="ValueByteMemory"/></term> <description>1 * 2</description> </item>
 /// <item> <term><see cref="ValueByteArray"/></term> <description>1 * 2</description> </item>
 /// <item> <term><see cref="ValueByteList"/></term> <description>1 * 2</description> </item>
-/// <item> <term><see cref="ValueByteEnumerable"/></term> <description>1 * 2</description> </item>
+/// <item> <term><see cref="ValueByteCollection"/></term> <description>1 * 2</description> </item>
 /// <item> <term><see cref="ValueUShortMemory"/></term> <description>2 * 2</description> </item>
 /// <item> <term><see cref="ValueUShortArray"/></term> <description>2 * 2</description> </item>
 /// <item> <term><see cref="ValueUShortList"/></term> <description>2 * 2</description> </item>
-/// <item> <term><see cref="ValueUShortEnumerable"/></term> <description>2 * 2</description> </item>
+/// <item> <term><see cref="ValueUShortCollection"/></term> <description>2 * 2</description> </item>
 /// <item> <term> --- </term> <description>24</description> </item>
 /// </list> </remarks>
 [global::Darp.BinaryObjects.BinaryConstant(24)]
@@ -32,16 +32,16 @@ public partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<Test
     {
         bytesWritten = 0;
 
-        if (destination.Length < 24)
+        if (destination.Length < 24 || this.ValueByteMemory.Length < 2 || this.ValueByteArray.Length < 2 || this.ValueByteList.Count < 2 || this.ValueByteCollection.Count < 2 || this.ValueUShortMemory.Length < 2 || this.ValueUShortArray.Length < 2 || this.ValueUShortList.Count < 2 || this.ValueUShortCollection.Count < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..2], this.ValueByteMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[2..4], this.ValueByteArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination[4..6], this.ValueByteList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination[6..8], this.ValueByteEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[4..6], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueByteList));
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Collection(destination[6..8], this.ValueByteCollection);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination[8..12], this.ValueUShortMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination[12..16], this.ValueUShortArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListLittleEndian(destination[16..20], this.ValueUShortList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableLittleEndian(destination[20..24], this.ValueUShortEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanLittleEndian(destination[16..20], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueUShortList));
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16CollectionLittleEndian(destination[20..24], this.ValueUShortCollection);
         bytesWritten += 24;
 
         return true;
@@ -55,16 +55,16 @@ public partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<Test
     {
         bytesWritten = 0;
 
-        if (destination.Length < 24)
+        if (destination.Length < 24 || this.ValueByteMemory.Length < 2 || this.ValueByteArray.Length < 2 || this.ValueByteList.Count < 2 || this.ValueByteCollection.Count < 2 || this.ValueUShortMemory.Length < 2 || this.ValueUShortArray.Length < 2 || this.ValueUShortList.Count < 2 || this.ValueUShortCollection.Count < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..2], this.ValueByteMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[2..4], this.ValueByteArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8List(destination[4..6], this.ValueByteList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Enumerable(destination[6..8], this.ValueByteEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[4..6], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueByteList));
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Collection(destination[6..8], this.ValueByteCollection);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination[8..12], this.ValueUShortMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination[12..16], this.ValueUShortArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16ListBigEndian(destination[16..20], this.ValueUShortList);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16EnumerableBigEndian(destination[20..24], this.ValueUShortEnumerable);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16SpanBigEndian(destination[16..20], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueUShortList));
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16CollectionBigEndian(destination[20..24], this.ValueUShortCollection);
         bytesWritten += 24;
 
         return true;
@@ -85,14 +85,14 @@ public partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<Test
         var ___readValueByteMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..2], out _);
         var ___readValueByteArray = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[2..4], out _);
         var ___readValueByteList = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8List(source[4..6], out _);
-        var ___readValueByteEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[6..8], out _);
+        var ___readValueByteCollection = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[6..8], out _);
         var ___readValueUShortMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayLittleEndian(source[8..12], out _);
         var ___readValueUShortArray = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayLittleEndian(source[12..16], out _);
         var ___readValueUShortList = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ListLittleEndian(source[16..20], out _);
-        var ___readValueUShortEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayLittleEndian(source[20..24], out _);
+        var ___readValueUShortCollection = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayLittleEndian(source[20..24], out _);
         bytesRead += 24;
 
-        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
+        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteCollection, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortCollection);
         return true;
     }
     /// <inheritdoc />
@@ -110,14 +110,14 @@ public partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<Test
         var ___readValueByteMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..2], out _);
         var ___readValueByteArray = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[2..4], out _);
         var ___readValueByteList = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8List(source[4..6], out _);
-        var ___readValueByteEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[6..8], out _);
+        var ___readValueByteCollection = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[6..8], out _);
         var ___readValueUShortMemory = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayBigEndian(source[8..12], out _);
         var ___readValueUShortArray = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayBigEndian(source[12..16], out _);
         var ___readValueUShortList = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ListBigEndian(source[16..20], out _);
-        var ___readValueUShortEnumerable = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayBigEndian(source[20..24], out _);
+        var ___readValueUShortCollection = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16ArrayBigEndian(source[20..24], out _);
         bytesRead += 24;
 
-        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteEnumerable, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortEnumerable);
+        value = new TestObject(___readValueByteMemory, ___readValueByteArray, ___readValueByteList, ___readValueByteCollection, ___readValueUShortMemory, ___readValueUShortArray, ___readValueUShortList, ___readValueUShortCollection);
         return true;
     }
 }
@@ -151,12 +151,6 @@ namespace Darp.BinaryObjects.Generated
             bytesRead = source.Length;
             return source.ToArray();
         }
-        /// <summary> Writes a <c>List&lt;byte&gt;</c> with a <c>maxElementLength</c> to the destination </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt8List(Span<byte> destination, List<byte> value)
-        {
-            return WriteUInt8Span(destination, CollectionsMarshal.AsSpan(value));
-        }
         /// <summary> Reads a <c>List&lt;byte&gt;</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static List<byte> ReadUInt8List(ReadOnlySpan<byte> source, out int bytesRead)
@@ -168,24 +162,17 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Writes a <c>IEnumerable&lt;byte&gt;</c> with a <c>maxElementLength</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt8Enumerable(Span<byte> destination, IEnumerable<byte> value)
+        public static int WriteUInt8Collection(Span<byte> destination, IEnumerable<byte> value)
         {
-            switch (value)
-            {
-                case byte[] arrayValue:
-                    return WriteUInt8Span(destination, arrayValue);
-                case List<byte> listValue:
-                    return WriteUInt8List(destination, listValue);
-            }
-            var maxElementLength = destination.Length;
+            using var enumerator = value.GetEnumerator();
+            var count = destination.Length / 1;
             var index = 0;
-            foreach (var val in value)
+            for (; index < count && enumerator.MoveNext(); index++)
             {
-                destination[index++] = val;
-                if (index >= maxElementLength)
-                    return index;
+                var item = enumerator.Current;
+                WriteUInt8Span(destination.Slice(index * 1, 1), MemoryMarshal.CreateReadOnlySpan(ref item, 1));
             }
-            return index;
+            return index * 1;
         }
         /// <summary> Writes a <c>ReadOnlySpan&lt;ushort&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -235,18 +222,6 @@ namespace Darp.BinaryObjects.Generated
             bytesRead = array.Length * 2;
             return array;
         }
-        /// <summary> Writes a <c>List&lt;ushort&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt16ListLittleEndian(Span<byte> destination, List<ushort> value)
-        {
-            return WriteUInt16SpanLittleEndian(destination, CollectionsMarshal.AsSpan(value));
-        }
-        /// <summary> Writes a <c>List&lt;ushort&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt16ListBigEndian(Span<byte> destination, List<ushort> value)
-        {
-            return WriteUInt16SpanBigEndian(destination, CollectionsMarshal.AsSpan(value));
-        }
         /// <summary> Reads a <c>List&lt;ushort&gt;</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static List<ushort> ReadUInt16ListLittleEndian(ReadOnlySpan<byte> source, out int bytesRead)
@@ -279,43 +254,29 @@ namespace Darp.BinaryObjects.Generated
         }
         /// <summary> Writes a <c>IEnumerable&lt;ushort&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt16EnumerableLittleEndian(Span<byte> destination, IEnumerable<ushort> value)
+        public static int WriteUInt16CollectionLittleEndian(Span<byte> destination, IEnumerable<ushort> value)
         {
-            switch (value)
-            {
-                case ushort[] arrayValue:
-                    return WriteUInt16SpanLittleEndian(destination, arrayValue);
-                case List<ushort> listValue:
-                    return WriteUInt16ListLittleEndian(destination, listValue);
-            }
-            var maxElementLength = destination.Length / 2;
+            using var enumerator = value.GetEnumerator();
+            var count = destination.Length / 2;
             var index = 0;
-            foreach (var val in value)
+            for (; index < count && enumerator.MoveNext(); index++)
             {
-                BinaryPrimitives.WriteUInt16LittleEndian(destination[(2 * index++)..], val);
-                if (index >= maxElementLength)
-                    return index * 2;
+                var item = enumerator.Current;
+                WriteUInt16SpanLittleEndian(destination.Slice(index * 2, 2), MemoryMarshal.CreateReadOnlySpan(ref item, 1));
             }
             return index * 2;
         }
         /// <summary> Writes a <c>IEnumerable&lt;ushort&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt16EnumerableBigEndian(Span<byte> destination, IEnumerable<ushort> value)
+        public static int WriteUInt16CollectionBigEndian(Span<byte> destination, IEnumerable<ushort> value)
         {
-            switch (value)
-            {
-                case ushort[] arrayValue:
-                    return WriteUInt16SpanBigEndian(destination, arrayValue);
-                case List<ushort> listValue:
-                    return WriteUInt16ListBigEndian(destination, listValue);
-            }
-            var maxElementLength = destination.Length / 2;
+            using var enumerator = value.GetEnumerator();
+            var count = destination.Length / 2;
             var index = 0;
-            foreach (var val in value)
+            for (; index < count && enumerator.MoveNext(); index++)
             {
-                BinaryPrimitives.WriteUInt16BigEndian(destination[(2 * index++)..], val);
-                if (index >= maxElementLength)
-                    return index * 2;
+                var item = enumerator.Current;
+                WriteUInt16SpanBigEndian(destination.Slice(index * 2, 2), MemoryMarshal.CreateReadOnlySpan(ref item, 1));
             }
             return index * 2;
         }

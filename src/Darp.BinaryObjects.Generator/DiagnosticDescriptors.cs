@@ -4,6 +4,14 @@ using Microsoft.CodeAnalysis;
 
 internal static class DiagnosticDescriptors
 {
+    public static readonly DiagnosticDescriptor EnumerableMemberNotSupported = new(
+        id: "DBO009",
+        title: "EnumerableMemberNotSupported",
+        messageFormat: "Enumerable member '{0}' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor RemainingCollectionMustBeLast = new(
         id: "DBO002",
         title: "RemainingCollectionMustBeLast",

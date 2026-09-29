@@ -292,7 +292,17 @@ partial class BinaryObjectsGenerator
         };
         if (typeSymbol is null)
             return false;
-        ITypeSymbol arrayTypeSymbol = typeSymbol;
+        if (typeSymbol.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.EnumerableMemberNotSupported,
+                    symbol.GetSourceLocation(),
+                    [symbol.Name]
+                )
+            );
+            return false;
+        }
         if (
             typeSymbol.TryGetArrayType(
                 out WellKnownCollectionKind collectionKind,
@@ -449,7 +459,6 @@ partial class BinaryObjectsGenerator
                     TypeSymbol = typeSymbol,
                     CollectionKind = collectionKind,
                     TypeByteLength = length,
-                    ArrayTypeSymbol = arrayTypeSymbol,
                     ArrayLength = arrayLength.Value,
                 },
                 (not WellKnownCollectionKind.None, _, not null, true) => new VariableArrayMemberGroup
@@ -459,7 +468,6 @@ partial class BinaryObjectsGenerator
                     MemberSymbol = symbol,
                     TypeSymbol = typeSymbol,
                     TypeByteLength = length,
-                    ArrayTypeSymbol = arrayTypeSymbol,
                     ArrayMinLength = arrayMinLength ?? 0,
                     ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
                 },
@@ -484,7 +492,6 @@ partial class BinaryObjectsGenerator
                 MemberSymbol = symbol,
                 TypeSymbol = typeSymbol,
                 TypeByteLength = length,
-                ArrayTypeSymbol = arrayTypeSymbol,
                 ArrayMinLength = arrayMinLength ?? 0,
                 ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
             },
@@ -495,7 +502,6 @@ partial class BinaryObjectsGenerator
                 MemberSymbol = symbol,
                 TypeSymbol = typeSymbol,
                 TypeByteLength = length,
-                ArrayTypeSymbol = arrayTypeSymbol,
                 ArrayLength = arrayLength.Value,
             },
             (not WellKnownCollectionKind.None, _, _) => new ReadRemainingArrayMemberGroup

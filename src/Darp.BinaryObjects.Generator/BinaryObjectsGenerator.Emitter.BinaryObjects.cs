@@ -48,16 +48,6 @@ partial class BinaryObjectsGenerator
             }
 
             var writeMethodName = GetWriteMethodName(collectionKind, WellKnownTypeKind.BinaryObject, littleEndian);
-            var spanMethodName = GetWriteMethodName(
-                WellKnownCollectionKind.Span,
-                WellKnownTypeKind.BinaryObject,
-                littleEndian
-            );
-            var listMethodName = GetWriteMethodName(
-                WellKnownCollectionKind.List,
-                WellKnownTypeKind.BinaryObject,
-                littleEndian
-            );
             switch (collectionKind)
             {
                 case WellKnownCollectionKind.Span:
@@ -82,29 +72,18 @@ partial class BinaryObjectsGenerator
                         """
                     );
                     break;
-                case WellKnownCollectionKind.List:
-                    writer.WriteMultiLine(
-                        $$"""
-                        public static bool {{writeMethodName}}<T>(Span<byte> destination, List<T> value, int elementLength, out int bytesWritten)
-                            where T : IBinaryWritable => {{spanMethodName}}<T>(destination, CollectionsMarshal.AsSpan(value), elementLength, out bytesWritten);
-                        """
-                    );
-                    break;
-                case WellKnownCollectionKind.Enumerable:
+                case WellKnownCollectionKind.Collection:
                     writer.WriteMultiLine(
                         $$"""
                         public static bool {{writeMethodName}}<T>(Span<byte> destination, IEnumerable<T> value, int elementLength, out int bytesWritten)
                             where T : IBinaryWritable
                         {
-                            if (value is T[] array)
-                                return {{spanMethodName}}<T>(destination, array, elementLength, out bytesWritten);
-                            if (value is List<T> list)
-                                return {{listMethodName}}<T>(destination, list, elementLength, out bytesWritten);
                             bytesWritten = 0;
-                            foreach (var item in value)
+                            using var enumerator = value.GetEnumerator();
+                            var count = destination.Length / elementLength;
+                            for (var index = 0; index < count && enumerator.MoveNext(); index++)
                             {
-                                if (destination.Length - bytesWritten < elementLength)
-                                    break;
+                                var item = enumerator.Current;
                                 if (!item.TryWrite{{endianness}}(destination.Slice(bytesWritten, elementLength), out var itemBytesWritten))
                                 {
                                     bytesWritten += itemBytesWritten;

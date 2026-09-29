@@ -18,7 +18,7 @@ internal sealed partial record ObjectUShortList(List<OneUShort> Value);
 internal sealed partial record ObjectUShortArray(OneUShort[] Value);
 
 [BinaryObject]
-internal sealed partial record RemainingPairEnumerable(byte Prefix, IEnumerable<ManualFixedPair> Values);
+internal sealed partial record RemainingPairCollection(byte Prefix, IReadOnlyCollection<ManualFixedPair> Values);
 
 public class ListUShortRemainingLengthTests
 {
@@ -27,7 +27,7 @@ public class ListUShortRemainingLengthTests
     [InlineData(false, 0xFF, false, 5, "A11234A5FFA5A5A5", "A1123400FF7800")]
     [InlineData(true, 0x56, true, 7, "A11234A55678A5A5", "A1123400567800")]
     [InlineData(false, 0x56, true, 7, "A11234A55678A5A5", "A1123400567800")]
-    public void ObjectIterator_ShouldPreserveDeclaredStrideAndChildProgress(
+    public void ObjectCollection_ShouldPreserveDeclaredStrideAndChildProgress(
         bool littleEndian,
         byte secondFirst,
         bool expectedSuccess,
@@ -36,7 +36,10 @@ public class ListUShortRemainingLengthTests
         string sourceHex
     )
     {
-        var value = new RemainingPairEnumerable(0xA1, EnumeratePairs(secondFirst));
+        var value = new RemainingPairCollection(
+            0xA1,
+            new System.Collections.ObjectModel.Collection<ManualFixedPair> { new(0x12, 0x34), new(secondFirst, 0x78) }
+        );
         var destination = Enumerable.Repeat((byte)0xA5, 8).ToArray();
         var written = littleEndian
             ? value.TryWriteLittleEndian(destination, out var bytesWritten)
@@ -48,8 +51,8 @@ public class ListUShortRemainingLengthTests
 
         var source = Convert.FromHexString(sourceHex);
         var read = littleEndian
-            ? RemainingPairEnumerable.TryReadLittleEndian(source, out var parsed, out var bytesRead)
-            : RemainingPairEnumerable.TryReadBigEndian(source, out parsed, out bytesRead);
+            ? RemainingPairCollection.TryReadLittleEndian(source, out var parsed, out var bytesRead)
+            : RemainingPairCollection.TryReadBigEndian(source, out parsed, out bytesRead);
         read.Should().Be(expectedSuccess);
         bytesRead.Should().Be(expectedProgress);
         if (expectedSuccess)
@@ -59,12 +62,6 @@ public class ListUShortRemainingLengthTests
         }
         else
             parsed.Should().BeNull();
-    }
-
-    private static IEnumerable<ManualFixedPair> EnumeratePairs(byte secondFirst)
-    {
-        yield return new ManualFixedPair(0x12, 0x34);
-        yield return new ManualFixedPair(secondFirst, 0x78);
     }
 
     [Theory]
@@ -191,7 +188,6 @@ public class ListUShortRemainingLengthTests
     [InlineData("00100100", 4, 4, 4, "00100100", "10000001")]
     [InlineData("FFFFAAAA", 4, 4, 4, "FFFFAAAA", "FFFFAAAA")]
     [InlineData("FFFFFFFFFFFF", 7, 6, 6, "FFFFFFFFFFFF00", "FFFFFFFFFFFF00")]
-    [InlineData("1234", 4, 4, 2, "12340000", "34120000")]
     public void TryWrite_GoodInputShouldBeValid(
         string valueHexString,
         int bufferSize,
@@ -227,6 +223,7 @@ public class ListUShortRemainingLengthTests
 
     [Theory]
     [InlineData("", 0, "")]
+    [InlineData("1234", 4, "00000000")]
     [InlineData("01000004", 3, "000000")]
     [InlineData("0100000400000008", 7, "00000000000000")]
     public void TryWrite_BadInputShouldBeValid(string valueHexString, int bufferSize, string expectedHexString)

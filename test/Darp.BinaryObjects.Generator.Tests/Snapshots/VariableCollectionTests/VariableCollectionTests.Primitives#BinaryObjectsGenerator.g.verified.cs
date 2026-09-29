@@ -33,28 +33,28 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 1)
+        if (this.Length < 0 || this.Length > destination.Length / 1 || this.Value1.Length < this.Length)
             return false;
         var ___byteLengthValue1 = 1 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..___byteLengthValue1], this.Value1);
         destination = destination[___byteLengthValue1..];
         bytesWritten += ___byteLengthValue1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || this.Value2.Length < this.Length)
             return false;
         var ___byteLengthValue2 = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanLittleEndian(destination[0..___byteLengthValue2], this.Value2);
         destination = destination[___byteLengthValue2..];
         bytesWritten += ___byteLengthValue2;
 
-        if (this.Length < 0 || this.Length > destination.Length / 4)
+        if (this.Length < 0 || this.Length > destination.Length / 4 || this.Value3.Length < this.Length)
             return false;
         var ___byteLengthValue3 = 4 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanLittleEndian(destination[0..___byteLengthValue3], this.Value3);
         destination = destination[___byteLengthValue3..];
         bytesWritten += ___byteLengthValue3;
 
-        if (this.Length < 0 || this.Length > destination.Length / 8)
+        if (this.Length < 0 || this.Length > destination.Length / 8 || this.Value4.Length < this.Length)
             return false;
         var ___byteLengthValue4 = 8 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanLittleEndian(destination[0..___byteLengthValue4], this.Value4);
@@ -77,28 +77,28 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[1..];
         bytesWritten += 1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 1)
+        if (this.Length < 0 || this.Length > destination.Length / 1 || this.Value1.Length < this.Length)
             return false;
         var ___byteLengthValue1 = 1 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..___byteLengthValue1], this.Value1);
         destination = destination[___byteLengthValue1..];
         bytesWritten += ___byteLengthValue1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || this.Value2.Length < this.Length)
             return false;
         var ___byteLengthValue2 = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanBigEndian(destination[0..___byteLengthValue2], this.Value2);
         destination = destination[___byteLengthValue2..];
         bytesWritten += ___byteLengthValue2;
 
-        if (this.Length < 0 || this.Length > destination.Length / 4)
+        if (this.Length < 0 || this.Length > destination.Length / 4 || this.Value3.Length < this.Length)
             return false;
         var ___byteLengthValue3 = 4 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteUInt32SpanBigEndian(destination[0..___byteLengthValue3], this.Value3);
         destination = destination[___byteLengthValue3..];
         bytesWritten += ___byteLengthValue3;
 
-        if (this.Length < 0 || this.Length > destination.Length / 8)
+        if (this.Length < 0 || this.Length > destination.Length / 8 || this.Value4.Length < this.Length)
             return false;
         var ___byteLengthValue4 = 8 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt64SpanBigEndian(destination[0..___byteLengthValue4], this.Value4);

@@ -27,7 +27,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 4 || this.Values.Length < 2)
             return false;
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectLittleEndian(destination[0..1], this.Value, out var ___bytesWrittenValue))
         {
@@ -45,7 +45,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         destination = destination[4..];
         bytesWritten += 1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 1)
+        if (this.Length < 0 || this.Length > destination.Length / 1 || this.LengthValues.Length < this.Length)
             return false;
         var ___byteLengthLengthValues = 1 * this.Length;
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination[0..___byteLengthLengthValues], this.LengthValues, 1, out var ___bytesWrittenLengthValues))
@@ -58,7 +58,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
 
         if (this.RemainingValue.Count > destination.Length / 1)
             return false;
-        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectListLittleEndian<ManualConstantObject>(destination, this.RemainingValue, 1, out var ___bytesWrittenRemainingValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectSpanLittleEndian<ManualConstantObject>(destination, global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.RemainingValue), 1, out var ___bytesWrittenRemainingValue))
         {
             bytesWritten += ___bytesWrittenRemainingValue;
             return false;
@@ -76,7 +76,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
     {
         bytesWritten = 0;
 
-        if (destination.Length < 4)
+        if (destination.Length < 4 || this.Values.Length < 2)
             return false;
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectBigEndian(destination[0..1], this.Value, out var ___bytesWrittenValue))
         {
@@ -94,7 +94,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
         destination = destination[4..];
         bytesWritten += 1;
 
-        if (this.Length < 0 || this.Length > destination.Length / 1)
+        if (this.Length < 0 || this.Length > destination.Length / 1 || this.LengthValues.Length < this.Length)
             return false;
         var ___byteLengthLengthValues = 1 * this.Length;
         if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination[0..___byteLengthLengthValues], this.LengthValues, 1, out var ___bytesWrittenLengthValues))
@@ -107,7 +107,7 @@ public sealed partial record UnlimitedWithMinLength : global::Darp.BinaryObjects
 
         if (this.RemainingValue.Count > destination.Length / 1)
             return false;
-        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectListBigEndian<ManualConstantObject>(destination, this.RemainingValue, 1, out var ___bytesWrittenRemainingValue))
+        if (!global::Darp.BinaryObjects.Generated.Utilities.TryWriteBinaryObjectSpanBigEndian<ManualConstantObject>(destination, global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.RemainingValue), 1, out var ___bytesWrittenRemainingValue))
         {
             bytesWritten += ___bytesWrittenRemainingValue;
             return false;
@@ -325,10 +325,6 @@ namespace Darp.BinaryObjects.Generated
             value = result;
             return true;
         }
-        public static bool TryWriteBinaryObjectListLittleEndian<T>(Span<byte> destination, List<T> value, int elementLength, out int bytesWritten)
-            where T : IBinaryWritable => TryWriteBinaryObjectSpanLittleEndian<T>(destination, CollectionsMarshal.AsSpan(value), elementLength, out bytesWritten);
-        public static bool TryWriteBinaryObjectListBigEndian<T>(Span<byte> destination, List<T> value, int elementLength, out int bytesWritten)
-            where T : IBinaryWritable => TryWriteBinaryObjectSpanBigEndian<T>(destination, CollectionsMarshal.AsSpan(value), elementLength, out bytesWritten);
         public static bool TryReadBinaryObjectListLittleEndian<T>(ReadOnlySpan<byte> source, int elementLength, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out List<T>? value, out int bytesRead)
             where T : IBinaryReadable<T>
         {
