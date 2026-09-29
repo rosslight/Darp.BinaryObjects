@@ -151,4 +151,15 @@ public sealed class EnumCollectionTests
         bytesWritten.Should().Be(bytes.Length);
         destination.Should().Equal(bytes);
     }
+
+    [Fact]
+    public void UInt64EnumArray_ShouldRejectMissingElementBeforeWriting()
+    {
+        var value = new UInt64EnumPayload([UInt64EnumValue.First]);
+        var destination = new byte[16];
+
+        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeFalse();
+        bytesWritten.Should().Be(0);
+        destination.Should().Equal(new byte[16]);
+    }
 }

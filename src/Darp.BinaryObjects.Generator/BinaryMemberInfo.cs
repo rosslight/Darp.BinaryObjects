@@ -154,12 +154,14 @@ internal sealed class ConstantArrayMember : IConstantMember
             writeString = EnumCollectionCode.Write(
                 CollectionKind,
                 TypeKind,
+                TypeSymbol,
                 memberName,
                 currentByteIndex,
                 ArrayLength.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 TypeByteLength,
                 isLittleEndian,
-                MemberSymbol.Name
+                MemberSymbol.Name,
+                checkLength: false
             );
             bytesWritten = ConstantByteLength;
             return true;
@@ -209,8 +211,7 @@ internal sealed class ConstantArrayMember : IConstantMember
                 TypeByteLength,
                 isLittleEndian,
                 variableName,
-                null,
-                MemberSymbol.Name
+                null
             );
             bytesRead = ConstantByteLength;
             return true;
@@ -309,7 +310,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
                 if (this.{{ArrayLengthMemberName}} < 0 || this.{{ArrayLengthMemberName}} > destination.Length / {{TypeByteLength}}{{minimumCheck}})
                     return false;
                 var {{byteLength}} = {{TypeByteLength}} * this.{{ArrayLengthMemberName}};
-                {{EnumCollectionCode.Write(CollectionKind, TypeKind, memberName, currentByteIndex, $"this.{ArrayLengthMemberName}", TypeByteLength, isLittleEndian, MemberSymbol.Name)}}
+                {{EnumCollectionCode.Write(CollectionKind, TypeKind, TypeSymbol, memberName, currentByteIndex, $"this.{ArrayLengthMemberName}", TypeByteLength, isLittleEndian, MemberSymbol.Name)}}
                 """;
             bytesWrittenString = byteLength;
             return true;
@@ -365,7 +366,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
                 if ({{countName}} < 0 || {{countName}} > source.Length / {{TypeByteLength}}{{minimumCheck}})
                     return false;
                 var {{byteLength}} = {{TypeByteLength}} * {{countName}};
-                {{EnumCollectionCode.Read(CollectionKind, TypeKind, TypeSymbol, currentByteIndex, countName, TypeByteLength, isLittleEndian, variableName, null, MemberSymbol.Name)}}
+                {{EnumCollectionCode.Read(CollectionKind, TypeKind, TypeSymbol, currentByteIndex, countName, TypeByteLength, isLittleEndian, variableName, null)}}
                 """;
             bytesReadString = byteLength;
             return true;
@@ -456,9 +457,9 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
             {
                 writeString = EnumCollectionCode.WriteRemainingEnumerable(
                     TypeKind,
+                    TypeSymbol,
                     memberName,
                     currentByteIndex,
-                    TypeByteLength,
                     ArrayMinLength,
                     isLittleEndian,
                     MemberSymbol.Name
@@ -472,7 +473,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
                 var {{countName}} = {{GetVariableLength()}};
                 if ({{countName}} > destination.Length / {{TypeByteLength}}{{minimumCheck}})
                     return false;
-                {{EnumCollectionCode.Write(CollectionKind, TypeKind, memberName, currentByteIndex, countName, TypeByteLength, isLittleEndian, MemberSymbol.Name)}}
+                {{EnumCollectionCode.Write(CollectionKind, TypeKind, TypeSymbol, memberName, currentByteIndex, countName, TypeByteLength, isLittleEndian, MemberSymbol.Name)}}
                 bytesWritten += {{countName}} * {{TypeByteLength}};
                 """;
             bytesWrittenString = null;
@@ -532,8 +533,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
                 TypeByteLength,
                 isLittleEndian,
                 variableName,
-                variableBytesReadName,
-                MemberSymbol.Name
+                variableBytesReadName
             );
             if (ArrayMinLength > 0)
                 readString = $"if (source.Length < {TypeByteLength * ArrayMinLength})\n    return false;\n{readString}";
@@ -730,6 +730,14 @@ partial class BinaryObjectsGenerator
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumInt) => "Int32",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumULong) => "UInt64",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumLong) => "Int64",
+            (_, WellKnownTypeKind.EnumByte) => "UInt8Enum",
+            (_, WellKnownTypeKind.EnumSByte) => "Int8Enum",
+            (_, WellKnownTypeKind.EnumUShort) => "UInt16Enum",
+            (_, WellKnownTypeKind.EnumShort) => "Int16Enum",
+            (_, WellKnownTypeKind.EnumUInt) => "UInt32Enum",
+            (_, WellKnownTypeKind.EnumInt) => "Int32Enum",
+            (_, WellKnownTypeKind.EnumULong) => "UInt64Enum",
+            (_, WellKnownTypeKind.EnumLong) => "Int64Enum",
             (_, WellKnownTypeKind.BinaryObject) => "BinaryObject",
             _ => throw new ArgumentException($"Could get well known name for {typeKind}"),
         };
@@ -844,7 +852,19 @@ partial class BinaryObjectsGenerator
     )
     {
         if (collectionKind is not WellKnownCollectionKind.None && EnumCollectionCode.IsEnum(typeKind))
-            return [];
+        {
+            var utilityKind = collectionKind switch
+            {
+                WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array => WellKnownCollectionKind.Span,
+                WellKnownCollectionKind.Span or WellKnownCollectionKind.List or WellKnownCollectionKind.Enumerable => collectionKind,
+                _ => throw new ArgumentException($"Could create enum write utility for {collectionKind}"),
+            };
+            var hasEndianness = typeKind.GetLength() > 1;
+            var utility = new UtilityData(false, utilityKind, typeKind, typeByteLength, hasEndianness);
+            return utilityKind is WellKnownCollectionKind.List
+                ? [new UtilityData(false, WellKnownCollectionKind.Span, typeKind, typeByteLength, hasEndianness), utility]
+                : [utility];
+        }
         // For normal enums, we just cast the value and do not need a specialized utility
         if (collectionKind is WellKnownCollectionKind.None)
         {
@@ -940,7 +960,15 @@ partial class BinaryObjectsGenerator
     )
     {
         if (collectionKind is not WellKnownCollectionKind.None && EnumCollectionCode.IsEnum(typeKind))
-            return [];
+        {
+            var utilityKind = collectionKind switch
+            {
+                WellKnownCollectionKind.List => WellKnownCollectionKind.List,
+                WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable => WellKnownCollectionKind.Array,
+                _ => throw new ArgumentException($"Could create enum read utility for {collectionKind}"),
+            };
+            return [new UtilityData(true, utilityKind, typeKind, typeByteLength, typeKind.GetLength() > 1)];
+        }
         // For normal enums, we just cast the value and do not need a specialized utility
         if (collectionKind is WellKnownCollectionKind.None)
         {
