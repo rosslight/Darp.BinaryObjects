@@ -111,6 +111,7 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
+        /// <summary> Writes a <c>ReadOnlySpan&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteInt32EnumSpanLittleEndian<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
             where TEnum : unmanaged, Enum
@@ -118,14 +119,15 @@ namespace Darp.BinaryObjects.Generated
             var length = Math.Min(value.Length, destination.Length / 4);
             if (!BitConverter.IsLittleEndian)
             {
-                ReadOnlySpan<int> integers = MemoryMarshal.Cast<TEnum, int>(value[..length]);
-                Span<int> output = MemoryMarshal.Cast<byte, int>(destination);
-                BinaryPrimitives.ReverseEndianness(integers, output);
+                ReadOnlySpan<int> reinterpretedValue = MemoryMarshal.Cast<TEnum, int>(value);
+                Span<int> reinterpretedDestination = MemoryMarshal.Cast<byte, int>(destination);
+                BinaryPrimitives.ReverseEndianness(reinterpretedValue[..length], reinterpretedDestination);
+                return length * 4;
             }
-            else
-                MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
+            MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
             return length * 4;
         }
+        /// <summary> Writes a <c>ReadOnlySpan&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteInt32EnumSpanBigEndian<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
             where TEnum : unmanaged, Enum
@@ -133,14 +135,15 @@ namespace Darp.BinaryObjects.Generated
             var length = Math.Min(value.Length, destination.Length / 4);
             if (BitConverter.IsLittleEndian)
             {
-                ReadOnlySpan<int> integers = MemoryMarshal.Cast<TEnum, int>(value[..length]);
-                Span<int> output = MemoryMarshal.Cast<byte, int>(destination);
-                BinaryPrimitives.ReverseEndianness(integers, output);
+                ReadOnlySpan<int> reinterpretedValue = MemoryMarshal.Cast<TEnum, int>(value);
+                Span<int> reinterpretedDestination = MemoryMarshal.Cast<byte, int>(destination);
+                BinaryPrimitives.ReverseEndianness(reinterpretedValue[..length], reinterpretedDestination);
+                return length * 4;
             }
-            else
-                MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
+            MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
             return length * 4;
         }
+        /// <summary> Reads a <c>TEnum[]</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TEnum[] ReadInt32EnumArrayLittleEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
             where TEnum : unmanaged, Enum
@@ -148,12 +151,13 @@ namespace Darp.BinaryObjects.Generated
             var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
             if (!BitConverter.IsLittleEndian)
             {
-                Span<int> integers = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
-                BinaryPrimitives.ReverseEndianness(integers, integers);
+                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
+                BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
             }
             bytesRead = array.Length * 4;
             return array;
         }
+        /// <summary> Reads a <c>TEnum[]</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TEnum[] ReadInt32EnumArrayBigEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
             where TEnum : unmanaged, Enum
@@ -161,44 +165,54 @@ namespace Darp.BinaryObjects.Generated
             var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
             if (BitConverter.IsLittleEndian)
             {
-                Span<int> integers = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
-                BinaryPrimitives.ReverseEndianness(integers, integers);
+                Span<int> reinterpretedArray = MemoryMarshal.Cast<TEnum, int>(array.AsSpan());
+                BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
             }
             bytesRead = array.Length * 4;
             return array;
         }
+        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteInt32EnumListLittleEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum => WriteInt32EnumSpanLittleEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
+            where TEnum : unmanaged, Enum
+        {
+            return WriteInt32EnumSpanLittleEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
+        }
+        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteInt32EnumListBigEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum => WriteInt32EnumSpanBigEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
+            where TEnum : unmanaged, Enum
+        {
+            return WriteInt32EnumSpanBigEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
+        }
+        /// <summary> Reads a <c>List&lt;TEnum&gt;</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static List<TEnum> ReadInt32EnumListLittleEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
             where TEnum : unmanaged, Enum
         {
-            ReadOnlySpan<TEnum> values = MemoryMarshal.Cast<byte, TEnum>(source);
-            var list = new List<TEnum>(values.Length);
-            list.AddRange(values);
+            ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
+            var list = new List<TEnum>(span.Length);
+            list.AddRange(span);
             if (!BitConverter.IsLittleEndian)
             {
-                Span<int> integers = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
-                BinaryPrimitives.ReverseEndianness(integers, integers);
+                var reinterpretedList = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
+                BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
             }
             bytesRead = list.Count * 4;
             return list;
         }
+        /// <summary> Reads a <c>List&lt;TEnum&gt;</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static List<TEnum> ReadInt32EnumListBigEndian<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)
             where TEnum : unmanaged, Enum
         {
-            ReadOnlySpan<TEnum> values = MemoryMarshal.Cast<byte, TEnum>(source);
-            var list = new List<TEnum>(values.Length);
-            list.AddRange(values);
+            ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
+            var list = new List<TEnum>(span.Length);
+            list.AddRange(span);
             if (BitConverter.IsLittleEndian)
             {
-                Span<int> integers = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
-                BinaryPrimitives.ReverseEndianness(integers, integers);
+                var reinterpretedList = MemoryMarshal.Cast<TEnum, int>(CollectionsMarshal.AsSpan(list));
+                BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
             }
             bytesRead = list.Count * 4;
             return list;

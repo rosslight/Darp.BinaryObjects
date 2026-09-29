@@ -15,8 +15,7 @@ internal static class EnumCollectionCode
             or WellKnownTypeKind.EnumULong
             or WellKnownTypeKind.EnumLong;
 
-    public static string Write(
-        WellKnownCollectionKind collectionKind,
+    public static string WriteFixedEnumerable(
         WellKnownTypeKind typeKind,
         ITypeSymbol typeSymbol,
         string memberName,
@@ -24,53 +23,20 @@ internal static class EnumCollectionCode
         string elementCount,
         int elementSize,
         bool littleEndian,
-        string identifier,
-        bool checkLength = true
+        string identifier
     )
     {
         var enumType = typeSymbol.ToDisplayString();
         var destination = Slice("destination", destinationOffset, elementCount, elementSize);
-        if (collectionKind is WellKnownCollectionKind.Enumerable)
-        {
-            var methodName = $"Try{BinaryObjectsGenerator.GetWriteMethodName(collectionKind, typeKind, littleEndian)}";
-            var written = $"___enumBytesWritten{identifier}";
-            return $$"""
-                if (!global::Darp.BinaryObjects.Generated.Utilities.{{methodName}}<{{enumType}}>({{destination}}, {{memberName}}, out var {{written}}))
-                {
-                    bytesWritten += {{written}};
-                    return false;
-                }
-                """;
-        }
-
-        var collection = collectionKind is WellKnownCollectionKind.Memory ? $"{memberName}.Span" : memberName;
-        var length = collectionKind is WellKnownCollectionKind.List ? "Count" : "Length";
-        var writeMethod = BinaryObjectsGenerator.GetWriteMethodName(collectionKind, typeKind, littleEndian);
-        var call = $"global::Darp.BinaryObjects.Generated.Utilities.{writeMethod}<{enumType}>({destination}, {collection});";
-        return checkLength ? $"if ({collection}.{length} < {elementCount})\n    return false;\n{call}" : call;
-    }
-
-    public static string Read(
-        WellKnownCollectionKind collectionKind,
-        WellKnownTypeKind typeKind,
-        ITypeSymbol typeSymbol,
-        int sourceOffset,
-        string elementCount,
-        int elementSize,
-        bool littleEndian,
-        string variableName,
-        string? bytesReadName
-    )
-    {
-        var enumType = typeSymbol.ToDisplayString();
-        var source = Slice("source", sourceOffset, elementCount, elementSize);
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(
-            collectionKind is WellKnownCollectionKind.Span ? WellKnownCollectionKind.Array : collectionKind,
-            typeKind,
-            littleEndian
-        );
-        var code = $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}<{enumType}>({source}, out _);";
-        return bytesReadName is null ? code : $"{code}\nvar {bytesReadName} = {elementCount} * {elementSize};";
+        var methodName = $"Try{BinaryObjectsGenerator.GetWriteMethodName(WellKnownCollectionKind.Enumerable, typeKind, littleEndian)}";
+        var written = $"___enumBytesWritten{identifier}";
+        return $$"""
+            if (!global::Darp.BinaryObjects.Generated.Utilities.{{methodName}}<{{enumType}}>({{destination}}, {{memberName}}, out var {{written}}))
+            {
+                bytesWritten += {{written}};
+                return false;
+            }
+            """;
     }
 
     public static string WriteRemainingEnumerable(
@@ -96,155 +62,15 @@ internal static class EnumCollectionCode
             """;
     }
 
-    public static void EmitUtility(
+    public static void EmitWriteEnumerableUtilities(
         IndentedTextWriter writer,
-        bool isRead,
-        WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
         bool emitLittleAndBigEndian
     )
     {
-        EmitOneUtility(writer, isRead, collectionKind, typeKind, true);
+        EmitWriteEnumerable(writer, typeKind, true);
         if (emitLittleAndBigEndian)
-            EmitOneUtility(writer, isRead, collectionKind, typeKind, false);
-    }
-
-    private static void EmitOneUtility(
-        IndentedTextWriter writer,
-        bool isRead,
-        WellKnownCollectionKind collectionKind,
-        WellKnownTypeKind typeKind,
-        bool littleEndian
-    )
-    {
-        if (isRead)
-        {
-            if (collectionKind is WellKnownCollectionKind.List)
-                EmitReadList(writer, typeKind, littleEndian);
-            else
-                EmitReadArray(writer, typeKind, littleEndian);
-            return;
-        }
-
-        switch (collectionKind)
-        {
-            case WellKnownCollectionKind.Span:
-                EmitWriteSpan(writer, typeKind, littleEndian);
-                break;
-            case WellKnownCollectionKind.List:
-                EmitWriteList(writer, typeKind, littleEndian);
-                break;
-            case WellKnownCollectionKind.Enumerable:
-                EmitWriteEnumerable(writer, typeKind, littleEndian);
-                break;
-        }
-    }
-
-    private static void EmitWriteSpan(IndentedTextWriter writer, WellKnownTypeKind typeKind, bool littleEndian)
-    {
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, littleEndian);
-        var elementSize = typeKind.GetLength();
-        if (elementSize is 1)
-        {
-            writer.WriteMultiLine($$"""
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static int {{methodName}}<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
-                    where TEnum : unmanaged, Enum
-                {
-                    var length = Math.Min(value.Length, destination.Length);
-                    MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
-                    return length;
-                }
-                """);
-            return;
-        }
-
-        var integerType = GetIntegerType(typeKind);
-        var reverse = littleEndian ? "!BitConverter.IsLittleEndian" : "BitConverter.IsLittleEndian";
-        writer.WriteMultiLine($$"""
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int {{methodName}}<TEnum>(Span<byte> destination, ReadOnlySpan<TEnum> value)
-                where TEnum : unmanaged, Enum
-            {
-                var length = Math.Min(value.Length, destination.Length / {{elementSize}});
-                if ({{reverse}})
-                {
-                    ReadOnlySpan<{{integerType}}> integers = MemoryMarshal.Cast<TEnum, {{integerType}}>(value[..length]);
-                    Span<{{integerType}}> output = MemoryMarshal.Cast<byte, {{integerType}}>(destination);
-                    BinaryPrimitives.ReverseEndianness(integers, output);
-                }
-                else
-                    MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
-                return length * {{elementSize}};
-            }
-            """);
-    }
-
-    private static void EmitWriteList(IndentedTextWriter writer, WellKnownTypeKind typeKind, bool littleEndian)
-    {
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(WellKnownCollectionKind.List, typeKind, littleEndian);
-        var spanMethod = BinaryObjectsGenerator.GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, littleEndian);
-        writer.WriteMultiLine($$"""
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int {{methodName}}<TEnum>(Span<byte> destination, List<TEnum> value)
-                where TEnum : unmanaged, Enum => {{spanMethod}}<TEnum>(destination, CollectionsMarshal.AsSpan(value));
-            """);
-    }
-
-    private static void EmitReadArray(IndentedTextWriter writer, WellKnownTypeKind typeKind, bool littleEndian)
-    {
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(WellKnownCollectionKind.Array, typeKind, littleEndian);
-        var elementSize = typeKind.GetLength();
-        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static TEnum[] {methodName}<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)");
-        writer.WriteLine("    where TEnum : unmanaged, Enum");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.WriteLine("var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();");
-        if (elementSize > 1)
-        {
-            writer.WriteLine($"if ({(littleEndian ? "!BitConverter.IsLittleEndian" : "BitConverter.IsLittleEndian")})");
-            writer.WriteLine("{");
-            writer.Indent++;
-            var integerType = GetIntegerType(typeKind);
-            writer.WriteLine($"Span<{integerType}> integers = MemoryMarshal.Cast<TEnum, {integerType}>(array.AsSpan());");
-            writer.WriteLine("BinaryPrimitives.ReverseEndianness(integers, integers);");
-            writer.Indent--;
-            writer.WriteLine("}");
-        }
-        writer.WriteLine($"bytesRead = array.Length * {elementSize};");
-        writer.WriteLine("return array;");
-        writer.Indent--;
-        writer.WriteLine("}");
-    }
-
-    private static void EmitReadList(IndentedTextWriter writer, WellKnownTypeKind typeKind, bool littleEndian)
-    {
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(WellKnownCollectionKind.List, typeKind, littleEndian);
-        var elementSize = typeKind.GetLength();
-        writer.WriteLine("[MethodImpl(MethodImplOptions.AggressiveInlining)]");
-        writer.WriteLine($"public static List<TEnum> {methodName}<TEnum>(ReadOnlySpan<byte> source, out int bytesRead)");
-        writer.WriteLine("    where TEnum : unmanaged, Enum");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.WriteLine("ReadOnlySpan<TEnum> values = MemoryMarshal.Cast<byte, TEnum>(source);");
-        writer.WriteLine("var list = new List<TEnum>(values.Length);");
-        writer.WriteLine("list.AddRange(values);");
-        if (elementSize > 1)
-        {
-            writer.WriteLine($"if ({(littleEndian ? "!BitConverter.IsLittleEndian" : "BitConverter.IsLittleEndian")})");
-            writer.WriteLine("{");
-            writer.Indent++;
-            var integerType = GetIntegerType(typeKind);
-            writer.WriteLine($"Span<{integerType}> integers = MemoryMarshal.Cast<TEnum, {integerType}>(CollectionsMarshal.AsSpan(list));");
-            writer.WriteLine("BinaryPrimitives.ReverseEndianness(integers, integers);");
-            writer.Indent--;
-            writer.WriteLine("}");
-        }
-        writer.WriteLine($"bytesRead = list.Count * {elementSize};");
-        writer.WriteLine("return list;");
-        writer.Indent--;
-        writer.WriteLine("}");
+            EmitWriteEnumerable(writer, typeKind, false);
     }
 
     private static void EmitWriteEnumerable(IndentedTextWriter writer, WellKnownTypeKind typeKind, bool littleEndian)

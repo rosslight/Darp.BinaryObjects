@@ -513,11 +513,6 @@ namespace Darp.BinaryObjects.Generated
                     EmitBinaryObjectCollectionUtilities(writer, collectionKind, isReadUtility);
                 continue;
             }
-            if (collectionKind is not WellKnownCollectionKind.None && EnumCollectionCode.IsEnum(typeKind))
-            {
-                EnumCollectionCode.EmitUtility(writer, isReadUtility, collectionKind, typeKind, emitLittleAndBigEndian);
-                continue;
-            }
             if (isReadUtility)
             {
                 EmitReadUtility(writer, collectionKind, typeKind, constLength, emitLittleAndBigEndian);
