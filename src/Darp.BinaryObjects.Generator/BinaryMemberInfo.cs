@@ -149,6 +149,21 @@ internal sealed class ConstantArrayMember : IConstantMember
     )
     {
         var memberName = $"this.{MemberSymbol.Name}";
+        if (EnumCollectionCode.IsEnum(TypeKind) && CollectionKind is WellKnownCollectionKind.Enumerable)
+        {
+            writeString = EnumCollectionCode.WriteFixedEnumerable(
+                TypeKind,
+                TypeSymbol,
+                memberName,
+                currentByteIndex,
+                ArrayLength.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                TypeByteLength,
+                isLittleEndian,
+                MemberSymbol.Name
+            );
+            bytesWritten = ConstantByteLength;
+            return true;
+        }
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -268,8 +283,20 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         out string? bytesWrittenString
     )
     {
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
-        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
+        var memberName = $"this.{MemberSymbol.Name}";
+        if (EnumCollectionCode.IsEnum(TypeKind) && CollectionKind is WellKnownCollectionKind.Enumerable)
+        {
+            var byteLength = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
+            var minimumCheck = ArrayMinLength > 0 ? $" || this.{ArrayLengthMemberName} < {ArrayMinLength}" : string.Empty;
+            writeString = $$"""
+                if (this.{{ArrayLengthMemberName}} < 0 || this.{{ArrayLengthMemberName}} > destination.Length / {{TypeByteLength}}{{minimumCheck}})
+                    return false;
+                var {{byteLength}} = {{TypeByteLength}} * this.{{ArrayLengthMemberName}};
+                {{EnumCollectionCode.WriteFixedEnumerable(TypeKind, TypeSymbol, memberName, currentByteIndex, $"this.{ArrayLengthMemberName}", TypeByteLength, isLittleEndian, MemberSymbol.Name)}}
+                """;
+            bytesWrittenString = byteLength;
+            return true;
+        }
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -279,9 +306,12 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             TypeSymbol
         );
         var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {ArrayLengthMemberName} < {ArrayMinLength}" : "";
+        var enumLengthCheck = EnumCollectionCode.IsEnum(TypeKind)
+            ? $" || {memberName}.{(CollectionKind is WellKnownCollectionKind.List ? "Count" : "Length")} < this.{ArrayLengthMemberName}"
+            : string.Empty;
         var byteLengthVariable = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
         writeString = $"""
-            if (this.{ArrayLengthMemberName} < 0 || this.{ArrayLengthMemberName} > destination.Length / {TypeByteLength}{optionalMinLengthCheck})
+            if (this.{ArrayLengthMemberName} < 0 || this.{ArrayLengthMemberName} > destination.Length / {TypeByteLength}{optionalMinLengthCheck}{enumLengthCheck})
                 return false;
             var {byteLengthVariable} = {TypeByteLength} * this.{ArrayLengthMemberName};
             global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..{byteLengthVariable}], {memberName});
@@ -315,7 +345,6 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
         var countVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -328,7 +357,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             if ({countVariableName} < 0 || {countVariableName} > source.Length / {TypeByteLength}{optionalMinLengthCheck})
                 return false;
             var {lengthVariableName} = {TypeByteLength} * {countVariableName};
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -367,7 +396,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
             WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array =>
                 $"this.{MemberSymbol.Name}.Length",
             WellKnownCollectionKind.List => $"this.{MemberSymbol.Name}.Count",
-            WellKnownCollectionKind.Enumerable => $"this.{MemberSymbol.Name}.Count()",
+            WellKnownCollectionKind.Enumerable => $"global::System.Linq.Enumerable.Count(this.{MemberSymbol.Name})",
             _ => throw new ArgumentException($"Could not get variable length because {CollectionKind} is unknown"),
         };
 
@@ -392,8 +421,21 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         out string? bytesWrittenString
     )
     {
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
-        var memberName = $"{optionalCast}this.{MemberSymbol.Name}";
+        var memberName = $"this.{MemberSymbol.Name}";
+        if (EnumCollectionCode.IsEnum(TypeKind) && CollectionKind is WellKnownCollectionKind.Enumerable)
+        {
+            writeString = EnumCollectionCode.WriteRemainingEnumerable(
+                TypeKind,
+                TypeSymbol,
+                memberName,
+                currentByteIndex,
+                ArrayMinLength,
+                isLittleEndian,
+                MemberSymbol.Name
+            );
+            bytesWrittenString = null;
+            return true;
+        }
         if (CollectionKind is WellKnownCollectionKind.Memory)
             memberName += ".Span";
         var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
@@ -404,9 +446,12 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         );
         var optionalMinLengthCheck =
             ArrayMinLength > 0 ? $" || destination.Length < {TypeByteLength * ArrayMinLength}" : "";
+        var enumMinCountCheck = EnumCollectionCode.IsEnum(TypeKind) && ArrayMinLength > 0
+            ? $" || {GetVariableLength()} < {ArrayMinLength}"
+            : string.Empty;
 
         writeString = $"""
-            if ({GetVariableLength()} > destination.Length / {TypeByteLength}{optionalMinLengthCheck})
+            if ({GetVariableLength()} > destination.Length / {TypeByteLength}{optionalMinLengthCheck}{enumMinCountCheck})
                 return false;
             bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination, {memberName});
             """;
@@ -438,7 +483,6 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var variableBytesReadName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -447,7 +491,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
         var optionalNumberOfElements =
             TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
         readString = $"""
-            var {variableName} = {optionalCast}global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -621,20 +665,20 @@ partial class BinaryObjectsGenerator
             (_, WellKnownTypeKind.UInt128) => "UInt128",
             (_, WellKnownTypeKind.Int128) => "Int128",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumByte) => "UInt8",
-            (_, WellKnownTypeKind.EnumByte) => "UInt8Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumSByte) => "Int8",
-            (_, WellKnownTypeKind.EnumSByte) => "Int8Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumUShort) => "UInt16",
-            (_, WellKnownTypeKind.EnumUShort) => "UInt16Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumShort) => "Int16",
-            (_, WellKnownTypeKind.EnumShort) => "Int16Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumUInt) => "UInt32",
-            (_, WellKnownTypeKind.EnumUInt) => "UInt32Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumInt) => "Int32",
-            (_, WellKnownTypeKind.EnumInt) => "Int32Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumULong) => "UInt64",
-            (_, WellKnownTypeKind.EnumULong) => "UInt64Enum",
             (WellKnownCollectionKind.None, WellKnownTypeKind.EnumLong) => "Int64",
+            (_, WellKnownTypeKind.EnumByte) => "UInt8Enum",
+            (_, WellKnownTypeKind.EnumSByte) => "Int8Enum",
+            (_, WellKnownTypeKind.EnumUShort) => "UInt16Enum",
+            (_, WellKnownTypeKind.EnumShort) => "Int16Enum",
+            (_, WellKnownTypeKind.EnumUInt) => "UInt32Enum",
+            (_, WellKnownTypeKind.EnumInt) => "Int32Enum",
+            (_, WellKnownTypeKind.EnumULong) => "UInt64Enum",
             (_, WellKnownTypeKind.EnumLong) => "Int64Enum",
             (_, WellKnownTypeKind.BinaryObject) => "BinaryObject",
             _ => throw new ArgumentException($"Could get well known name for {typeKind}"),
@@ -683,21 +727,17 @@ partial class BinaryObjectsGenerator
         };
     }
 
-    private static string GetWellKnownEnumIntegerDisplayName(WellKnownTypeKind typeKind)
-    {
-        return typeKind switch
+    private static string GetWellKnownEnumIntegerDisplayName(WellKnownTypeKind typeKind) =>
+        typeKind switch
         {
-            WellKnownTypeKind.EnumByte => "byte",
-            WellKnownTypeKind.EnumSByte => "sbyte",
             WellKnownTypeKind.EnumUShort => "ushort",
             WellKnownTypeKind.EnumShort => "short",
             WellKnownTypeKind.EnumUInt => "uint",
             WellKnownTypeKind.EnumInt => "int",
             WellKnownTypeKind.EnumULong => "ulong",
             WellKnownTypeKind.EnumLong => "long",
-            _ => throw new ArgumentException($"Could get well known display name for enum {typeKind}"),
+            _ => throw new ArgumentException($"Expected a multi-byte enum, got {typeKind}"),
         };
-    }
 
     private static string GetEndiannessName(WellKnownTypeKind typeKind, bool isLittleEndian)
     {
@@ -773,6 +813,20 @@ partial class BinaryObjectsGenerator
         int? typeByteLength
     )
     {
+        if (collectionKind is not WellKnownCollectionKind.None && EnumCollectionCode.IsEnum(typeKind))
+        {
+            var utilityKind = collectionKind switch
+            {
+                WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array => WellKnownCollectionKind.Span,
+                WellKnownCollectionKind.Span or WellKnownCollectionKind.List or WellKnownCollectionKind.Enumerable => collectionKind,
+                _ => throw new ArgumentException($"Could create enum write utility for {collectionKind}"),
+            };
+            var hasEndianness = typeKind.GetLength() > 1;
+            var utility = new UtilityData(false, utilityKind, typeKind, typeByteLength, hasEndianness);
+            return utilityKind is WellKnownCollectionKind.List
+                ? [new UtilityData(false, WellKnownCollectionKind.Span, typeKind, typeByteLength, hasEndianness), utility]
+                : [utility];
+        }
         // For normal enums, we just cast the value and do not need a specialized utility
         if (collectionKind is WellKnownCollectionKind.None)
         {
@@ -867,6 +921,16 @@ partial class BinaryObjectsGenerator
         int? typeByteLength
     )
     {
+        if (collectionKind is not WellKnownCollectionKind.None && EnumCollectionCode.IsEnum(typeKind))
+        {
+            var utilityKind = collectionKind switch
+            {
+                WellKnownCollectionKind.List => WellKnownCollectionKind.List,
+                WellKnownCollectionKind.Span or WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array or WellKnownCollectionKind.Enumerable => WellKnownCollectionKind.Array,
+                _ => throw new ArgumentException($"Could create enum read utility for {collectionKind}"),
+            };
+            return [new UtilityData(true, utilityKind, typeKind, typeByteLength, typeKind.GetLength() > 1)];
+        }
         // For normal enums, we just cast the value and do not need a specialized utility
         if (collectionKind is WellKnownCollectionKind.None)
         {
@@ -940,6 +1004,11 @@ partial class BinaryObjectsGenerator
         bool emitLittleAndBigEndian
     )
     {
+        if (collectionKind is WellKnownCollectionKind.Enumerable && EnumCollectionCode.IsEnum(typeKind))
+        {
+            EnumCollectionCode.EmitWriteEnumerableUtilities(writer, typeKind, emitLittleAndBigEndian);
+            return;
+        }
         if (collectionKind is WellKnownCollectionKind.None)
         {
             GetWriteMethodBody methodBodyGetter = typeKind switch
@@ -976,36 +1045,21 @@ partial class BinaryObjectsGenerator
                         MemoryMarshal.Cast<{typeName}, byte>(value.Slice(0, length)).CopyTo(destination);
                         return length;
                         """,
-                (WellKnownCollectionKind.Span, WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte) => (
-                    _,
-                    _,
-                    _
-                ) =>
-                {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
-                    return $"""
+                (WellKnownCollectionKind.Span, WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte) => (_, _, _) =>
+                    """
                         var length = Math.Min(value.Length, destination.Length);
-                        MemoryMarshal.Cast<TEnum, {underlyingTypeName}>(value.Slice(0, length)).CopyTo(destination);
+                        MemoryMarshal.Cast<TEnum, byte>(value[..length]).CopyTo(destination);
                         return length;
-                        """;
-                },
-                (
-                    WellKnownCollectionKind.Span,
-                    WellKnownTypeKind.EnumUShort
-                        or WellKnownTypeKind.EnumShort
-                        or WellKnownTypeKind.EnumUInt
-                        or WellKnownTypeKind.EnumInt
-                        or WellKnownTypeKind.EnumULong
-                        or WellKnownTypeKind.EnumLong
-                ) => (_, _, isLittleEndian) =>
+                        """,
+                (WellKnownCollectionKind.Span, _) when EnumCollectionCode.IsEnum(typeKind) => (_, _, isLittleEndian) =>
                 {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
+                    var integerType = GetWellKnownEnumIntegerDisplayName(typeKind);
                     return $$"""
                         var length = Math.Min(value.Length, destination.Length / {{byteLength}});
                         if ({{CheckForReverseEndianness(isLittleEndian)}})
                         {
-                            ReadOnlySpan<{{underlyingTypeName}}> reinterpretedValue = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(value);
-                            Span<{{underlyingTypeName}}> reinterpretedDestination = MemoryMarshal.Cast<byte, {{underlyingTypeName}}>(destination);
+                            ReadOnlySpan<{{integerType}}> reinterpretedValue = MemoryMarshal.Cast<TEnum, {{integerType}}>(value);
+                            Span<{{integerType}}> reinterpretedDestination = MemoryMarshal.Cast<byte, {{integerType}}>(destination);
                             BinaryPrimitives.ReverseEndianness(reinterpretedValue[..length], reinterpretedDestination);
                             return length * {{byteLength}};
                         }
@@ -1027,18 +1081,7 @@ partial class BinaryObjectsGenerator
                         """,
                 (WellKnownCollectionKind.List, WellKnownTypeKind.Byte) => (_, _, _) =>
                     "return WriteUInt8Span(destination, CollectionsMarshal.AsSpan(value));",
-                (WellKnownCollectionKind.List, WellKnownTypeKind.EnumByte) => (_, _, _) =>
-                    "return WriteUInt8EnumSpan<TEnum>(destination, CollectionsMarshal.AsSpan(value));",
-                (
-                    WellKnownCollectionKind.List,
-                    WellKnownTypeKind.EnumSByte
-                        or WellKnownTypeKind.EnumShort
-                        or WellKnownTypeKind.EnumUShort
-                        or WellKnownTypeKind.EnumInt
-                        or WellKnownTypeKind.EnumUInt
-                        or WellKnownTypeKind.EnumLong
-                        or WellKnownTypeKind.EnumULong
-                ) => (_, _, isLittleEndian) =>
+                (WellKnownCollectionKind.List, _) when EnumCollectionCode.IsEnum(typeKind) => (_, _, isLittleEndian) =>
                     $"return {GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, isLittleEndian)}<TEnum>(destination, CollectionsMarshal.AsSpan(value));",
                 (WellKnownCollectionKind.List, _) => (_, _, isLittleEndian) =>
                     $"return {GetWriteMethodName(WellKnownCollectionKind.Span, typeKind, isLittleEndian)}(destination, CollectionsMarshal.AsSpan(value));",
@@ -1147,14 +1190,7 @@ partial class BinaryObjectsGenerator
         typeKind switch
         {
             WellKnownTypeKind.BinaryObject => "<T>",
-            WellKnownTypeKind.EnumByte
-            or WellKnownTypeKind.EnumSByte
-            or WellKnownTypeKind.EnumUShort
-            or WellKnownTypeKind.EnumShort
-            or WellKnownTypeKind.EnumUInt
-            or WellKnownTypeKind.EnumInt
-            or WellKnownTypeKind.EnumULong
-            or WellKnownTypeKind.EnumLong => "<TEnum>",
+            _ when EnumCollectionCode.IsEnum(typeKind) => "<TEnum>",
             _ => string.Empty,
         };
 
@@ -1162,14 +1198,7 @@ partial class BinaryObjectsGenerator
         typeKind switch
         {
             WellKnownTypeKind.BinaryObject => "    where T : IBinaryWritable",
-            WellKnownTypeKind.EnumByte
-            or WellKnownTypeKind.EnumSByte
-            or WellKnownTypeKind.EnumUShort
-            or WellKnownTypeKind.EnumShort
-            or WellKnownTypeKind.EnumUInt
-            or WellKnownTypeKind.EnumInt
-            or WellKnownTypeKind.EnumULong
-            or WellKnownTypeKind.EnumLong => "    where TEnum : unmanaged, Enum",
+            _ when EnumCollectionCode.IsEnum(typeKind) => "    where TEnum : unmanaged, Enum",
             _ => string.Empty,
         };
 
@@ -1177,14 +1206,7 @@ partial class BinaryObjectsGenerator
         typeKind switch
         {
             WellKnownTypeKind.BinaryObject => "    where T : IBinaryReadable<T>",
-            WellKnownTypeKind.EnumByte
-            or WellKnownTypeKind.EnumSByte
-            or WellKnownTypeKind.EnumUShort
-            or WellKnownTypeKind.EnumShort
-            or WellKnownTypeKind.EnumUInt
-            or WellKnownTypeKind.EnumInt
-            or WellKnownTypeKind.EnumULong
-            or WellKnownTypeKind.EnumLong => "    where TEnum : unmanaged, Enum",
+            _ when EnumCollectionCode.IsEnum(typeKind) => "    where TEnum : unmanaged, Enum",
             _ => string.Empty,
         };
 
@@ -1265,19 +1287,14 @@ partial class BinaryObjectsGenerator
                         return source.ToArray();
                         """,
                 (
-                    WellKnownCollectionKind.Memory
-                        or WellKnownCollectionKind.Array,
-                    WellKnownTypeKind.EnumByte
-                        or WellKnownTypeKind.EnumSByte,
+                    WellKnownCollectionKind.Memory or WellKnownCollectionKind.Array,
+                    WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte,
                     _
                 ) => (_, _, _) =>
-                {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
-                    return $"""
+                    """
                         bytesRead = source.Length;
-                        return MemoryMarshal.Cast<{underlyingTypeName}, TEnum>(source).ToArray();
-                        """;
-                },
+                        return MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
+                        """,
                 (
                     WellKnownCollectionKind.Memory
                         or WellKnownCollectionKind.Array,
@@ -1289,54 +1306,18 @@ partial class BinaryObjectsGenerator
                         bytesRead = source.Length;
                         return MemoryMarshal.Cast<byte, {typeName}>(source).ToArray();
                         """,
-                (
-                    WellKnownCollectionKind.Memory
-                        or WellKnownCollectionKind.Array
-                        or WellKnownCollectionKind.Enumerable,
-                    WellKnownTypeKind.EnumUShort
-                        or WellKnownTypeKind.EnumShort
-                        or WellKnownTypeKind.EnumUInt
-                        or WellKnownTypeKind.EnumInt
-                        or WellKnownTypeKind.EnumULong
-                        or WellKnownTypeKind.EnumLong,
-                    not null
-                ) => (_, _, isLittleEndian) =>
+                (WellKnownCollectionKind.Array, _, not null) when EnumCollectionCode.IsEnum(typeKind) => (_, _, isLittleEndian) =>
                 {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
+                    var integerType = GetWellKnownEnumIntegerDisplayName(typeKind);
                     return $$"""
                         var array = MemoryMarshal.Cast<byte, TEnum>(source).ToArray();
                         if ({{CheckForReverseEndianness(isLittleEndian)}})
                         {
-                            Span<{{underlyingTypeName}}> reinterpretedArray = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(array.AsSpan());
+                            Span<{{integerType}}> reinterpretedArray = MemoryMarshal.Cast<TEnum, {{integerType}}>(array.AsSpan());
                             BinaryPrimitives.ReverseEndianness(reinterpretedArray, reinterpretedArray);
                         }
                         bytesRead = array.Length * {{byteLength}};
                         return array;
-                        """;
-                },
-                (
-                    WellKnownCollectionKind.List,
-                    WellKnownTypeKind.EnumUShort
-                        or WellKnownTypeKind.EnumShort
-                        or WellKnownTypeKind.EnumUInt
-                        or WellKnownTypeKind.EnumInt
-                        or WellKnownTypeKind.EnumULong
-                        or WellKnownTypeKind.EnumLong,
-                    not null
-                ) => (_, _, isLittleEndian) =>
-                {
-                    var underlyingTypeName = GetWellKnownEnumIntegerDisplayName(typeKind);
-                    return $$"""
-                        ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
-                        var list = new List<TEnum>(span.Length);
-                        list.AddRange(span);
-                        if ({{CheckForReverseEndianness(isLittleEndian)}})
-                        {
-                            var reinterpretedList = MemoryMarshal.Cast<TEnum, {{underlyingTypeName}}>(CollectionsMarshal.AsSpan(list));
-                            BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
-                        }
-                        bytesRead = list.Count * {{byteLength}};
-                        return list;
                         """;
                 },
                 (
@@ -1360,6 +1341,30 @@ partial class BinaryObjectsGenerator
                         bytesRead = list.Count * {byteLength};
                         return list;
                         """,
+                (WellKnownCollectionKind.List, WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte, not null) => (_, _, _) =>
+                    """
+                        ReadOnlySpan<TEnum> values = MemoryMarshal.Cast<byte, TEnum>(source);
+                        var list = new List<TEnum>(values.Length);
+                        list.AddRange(values);
+                        bytesRead = list.Count;
+                        return list;
+                        """,
+                (WellKnownCollectionKind.List, _, not null) when EnumCollectionCode.IsEnum(typeKind) => (_, _, isLittleEndian) =>
+                {
+                    var integerType = GetWellKnownEnumIntegerDisplayName(typeKind);
+                    return $$"""
+                        ReadOnlySpan<TEnum> span = MemoryMarshal.Cast<byte, TEnum>(source);
+                        var list = new List<TEnum>(span.Length);
+                        list.AddRange(span);
+                        if ({{CheckForReverseEndianness(isLittleEndian)}})
+                        {
+                            var reinterpretedList = MemoryMarshal.Cast<TEnum, {{integerType}}>(CollectionsMarshal.AsSpan(list));
+                            BinaryPrimitives.ReverseEndianness(reinterpretedList, reinterpretedList);
+                        }
+                        bytesRead = list.Count * {{byteLength}};
+                        return list;
+                        """;
+                },
                 (WellKnownCollectionKind.List, _, not null) => (_, typeName, isLittleEndian) =>
                     $$"""
                         ReadOnlySpan<{{typeName}}> span = MemoryMarshal.Cast<byte, {{typeName}}>(source);
