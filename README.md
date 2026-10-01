@@ -49,7 +49,11 @@ For all of these types, it should be possible to define as array types:
 - [x] Memory abstractions: `ReadOnlyMemory<T>`
 - [x] Arrays: `T[]`
 - [x] Lists: `List<T>`
-- [x] Collections: `IEnumerable<T>`, `IReadOnlyCollection<T>`, `ICollection<T>`, `IReadOnlyList<T>`, `IList<T>`
+- [x] Counted collections: `IReadOnlyCollection<T>`, `ICollection<T>`, `IReadOnlyList<T>`, `IList<T>`
+
+`IEnumerable<T>` members are not supported, including with `BinaryElementCount`.
+Materialize lazy sequences with `ToArray()` or `ToList()` and declare the member as an array, list, or supported counted collection interface.
+Sizing uses `Length` or `Count` without enumerating the collection. Keep collections unchanged between sizing and writing, and during serialization.
 
 To control these types there are attributes
 - [x] `BinaryIgnore`: Ignore some members
@@ -105,6 +109,7 @@ Pass a span bounded to one message when reading such objects. A nested object th
 Use a constant or member-defined `BinaryElementCount` for collections followed by other serialized members.
 
 Generated readers and writers return `false` for negative counts or counts that cannot fit the supplied buffer.
+Writers also return `false` when a collection has fewer elements than its declared count or minimum count. A declared `BinaryElementCount` writes only that many elements; surplus elements are ignored.
 Constant counts and minimum lengths that cannot form a valid `int` byte length are rejected during generation.
 `GetByteCount` throws `OverflowException` when the required byte count exceeds `int.MaxValue`.
 Failed reads and writes may report partial progress; a failed write can modify the destination.

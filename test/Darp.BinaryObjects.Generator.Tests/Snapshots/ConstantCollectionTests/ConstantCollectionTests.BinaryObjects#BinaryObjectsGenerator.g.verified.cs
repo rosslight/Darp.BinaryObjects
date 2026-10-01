@@ -25,7 +25,7 @@ public sealed partial record TestObjectNested : global::Darp.BinaryObjects.IBina
     {
         bytesWritten = 0;
 
-        if (destination.Length < 2)
+        if (destination.Length < 2 || this.Value.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..2], this.Value);
         bytesWritten += 2;
@@ -41,7 +41,7 @@ public sealed partial record TestObjectNested : global::Darp.BinaryObjects.IBina
     {
         bytesWritten = 0;
 
-        if (destination.Length < 2)
+        if (destination.Length < 2 || this.Value.Length < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteBoolSpan(destination[0..2], this.Value);
         bytesWritten += 2;

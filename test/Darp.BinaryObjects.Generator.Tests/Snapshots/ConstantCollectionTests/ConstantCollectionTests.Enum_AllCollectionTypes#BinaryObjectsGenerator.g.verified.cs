@@ -31,7 +31,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[8..16], this.ValueArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumListLittleEndian<IntEnum>(destination[16..24], this.ValueList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[16..24], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueList));
         bytesWritten += 24;
 
         return true;
@@ -49,7 +49,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[8..16], this.ValueArray);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumListBigEndian<IntEnum>(destination[16..24], this.ValueList);
+        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[16..24], global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.ValueList));
         bytesWritten += 24;
 
         return true;
@@ -170,20 +170,6 @@ namespace Darp.BinaryObjects.Generated
             }
             bytesRead = array.Length * 4;
             return array;
-        }
-        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as LittleEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumListLittleEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            return WriteInt32EnumSpanLittleEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
-        }
-        /// <summary> Writes a <c>List&lt;TEnum&gt;</c> with a <c>maxElementLength</c> to the destination, as BigEndian </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32EnumListBigEndian<TEnum>(Span<byte> destination, List<TEnum> value)
-            where TEnum : unmanaged, Enum
-        {
-            return WriteInt32EnumSpanBigEndian<TEnum>(destination, CollectionsMarshal.AsSpan(value));
         }
         /// <summary> Reads a <c>List&lt;TEnum&gt;</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

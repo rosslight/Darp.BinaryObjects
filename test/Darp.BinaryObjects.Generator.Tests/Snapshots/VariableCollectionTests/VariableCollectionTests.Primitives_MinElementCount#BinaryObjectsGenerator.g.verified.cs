@@ -31,14 +31,14 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[4..];
         bytesWritten += 4;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1 || this.Value.Length < this.Length)
             return false;
         var ___byteLengthValue = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanLittleEndian(destination[0..___byteLengthValue], this.Value.Span);
         destination = destination[___byteLengthValue..];
         bytesWritten += ___byteLengthValue;
 
-        if (this.Value2.Length > destination.Length / 4 || destination.Length < 12)
+        if (this.Value2.Length > destination.Length / 4 || destination.Length < 12 || this.Value2.Length < 3)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteInt32SpanLittleEndian(destination, this.Value2);
 
@@ -59,14 +59,14 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[4..];
         bytesWritten += 4;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1 || this.Value.Length < this.Length)
             return false;
         var ___byteLengthValue = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanBigEndian(destination[0..___byteLengthValue], this.Value.Span);
         destination = destination[___byteLengthValue..];
         bytesWritten += ___byteLengthValue;
 
-        if (this.Value2.Length > destination.Length / 4 || destination.Length < 12)
+        if (this.Value2.Length > destination.Length / 4 || destination.Length < 12 || this.Value2.Length < 3)
             return false;
         bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.WriteInt32SpanBigEndian(destination, this.Value2);
 

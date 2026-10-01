@@ -10,7 +10,7 @@ internal enum WellKnownCollectionKind
     Memory,
     Array,
     List,
-    Enumerable,
+    Collection,
 }
 
 internal static class BuilderHelper
@@ -40,24 +40,20 @@ internal static class BuilderHelper
                 WellKnownCollectionKind.List,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
-            "System.Collections.Generic.IEnumerable<T>" => (
-                WellKnownCollectionKind.Enumerable,
-                (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
-            ),
             "System.Collections.Generic.IReadOnlyCollection<T>" => (
-                WellKnownCollectionKind.Enumerable,
+                WellKnownCollectionKind.Collection,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.ICollection<T>" => (
-                WellKnownCollectionKind.Enumerable,
+                WellKnownCollectionKind.Collection,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IReadOnlyList<T>" => (
-                WellKnownCollectionKind.Enumerable,
+                WellKnownCollectionKind.Collection,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             "System.Collections.Generic.IList<T>" => (
-                WellKnownCollectionKind.Enumerable,
+                WellKnownCollectionKind.Collection,
                 (symbol as INamedTypeSymbol)?.TypeArguments.FirstOrDefault()
             ),
             _ => (WellKnownCollectionKind.None, null),
@@ -66,6 +62,29 @@ internal static class BuilderHelper
         collectionKind = x.Kind;
         return collectionKind is not WellKnownCollectionKind.None && underlyingTypeSymbol is not null;
     }
+
+    public static string GetCollectionCount(this IMember member) =>
+        $"this.{member.MemberSymbol.Name}.{(member.CollectionKind is WellKnownCollectionKind.List or WellKnownCollectionKind.Collection ? "Count" : "Length")}";
+
+    public static string GetWriteValue(this IMember member) =>
+        member.CollectionKind switch
+        {
+            WellKnownCollectionKind.Memory => $"this.{member.MemberSymbol.Name}.Span",
+            WellKnownCollectionKind.List =>
+                $"global::System.Runtime.InteropServices.CollectionsMarshal.AsSpan(this.{member.MemberSymbol.Name})",
+            _ => $"this.{member.MemberSymbol.Name}",
+        };
+
+    public static bool IsEnum(this WellKnownTypeKind typeKind) =>
+        typeKind
+            is WellKnownTypeKind.EnumByte
+                or WellKnownTypeKind.EnumSByte
+                or WellKnownTypeKind.EnumUShort
+                or WellKnownTypeKind.EnumShort
+                or WellKnownTypeKind.EnumUInt
+                or WellKnownTypeKind.EnumInt
+                or WellKnownTypeKind.EnumULong
+                or WellKnownTypeKind.EnumLong;
 
     public static bool IsValidLengthInteger(this ITypeSymbol symbol) =>
         symbol.ToDisplayString() switch

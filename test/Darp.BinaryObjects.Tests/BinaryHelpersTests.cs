@@ -13,14 +13,14 @@ internal readonly partial struct TestStruct()
     public required List<byte> Value3 { get; init; }
 
     [BinaryElementCount(1)]
-    public required IEnumerable<byte> Value4 { get; init; }
+    public required IReadOnlyCollection<byte> Value4 { get; init; }
 
     [BinaryElementCount(1)]
     public required ushort[] Value12 { get; init; }
 
     [BinaryElementCount(1)]
     public required List<ushort> Value13 { get; init; }
-    public required IEnumerable<ushort> Value14 { get; init; }
+    public required IReadOnlyCollection<ushort> Value14 { get; init; }
 }
 
 public class UtilitiesTests
@@ -83,24 +83,24 @@ public class UtilitiesTests
         var expectedBytes = Convert.FromHexString(expectedHexBytes);
         var array = value.Select(x => (byte)x).ToArray();
         var list = value.Select(x => (byte)x).ToList();
-        var enumerable = value.Select(x => (byte)x).ToHashSet();
+        var collection = value.Select(x => (byte)x).ToHashSet();
         var bufferArray = new byte[maxLength];
         var bufferList = new byte[maxLength];
-        var bufferEnumerableArray = new byte[maxLength];
-        var bufferEnumerableList = new byte[maxLength];
-        var bufferEnumerable = new byte[maxLength];
+        var bufferCollectionArray = new byte[maxLength];
+        var bufferCollectionList = new byte[maxLength];
+        var bufferCollection = new byte[maxLength];
 
         Utilities.WriteUInt8Span(bufferArray, array);
-        Utilities.WriteUInt8List(bufferList, list);
-        Utilities.WriteUInt8Enumerable(bufferEnumerableArray, array);
-        Utilities.WriteUInt8Enumerable(bufferEnumerableList, list);
-        Utilities.WriteUInt8Enumerable(bufferEnumerable, enumerable);
+        Utilities.WriteUInt8Span(bufferList, System.Runtime.InteropServices.CollectionsMarshal.AsSpan(list));
+        Utilities.WriteUInt8Collection(bufferCollectionArray, array);
+        Utilities.WriteUInt8Collection(bufferCollectionList, list);
+        Utilities.WriteUInt8Collection(bufferCollection, collection);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableArray.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerable.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionArray.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionList.Should().BeEquivalentTo(expectedBytes);
+        bufferCollection.Should().BeEquivalentTo(expectedBytes);
     }
 
     [Theory]
@@ -113,24 +113,27 @@ public class UtilitiesTests
         var expectedBytes = Convert.FromHexString(expectedHexBytes);
         var array = value.Select(x => (ushort)x).ToArray();
         var list = value.Select(x => (ushort)x).ToList();
-        var enumerable = value.Select(x => (ushort)x).ToHashSet();
+        var collection = value.Select(x => (ushort)x).ToHashSet();
         var bufferArray = new byte[maxLength * 2];
         var bufferList = new byte[maxLength * 2];
-        var bufferEnumerableArray = new byte[maxLength * 2];
-        var bufferEnumerableList = new byte[maxLength * 2];
-        var bufferEnumerable = new byte[maxLength * 2];
+        var bufferCollectionArray = new byte[maxLength * 2];
+        var bufferCollectionList = new byte[maxLength * 2];
+        var bufferCollection = new byte[maxLength * 2];
 
         Utilities.WriteUInt16SpanLittleEndian(bufferArray, array);
-        Utilities.WriteUInt16ListLittleEndian(bufferList, list);
-        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerableArray, array);
-        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerableList, list);
-        Utilities.WriteUInt16EnumerableLittleEndian(bufferEnumerable, enumerable);
+        Utilities.WriteUInt16SpanLittleEndian(
+            bufferList,
+            System.Runtime.InteropServices.CollectionsMarshal.AsSpan(list)
+        );
+        Utilities.WriteUInt16CollectionLittleEndian(bufferCollectionArray, array);
+        Utilities.WriteUInt16CollectionLittleEndian(bufferCollectionList, list);
+        Utilities.WriteUInt16CollectionLittleEndian(bufferCollection, collection);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableArray.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerable.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionArray.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionList.Should().BeEquivalentTo(expectedBytes);
+        bufferCollection.Should().BeEquivalentTo(expectedBytes);
     }
 
     [Theory]
@@ -143,23 +146,23 @@ public class UtilitiesTests
         var expectedBytes = Convert.FromHexString(expectedHexBytes);
         var array = value.Select(x => (ushort)x).ToArray();
         var list = value.Select(x => (ushort)x).ToList();
-        var enumerable = value.Select(x => (ushort)x).ToHashSet();
+        var collection = value.Select(x => (ushort)x).ToHashSet();
         var bufferArray = new byte[maxLength * 2];
         var bufferList = new byte[maxLength * 2];
-        var bufferEnumerableArray = new byte[maxLength * 2];
-        var bufferEnumerableList = new byte[maxLength * 2];
-        var bufferEnumerable = new byte[maxLength * 2];
+        var bufferCollectionArray = new byte[maxLength * 2];
+        var bufferCollectionList = new byte[maxLength * 2];
+        var bufferCollection = new byte[maxLength * 2];
 
         Utilities.WriteUInt16SpanBigEndian(bufferArray, array);
-        Utilities.WriteUInt16ListBigEndian(bufferList, list);
-        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerableArray, array);
-        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerableList, list);
-        Utilities.WriteUInt16EnumerableBigEndian(bufferEnumerable, enumerable);
+        Utilities.WriteUInt16SpanBigEndian(bufferList, System.Runtime.InteropServices.CollectionsMarshal.AsSpan(list));
+        Utilities.WriteUInt16CollectionBigEndian(bufferCollectionArray, array);
+        Utilities.WriteUInt16CollectionBigEndian(bufferCollectionList, list);
+        Utilities.WriteUInt16CollectionBigEndian(bufferCollection, collection);
 
         bufferArray.Should().BeEquivalentTo(expectedBytes);
         bufferList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableArray.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerableList.Should().BeEquivalentTo(expectedBytes);
-        bufferEnumerable.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionArray.Should().BeEquivalentTo(expectedBytes);
+        bufferCollectionList.Should().BeEquivalentTo(expectedBytes);
+        bufferCollection.Should().BeEquivalentTo(expectedBytes);
     }
 }

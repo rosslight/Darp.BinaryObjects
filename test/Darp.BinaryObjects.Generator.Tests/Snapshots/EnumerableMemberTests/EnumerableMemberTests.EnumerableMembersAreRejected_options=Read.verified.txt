@@ -1,0 +1,61 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+    public byte Count { get; set; }
+    [BinaryElementCount(2)] public IEnumerable<byte> Fixed { get; set; } = new byte[2];
+                                                     ^^^^^
+    [BinaryElementCount(nameof(Count))] public IEnumerable<byte> Counted { get; set; } = new byte[2];
+*/
+ : (7,53)-(7,58),
+      Message: Enumerable member 'Fixed' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO009,
+        Title: EnumerableMemberNotSupported,
+        MessageFormat: Enumerable member '{0}' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementCount(2)] public IEnumerable<byte> Fixed { get; set; } = new byte[2];
+    [BinaryElementCount(nameof(Count))] public IEnumerable<byte> Counted { get; set; } = new byte[2];
+                                                                 ^^^^^^^
+    public IEnumerable<byte> Remaining { get; set; } = new byte[2];
+*/
+ : (8,65)-(8,72),
+      Message: Enumerable member 'Counted' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO009,
+        Title: EnumerableMemberNotSupported,
+        MessageFormat: Enumerable member '{0}' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementCount(nameof(Count))] public IEnumerable<byte> Counted { get; set; } = new byte[2];
+    public IEnumerable<byte> Remaining { get; set; } = new byte[2];
+                             ^^^^^^^^^
+}
+*/
+ : (9,29)-(9,38),
+      Message: Enumerable member 'Remaining' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO009,
+        Title: EnumerableMemberNotSupported,
+        MessageFormat: Enumerable member '{0}' is not supported. Materialize the sequence with ToArray() or ToList() and declare an array, list, or counted collection interface.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}
