@@ -1,0 +1,42 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+    [BinaryConstructor]
+    private InvalidConstructor(int value) { }
+                                   ^^^^^
+    public byte Value { get; }
+*/
+ : (7,35)-(7,40),
+      Message: This parameter matches the name of Member 'Value'. However, parameter type 'Int32' does not match member type 'Byte'.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberConstructorParameterTypeMismatch,
+        MessageFormat: This parameter matches the name of Member '{0}'. However, parameter type '{1}' does not match member type '{2}'.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryConstructor]
+    private InvalidConstructor(int value) { }
+                                   ^^^^^
+    public byte Value { get; }
+*/
+ : (7,35)-(7,40),
+      Message: This parameter 'value' does not have a corresponding member with an equal name. However, this is an requirement for binary objects.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberConstructorParameterUnknown,
+        MessageFormat: This parameter '{0}' does not have a corresponding member with an equal name. However, this is an requirement for binary objects.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject(BinaryOptions.All)]
+public sealed partial class Unmarked
+                            ^^^^^^^^
+{
+*/
+ : (3,28)-(3,36),
+      Message: Type 'Unmarked' has multiple explicit instance constructors. Mark exactly one with BinaryConstructor to select the constructor used by generated readers.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO010,
+        Title: ConstructorSelectionAmbiguous,
+        MessageFormat: Type '{0}' has multiple explicit instance constructors. Mark exactly one with BinaryConstructor to select the constructor used by generated readers.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+[BinaryObject(BinaryOptions.All)]
+public sealed partial class MultiplyMarked
+                            ^^^^^^^^^^^^^^
+{
+*/
+ : (11,28)-(11,42),
+      Message: Type 'MultiplyMarked' has multiple explicit instance constructors. Mark exactly one with BinaryConstructor to select the constructor used by generated readers.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO010,
+        Title: ConstructorSelectionAmbiguous,
+        MessageFormat: Type '{0}' has multiple explicit instance constructors. Mark exactly one with BinaryConstructor to select the constructor used by generated readers.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

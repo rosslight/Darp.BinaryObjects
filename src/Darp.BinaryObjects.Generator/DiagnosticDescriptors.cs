@@ -4,6 +4,22 @@ using Microsoft.CodeAnalysis;
 
 internal static class DiagnosticDescriptors
 {
+    public static readonly DiagnosticDescriptor ConstructorParameterByReference = new(
+        id: "DBO011",
+        title: "ConstructorParameterByReference",
+        messageFormat: "Constructor parameter '{0}' is passed by reference. Generated readers require a constructor with by-value parameters.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ConstructorSelectionAmbiguous = new(
+        id: "DBO010",
+        title: "ConstructorSelectionAmbiguous",
+        messageFormat: "Type '{0}' has multiple explicit instance constructors. Mark exactly one with BinaryConstructor to select the constructor used by generated readers.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor EnumerableMemberNotSupported = new(
         id: "DBO009",
         title: "EnumerableMemberNotSupported",
