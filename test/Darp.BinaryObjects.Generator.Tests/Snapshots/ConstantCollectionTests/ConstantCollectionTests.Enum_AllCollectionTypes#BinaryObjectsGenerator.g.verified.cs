@@ -27,7 +27,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 24)
+        if (destination.Length < 24 || this.ValueMemory.Length < 2 || this.ValueArray.Length < 2 || this.ValueList.Count < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanLittleEndian<IntEnum>(destination[8..16], this.ValueArray);
@@ -45,7 +45,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 24)
+        if (destination.Length < 24 || this.ValueMemory.Length < 2 || this.ValueArray.Length < 2 || this.ValueList.Count < 2)
             return false;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[0..8], this.ValueMemory.Span);
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt32EnumSpanBigEndian<IntEnum>(destination[8..16], this.ValueArray);

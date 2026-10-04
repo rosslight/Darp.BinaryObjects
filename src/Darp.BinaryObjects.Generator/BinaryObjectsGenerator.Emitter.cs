@@ -257,7 +257,13 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
             {
                 // Ensure length of destination
                 var summedLength = memberInfoGroup.GetLengthCodeString();
-                writer.WriteLine($"if (destination.Length < {summedLength})");
+                var enumLengthChecks = constantGroup.Members
+                    .OfType<ConstantArrayMember>()
+                    .Where(member => EnumCollectionCode.IsEnum(member.TypeKind)
+                        && member.CollectionKind is not WellKnownCollectionKind.Enumerable)
+                    .Select(member =>
+                        $"this.{member.MemberSymbol.Name}.{(member.CollectionKind is WellKnownCollectionKind.List ? "Count" : "Length")} < {member.ArrayLength}");
+                writer.WriteLine($"if (destination.Length < {summedLength}{string.Concat(enumLengthChecks.Select(check => $" || {check}"))})");
                 writer.Indent++;
                 writer.WriteLine("return false;");
                 writer.Indent--;
@@ -275,11 +281,14 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     {
                         continue;
                     }
-                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject && currentByteIndex > countedByteIndex)
+                    var mayFail = memberInfo.TypeKind is WellKnownTypeKind.BinaryObject
+                        || memberInfo.CollectionKind is WellKnownCollectionKind.Enumerable
+                            && EnumCollectionCode.IsEnum(memberInfo.TypeKind);
+                    if (mayFail && currentByteIndex > countedByteIndex)
                         writer.WriteLine($"bytesWritten += {currentByteIndex - countedByteIndex};");
                     writer.WriteMultiLine(writeString);
                     currentByteIndex += bytesWritten;
-                    if (memberInfo.TypeKind is WellKnownTypeKind.BinaryObject)
+                    if (mayFail)
                     {
                         writer.WriteLine($"bytesWritten += {bytesWritten};");
                         countedByteIndex = currentByteIndex;
