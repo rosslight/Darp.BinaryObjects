@@ -44,7 +44,11 @@ partial class BinaryObjectsGenerator
         List<DiagnosticData> diagnostics = [];
         List<IMember> members = [];
 
-        IMethodSymbol? constructor = typeSymbol.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
+        if (!TrySelectConstructor(typeSymbol, diagnostics, out IMethodSymbol? constructor))
+        {
+            result = ParsedObjectInfo.Fail(diagnostics);
+            return false;
+        }
         var fieldsOrProperties = typeSymbol
             .GetMembers()
             .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
@@ -138,6 +142,36 @@ partial class BinaryObjectsGenerator
                 .ToImmutableArray()
         );
         return true;
+    }
+
+    private static bool TrySelectConstructor(
+        INamedTypeSymbol typeSymbol,
+        List<DiagnosticData> diagnostics,
+        out IMethodSymbol? constructor
+    )
+    {
+        var constructors = typeSymbol.InstanceConstructors.Where(x => !x.IsImplicitlyDeclared).ToImmutableArray();
+        var markedConstructors = constructors
+            .Where(x =>
+                x.GetAttributes()
+                    .Any(attribute =>
+                        attribute.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryConstructorAttribute"
+                    )
+            )
+            .ToImmutableArray();
+
+        constructor = markedConstructors.Length == 1 ? markedConstructors[0] : constructors.FirstOrDefault();
+        if (constructors.Length <= 1 || markedConstructors.Length == 1)
+            return true;
+
+        diagnostics.Add(
+            DiagnosticData.Create(
+                DiagnosticDescriptors.ConstructorSelectionAmbiguous,
+                typeSymbol.GetSourceLocation(),
+                [typeSymbol.Name]
+            )
+        );
+        return false;
     }
 
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
@@ -560,7 +594,8 @@ partial class BinaryObjectsGenerator
             return false;
         var generateRead = (options & BinaryGenerationOptions.Read) != 0;
         // Keep nested object graphs variable-sized rather than recursively parsing them.
-        IMethodSymbol? constructor = namedType.Constructors.FirstOrDefault(x => !x.IsImplicitlyDeclared);
+        if (!TrySelectConstructor(namedType, [], out IMethodSymbol? constructor))
+            return false;
         var fieldsOrProperties = namedType
             .GetMembers()
             .Where(x => x.Kind is SymbolKind.Field or SymbolKind.Property)
