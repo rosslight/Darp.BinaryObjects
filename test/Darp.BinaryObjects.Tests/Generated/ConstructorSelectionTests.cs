@@ -39,18 +39,6 @@ internal readonly partial struct SingleConstructorStruct
     public byte Value { get; }
 }
 
-[BinaryObject(BinaryOptions.Write)]
-internal sealed partial class WriteOnlyConstructors
-{
-    [BinaryConstructor]
-    public WriteOnlyConstructors() => Value = 42;
-
-    [BinaryConstructor]
-    public WriteOnlyConstructors(byte value) => Value = value;
-
-    public byte Value { get; }
-}
-
 public sealed class ConstructorSelectionTests
 {
     [Theory]
@@ -76,12 +64,6 @@ public sealed class ConstructorSelectionTests
         SingleConstructorStruct.TryReadLittleEndian([42], out var value).Should().BeTrue();
         value.Value.Should().Be(42);
         value.ToArrayLittleEndian().Should().Equal(42);
-    }
-
-    [Fact]
-    public void WriteOnly_ShouldNotRequireUnambiguousConstructor()
-    {
-        new WriteOnlyConstructors().ToArrayLittleEndian().Should().Equal(42);
     }
 
     [Theory]

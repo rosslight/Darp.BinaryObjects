@@ -2,15 +2,13 @@ namespace Darp.BinaryObjects.Generator.Tests;
 
 public sealed class ConstructorTests
 {
-    [Theory]
-    [InlineData("Read")]
-    [InlineData("All")]
-    public async Task AmbiguousConstructors_ShouldReportDiagnostic(string options)
+    [Fact]
+    public async Task AmbiguousConstructors_ShouldReportDiagnostic()
     {
-        var code = $$"""
+        const string code = """
             using Darp.BinaryObjects;
 
-            [BinaryObject(BinaryOptions.{{options}})]
+            [BinaryObject]
             public sealed partial class Unmarked
             {
                 public Unmarked() { }
@@ -18,7 +16,7 @@ public sealed class ConstructorTests
                 public byte Value { get; }
             }
 
-            [BinaryObject(BinaryOptions.{{options}})]
+            [BinaryObject]
             public sealed partial class MultiplyMarked
             {
                 [BinaryConstructor]
@@ -27,8 +25,16 @@ public sealed class ConstructorTests
                 public MultiplyMarked(byte value) => Value = value;
                 public byte Value { get; }
             }
+
+            [BinaryObject(BinaryOptions.Write)]
+            public sealed partial class WriteOnlyUnmarked
+            {
+                public WriteOnlyUnmarked() { }
+                public WriteOnlyUnmarked(byte value) => Value = value;
+                public byte Value { get; }
+            }
             """;
-        await VerifyHelper.VerifyBinaryObjectsGenerator(code).UseParameters(options);
+        await VerifyHelper.VerifyBinaryObjectsGenerator(code);
     }
 
     [Fact]

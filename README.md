@@ -74,11 +74,10 @@ Unplanned:
 - Any `real`, user-defined member in a `class` or `struct` declaration
 - Any `field` or `auto property` which is settable or has a parameter with matching type and name in the constructor
 
-- Generated readers use the instance constructor marked with `BinaryConstructorAttribute`, regardless of declaration order or accessibility.
+- The instance constructor marked with `BinaryConstructorAttribute` is used, regardless of declaration order or accessibility. Readers call it; readers and writers match its parameters to members.
 - Without that attribute, the sole explicit instance constructor is used; types without one use their implicit parameterless constructor.
 - Static constructors and compiler-generated constructors (including record copy constructors) do not participate in selection.
 - Multiple explicit instance constructors require exactly one `BinaryConstructorAttribute`; otherwise generation fails with `DBO010`.
-- Write-only objects do not require unambiguous constructor selection.
 
 There are warnings if:
 - A member is readonly and does not have a matching constructor argument or is explicitly ignored

@@ -44,7 +44,7 @@ partial class BinaryObjectsGenerator
         List<DiagnosticData> diagnostics = [];
         List<IMember> members = [];
 
-        if (!TrySelectConstructor(typeSymbol, generateRead, diagnostics, out IMethodSymbol? constructor))
+        if (!TrySelectConstructor(typeSymbol, diagnostics, out IMethodSymbol? constructor))
         {
             result = ParsedObjectInfo.Fail(diagnostics);
             return false;
@@ -146,7 +146,6 @@ partial class BinaryObjectsGenerator
 
     private static bool TrySelectConstructor(
         INamedTypeSymbol typeSymbol,
-        bool generateRead,
         List<DiagnosticData> diagnostics,
         out IMethodSymbol? constructor
     )
@@ -162,22 +161,17 @@ partial class BinaryObjectsGenerator
             .ToImmutableArray();
 
         constructor = markedConstructors.Length == 1 ? markedConstructors[0] : constructors.FirstOrDefault();
-        // Writers use constructor binding to recognize computed members, but do not construct an instance.
-        if (!generateRead)
+        if (constructors.Length <= 1 || markedConstructors.Length == 1)
             return true;
 
-        if (constructors.Length > 1 && markedConstructors.Length != 1)
-        {
-            diagnostics.Add(
-                DiagnosticData.Create(
-                    DiagnosticDescriptors.ConstructorSelectionAmbiguous,
-                    typeSymbol.GetSourceLocation(),
-                    [typeSymbol.Name]
-                )
-            );
-            return false;
-        }
-        return true;
+        diagnostics.Add(
+            DiagnosticData.Create(
+                DiagnosticDescriptors.ConstructorSelectionAmbiguous,
+                typeSymbol.GetSourceLocation(),
+                [typeSymbol.Name]
+            )
+        );
+        return false;
     }
 
     /// <summary> Checks a property or field symbol and returns whether it is a valid member which can be written to when constructing the object </summary>
@@ -600,7 +594,7 @@ partial class BinaryObjectsGenerator
             return false;
         var generateRead = (options & BinaryGenerationOptions.Read) != 0;
         // Keep nested object graphs variable-sized rather than recursively parsing them.
-        if (!TrySelectConstructor(namedType, generateRead, [], out IMethodSymbol? constructor))
+        if (!TrySelectConstructor(namedType, [], out IMethodSymbol? constructor))
             return false;
         var fieldsOrProperties = namedType
             .GetMembers()
