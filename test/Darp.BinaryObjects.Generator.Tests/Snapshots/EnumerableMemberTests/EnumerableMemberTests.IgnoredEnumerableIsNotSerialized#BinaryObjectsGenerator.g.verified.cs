@@ -4,17 +4,17 @@
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Value"/></term> <description>1 * 2</description> </item>
-/// <item> <term> --- </term> <description>2</description> </item>
+/// <item> <term><see cref="Value"/></term> <description>1</description> </item>
+/// <item> <term> --- </term> <description>1</description> </item>
 /// </list> </remarks>
-[global::Darp.BinaryObjects.BinaryConstant(2)]
-public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
+[global::Darp.BinaryObjects.BinaryConstant(1)]
+public sealed partial class Payload : global::Darp.BinaryObjects.IBinaryObject<Payload>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 2;
+    public int GetByteCount() => 1;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -25,10 +25,10 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 2 || this.Value.Length < 2)
+        if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..2], this.Value);
-        bytesWritten += 2;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Value);
+        bytesWritten += 1;
 
         return true;
     }
@@ -41,48 +41,54 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 2 || this.Value.Length < 2)
+        if (destination.Length < 1)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8Span(destination[0..2], this.Value);
-        bytesWritten += 2;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt8(destination[0..1], this.Value);
+        bytesWritten += 1;
 
         return true;
     }
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadLittleEndian(source, out value, out _);
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Payload? value) => TryReadLittleEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
+    public static bool TryReadLittleEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Payload? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 2)
+        if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..2], out _);
-        bytesRead += 2;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        bytesRead += 1;
 
-        value = new TestObject(___readValue);
+        value = new Payload()
+        {
+            Value = ___readValue,
+        };
         return true;
     }
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value) => TryReadBigEndian(source, out value, out _);
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Payload? value) => TryReadBigEndian(source, out value, out _);
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TestObject? value, out int bytesRead)
+    public static bool TryReadBigEndian(global::System.ReadOnlySpan<byte> source, [global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Payload? value, out int bytesRead)
     {
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 2)
+        if (source.Length < 1)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8Array(source[0..2], out _);
-        bytesRead += 2;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt8(source[0..1]);
+        bytesRead += 1;
 
-        value = new TestObject(___readValue);
+        value = new Payload()
+        {
+            Value = ___readValue,
+        };
         return true;
     }
 }
@@ -101,20 +107,17 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Writes a <c>ReadOnlySpan&lt;byte&gt;</c> with a <c>maxElementLength</c> to the destination </summary>
+        /// <summary> Writes a <c>byte</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt8Span(Span<byte> destination, ReadOnlySpan<byte> value)
+        public static void WriteUInt8(Span<byte> destination, byte value)
         {
-            var length = Math.Min(value.Length, destination.Length);
-            value.Slice(0, length).CopyTo(destination);
-            return length;
+            destination[0] = value;
         }
-        /// <summary> Reads a <c>byte[]</c> from the given source </summary>
+        /// <summary> Reads a <c>byte</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] ReadUInt8Array(ReadOnlySpan<byte> source, out int bytesRead)
+        public static byte ReadUInt8(ReadOnlySpan<byte> source)
         {
-            bytesRead = source.Length;
-            return source.ToArray();
+            return source[0];
         }
     }
 }

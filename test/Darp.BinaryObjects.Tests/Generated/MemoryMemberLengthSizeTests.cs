@@ -129,7 +129,6 @@ public class MemoryMemberLengthSizeTests
     }
 
     [Theory]
-    [InlineData(1, "", 3, 3, "010000", "000100")]
     [InlineData(1, "01", 3, 3, "010001", "000101")]
     [InlineData(3, "030201", 5, 5, "0300030201", "0003030201")]
     [InlineData(3, "0102030405", 5, 5, "0300010203", "0003010203")]
@@ -167,6 +166,7 @@ public class MemoryMemberLengthSizeTests
 
     [Theory]
     [InlineData(1, "", 0, "", "", 0)]
+    [InlineData(1, "", 3, "010000", "000100", 2)]
     [InlineData(1, "", 2, "0100", "0001", 2)]
     [InlineData(1, "00", 1, "00", "00", 0)]
     [InlineData(3, "0102", 3, "030000", "000300", 2)]

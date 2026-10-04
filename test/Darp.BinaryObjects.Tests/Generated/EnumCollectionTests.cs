@@ -30,12 +30,6 @@ internal sealed partial record CountedAndRemainingEnums(
     SignedByteEnumValue[] Remaining
 );
 
-[BinaryObject]
-internal sealed partial record FixedEnumEnumerable([property: BinaryElementCount(2)] IEnumerable<UInt16EnumValue> Values);
-
-[BinaryObject]
-internal sealed partial record RemainingEnumEnumerable(IEnumerable<UInt16EnumValue> Values);
-
 public sealed class EnumCollectionTests
 {
     [Theory]
@@ -67,61 +61,6 @@ public sealed class EnumCollectionTests
         Assert.NotNull(parsed);
         parsed.Counted.Should().Equal(UInt16EnumValue.First, UInt16EnumValue.Second);
         parsed.Remaining.Should().Equal(SignedByteEnumValue.Negative, SignedByteEnumValue.Positive);
-    }
-
-    [Fact]
-    public void FixedEnumEnumerable_ShouldNotAdvancePastItsCount()
-    {
-        var value = new FixedEnumEnumerable(EnumerateValues());
-        var destination = new byte[4];
-
-        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeTrue();
-        bytesWritten.Should().Be(4);
-        destination.Should().Equal(Convert.FromHexString("3412CDAB"));
-    }
-
-    [Fact]
-    public void FixedEnumEnumerable_ShouldFailWhenAnElementIsMissing()
-    {
-        var value = new FixedEnumEnumerable([UInt16EnumValue.First]);
-        var destination = new byte[4];
-
-        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeFalse();
-        bytesWritten.Should().Be(2);
-        destination.Should().Equal(Convert.FromHexString("34120000"));
-    }
-
-    private static IEnumerable<UInt16EnumValue> EnumerateValues()
-    {
-        yield return UInt16EnumValue.First;
-        yield return UInt16EnumValue.Second;
-        throw new InvalidOperationException("The writer advanced past the declared element count.");
-    }
-
-    [Fact]
-    public void RemainingEnumEnumerable_ShouldWriteSinglePassSequence()
-    {
-        var value = new RemainingEnumEnumerable(new SinglePassEnumSequence());
-        var destination = new byte[4];
-
-        value.TryWriteLittleEndian(destination, out var bytesWritten).Should().BeTrue();
-        bytesWritten.Should().Be(4);
-        destination.Should().Equal(Convert.FromHexString("3412CDAB"));
-    }
-
-    private sealed class SinglePassEnumSequence : IEnumerable<UInt16EnumValue>
-    {
-        private bool _used;
-
-        public IEnumerator<UInt16EnumValue> GetEnumerator()
-        {
-            if (_used)
-                throw new InvalidOperationException("The sequence was enumerated twice.");
-            _used = true;
-            return ((IEnumerable<UInt16EnumValue>)new[] { UInt16EnumValue.First, UInt16EnumValue.Second }).GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     [Theory]

@@ -1,4 +1,4 @@
-﻿namespace Darp.BinaryObjects.Generator;
+namespace Darp.BinaryObjects.Generator;
 
 using System.CodeDom.Compiler;
 using System.Collections.Immutable;
@@ -120,10 +120,10 @@ public partial class BinaryObjectsGenerator : IIncrementalGenerator
                                     _ => UtilityData.UnknownLength,
                                 };
                                 var writeUtilities = info.GenerateWrite
-                                    ? GetWriteUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    ? GetUtilities(false, x.CollectionKind, x.TypeKind, typeByteLength)
                                     : [];
                                 var readUtilities = info.GenerateRead
-                                    ? GetReadUtilities(x.CollectionKind, x.TypeKind, x.TypeSymbol, typeByteLength)
+                                    ? GetUtilities(true, x.CollectionKind, x.TypeKind, typeByteLength)
                                     : [];
                                 return writeUtilities.Concat(readUtilities);
                             })
