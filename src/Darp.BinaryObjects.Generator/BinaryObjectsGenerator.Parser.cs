@@ -177,19 +177,6 @@ partial class BinaryObjectsGenerator
             );
             return false;
         }
-
-        IParameterSymbol? byReferenceParameter = constructor?.Parameters.FirstOrDefault(x => x.RefKind != RefKind.None);
-        if (byReferenceParameter is not null)
-        {
-            diagnostics.Add(
-                DiagnosticData.Create(
-                    DiagnosticDescriptors.ConstructorParameterByReference,
-                    byReferenceParameter.GetSourceLocation(),
-                    [byReferenceParameter.Name]
-                )
-            );
-            return false;
-        }
         return true;
     }
 

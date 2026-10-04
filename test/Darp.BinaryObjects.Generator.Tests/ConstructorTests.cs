@@ -3,31 +3,6 @@ namespace Darp.BinaryObjects.Generator.Tests;
 public sealed class ConstructorTests
 {
     [Theory]
-    [InlineData("in")]
-    [InlineData("ref")]
-    [InlineData("out")]
-    public async Task ByReferenceConstructor_ShouldNotFallBackToValueOverload(string modifier)
-    {
-        var code = $$"""
-            using Darp.BinaryObjects;
-
-            [BinaryObject]
-            public sealed partial class ByReferenceConstructor
-            {
-                public ByReferenceConstructor(ushort value) => Value = value;
-                [BinaryConstructor]
-                private ByReferenceConstructor({{modifier}} ushort value)
-                {
-                    {{(modifier == "out" ? "value = 0;" : "")}}
-                    Value = value;
-                }
-                public ushort Value { get; }
-            }
-            """;
-        await VerifyHelper.VerifyBinaryObjectsGenerator(code).UseParameters(modifier);
-    }
-
-    [Theory]
     [InlineData("Read")]
     [InlineData("All")]
     public async Task AmbiguousConstructors_ShouldReportDiagnostic(string options)

@@ -78,7 +78,6 @@ Unplanned:
 - Without that attribute, the sole explicit instance constructor is used; types without one use their implicit parameterless constructor.
 - Static constructors and compiler-generated constructors (including record copy constructors) do not participate in selection.
 - Multiple explicit instance constructors require exactly one `BinaryConstructorAttribute`; otherwise generation fails with `DBO010`.
-- Selected reader constructors must take parameters by value; `in`, `ref`, and `out` parameters are rejected with `DBO011`.
 - Write-only objects do not require unambiguous constructor selection.
 
 There are warnings if:
