@@ -11,6 +11,8 @@ DBO007  | DarpBinaryObjectsGenerator | Warning | MemberIgnoredReadonly
 DBO008  | DarpBinaryObjectsGenerator | Warning | MemberIgnoredDuplicateName
 DBO009  | DarpBinaryObjectsGenerator | Error | EnumerableMemberNotSupported
 DBO010  | DarpBinaryObjectsGenerator | Error | ConstructorSelectionAmbiguous
-DBO011  | DarpBinaryObjectsGenerator | Info | ByteWidthRedundant
-DBO012  | DarpBinaryObjectsGenerator | Error | ByteWidthInvalid
-DBO013  | DarpBinaryObjectsGenerator | Error | ByteWidthNotSupported
+DBO011  | DarpBinaryObjectsGenerator | Info | ByteCountRedundant
+DBO012  | DarpBinaryObjectsGenerator | Error | ByteCountInvalid
+DBO013  | DarpBinaryObjectsGenerator | Error | ByteCountNotSupported
+DBO014  | DarpBinaryObjectsGenerator | Error | ByteCountOnCollection
+DBO015  | DarpBinaryObjectsGenerator | Error | ElementByteCountOnScalar

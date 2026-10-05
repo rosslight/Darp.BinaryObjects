@@ -79,17 +79,17 @@ partial class BinaryObjectsGenerator
         var typeName = GetWellKnownDisplayName(WellKnownCollectionKind.None, typeKind);
         var body = typeKind.IsSigned()
             ? """
-                var shift = 64 - 8 * byteWidth;
+                var shift = 64 - 8 * byteCount;
                 return ((value << shift) >> shift) == value;
                 """
-            : "return (value >> (8 * byteWidth)) == 0;";
+            : "return (value >> (8 * byteCount)) == 0;";
         writer.WriteMultiLine(
             $$"""
             /// <summary> Checks whether {{GetSignednessDescription(
                 typeKind
-            )}} integer can be written with <c>byteWidth</c> bytes </summary>
+            )}} integer can be written with <c>byteCount</c> bytes </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static bool {{GetFitsMethodName(typeKind)}}({{typeName}} value, int byteWidth)
+            public static bool {{GetFitsMethodName(typeKind)}}({{typeName}} value, int byteCount)
             {
             """
         );

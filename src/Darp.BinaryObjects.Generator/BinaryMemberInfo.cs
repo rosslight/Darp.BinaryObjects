@@ -66,7 +66,7 @@ internal sealed class ConstantWellKnownMember : IConstantMember
 
     public string GetDocCommentLength() => $"{TypeByteLength}";
 
-    /// <summary> The condition under which the value does not fit into its byte width, if it is narrower than its type </summary>
+    /// <summary> The condition under which the value does not fit into its byte count, if it is narrower than its type </summary>
     public string? GetWriteOverflowCheck()
     {
         if (!IsNarrow)

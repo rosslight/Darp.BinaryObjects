@@ -309,11 +309,11 @@ namespace Darp.BinaryObjects.Generated
             bytesRead = integers.Length * elementLength;
             return result;
         }
-        /// <summary> Checks whether an unsigned integer can be written with <c>byteWidth</c> bytes </summary>
+        /// <summary> Checks whether an unsigned integer can be written with <c>byteCount</c> bytes </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool FitsUnsigned(ulong value, int byteWidth)
+        public static bool FitsUnsigned(ulong value, int byteCount)
         {
-            return (value >> (8 * byteWidth)) == 0;
+            return (value >> (8 * byteCount)) == 0;
         }
         /// <summary> Writes the lowest <c>destination.Length</c> bytes of an unsigned integer to the destination, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -431,11 +431,11 @@ namespace Darp.BinaryObjects.Generated
             }
             return true;
         }
-        /// <summary> Checks whether a signed integer can be written with <c>byteWidth</c> bytes </summary>
+        /// <summary> Checks whether a signed integer can be written with <c>byteCount</c> bytes </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool FitsSigned(long value, int byteWidth)
+        public static bool FitsSigned(long value, int byteCount)
         {
-            var shift = 64 - 8 * byteWidth;
+            var shift = 64 - 8 * byteCount;
             return ((value << shift) >> shift) == value;
         }
         /// <summary> Writes the lowest <c>destination.Length</c> bytes of a signed integer to the destination, as LittleEndian </summary>

@@ -345,7 +345,7 @@ partial class BinaryObjectsGenerator
         )
             typeSymbol = underlyingTypeSymbol;
         WellKnownTypeKind typeKind = GetWellKnownTypeKind(typeSymbol);
-        if (!TryGetByteWidth(diagnostics, symbol, typeSymbol, typeKind, out var byteWidth))
+        if (!TryGetByteCount(diagnostics, symbol, typeSymbol, typeKind, collectionKind, out var byteCount))
             return false;
         var length = 0;
         if (typeKind is not WellKnownTypeKind.BinaryObject && !typeKind.TryGetLength(out length))
@@ -357,7 +357,7 @@ partial class BinaryObjectsGenerator
             diagnostics.Add(diagnostic);
             return false;
         }
-        length = byteWidth ?? length;
+        length = byteCount ?? length;
         int? arrayMinLength = null;
         IMember? arrayLengthMember = null;
         int? arrayLength = null;
@@ -555,56 +555,83 @@ partial class BinaryObjectsGenerator
         return true;
     }
 
-    /// <summary> Gets the byte width of a member which is narrower than its type. Fails if the member cannot have the declared width </summary>
-    private static bool TryGetByteWidth(
+    /// <summary> Gets the byte count of a value which is narrower than its type. Fails if the member cannot have the declared byte count </summary>
+    private static bool TryGetByteCount(
         List<DiagnosticData> diagnostics,
         ISymbol symbol,
         ITypeSymbol typeSymbol,
         WellKnownTypeKind typeKind,
-        out int? byteWidth
+        WellKnownCollectionKind collectionKind,
+        out int? byteCount
     )
     {
-        byteWidth = null;
-        AttributeData? attribute = symbol
-            .GetAttributes()
-            .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteWidthAttribute");
-        if (attribute?.ConstructorArguments is not [{ Value: int declaredWidth }])
+        byteCount = null;
+        ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
+        AttributeData? memberAttribute = attributes.FirstOrDefault(x =>
+            x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteCountAttribute"
+        );
+        AttributeData? elementAttribute = attributes.FirstOrDefault(x =>
+            x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryElementByteCountAttribute"
+        );
+        // A single value takes its byte count from the member, a collection from its elements
+        var isCollection = collectionKind is not WellKnownCollectionKind.None;
+        AttributeData? attribute = isCollection ? elementAttribute : memberAttribute;
+        AttributeData? misplacedAttribute = isCollection ? memberAttribute : elementAttribute;
+        if ((attribute ?? misplacedAttribute) is not { } anyAttribute)
+            return true;
+        var attributeName = ReferenceEquals(anyAttribute, memberAttribute)
+            ? "BinaryByteCount"
+            : "BinaryElementByteCount";
+        if (!typeKind.SupportsByteCount() || !typeKind.TryGetLength(out var naturalLength))
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteCountNotSupported,
+                    anyAttribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    [attributeName, symbol.Name, typeSymbol.ToDisplayString()]
+                )
+            );
+            return false;
+        }
+        if (misplacedAttribute is not null)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    isCollection
+                        ? DiagnosticDescriptors.ByteCountOnCollection
+                        : DiagnosticDescriptors.ElementByteCountOnScalar,
+                    misplacedAttribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    [symbol.Name]
+                )
+            );
+            return false;
+        }
+        if (attribute?.ConstructorArguments is not [{ Value: int declaredCount }])
             return true;
         Location location = attribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation();
-        if (!typeKind.SupportsByteWidth() || !typeKind.TryGetLength(out var naturalLength))
+        if (declaredCount < 1 || declaredCount > naturalLength)
         {
             diagnostics.Add(
                 DiagnosticData.Create(
-                    DiagnosticDescriptors.ByteWidthNotSupported,
+                    DiagnosticDescriptors.ByteCountInvalid,
                     location,
-                    [symbol.Name, typeSymbol.ToDisplayString()]
+                    [attributeName, declaredCount, symbol.Name, typeSymbol.ToDisplayString(), naturalLength]
                 )
             );
             return false;
         }
-        if (declaredWidth < 1 || declaredWidth > naturalLength)
+        if (declaredCount == naturalLength)
         {
             diagnostics.Add(
                 DiagnosticData.Create(
-                    DiagnosticDescriptors.ByteWidthInvalid,
+                    DiagnosticDescriptors.ByteCountRedundant,
                     location,
-                    [declaredWidth, symbol.Name, typeSymbol.ToDisplayString(), naturalLength]
-                )
-            );
-            return false;
-        }
-        if (declaredWidth == naturalLength)
-        {
-            diagnostics.Add(
-                DiagnosticData.Create(
-                    DiagnosticDescriptors.ByteWidthRedundant,
-                    location,
-                    [declaredWidth, symbol.Name, typeSymbol.ToDisplayString()]
+                    [attributeName, declaredCount, symbol.Name, typeSymbol.ToDisplayString()]
                 )
             );
             return true;
         }
-        byteWidth = declaredWidth;
+        byteCount = declaredCount;
         return true;
     }
 

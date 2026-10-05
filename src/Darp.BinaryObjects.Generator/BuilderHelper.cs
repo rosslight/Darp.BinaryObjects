@@ -98,7 +98,7 @@ internal static class BuilderHelper
                 or WellKnownTypeKind.EnumLong;
 
     /// <summary> Whether values of the type can be serialized with fewer bytes than the type has </summary>
-    public static bool SupportsByteWidth(this WellKnownTypeKind typeKind) =>
+    public static bool SupportsByteCount(this WellKnownTypeKind typeKind) =>
         typeKind.IsEnum()
         || typeKind
             is WellKnownTypeKind.Byte

@@ -18,50 +18,50 @@ internal enum SignedLevel
 
 [BinaryObject]
 internal sealed partial record NarrowScalars(
-    [property: BinaryByteWidth(3)] uint Unsigned,
-    [property: BinaryByteWidth(6)] ulong Address,
-    [property: BinaryByteWidth(3)] int Signed,
-    [property: BinaryByteWidth(3)] ClassOfDevice Class,
-    [property: BinaryByteWidth(1)] SignedLevel Level,
+    [property: BinaryByteCount(3)] uint Unsigned,
+    [property: BinaryByteCount(6)] ulong Address,
+    [property: BinaryByteCount(3)] int Signed,
+    [property: BinaryByteCount(3)] ClassOfDevice Class,
+    [property: BinaryByteCount(1)] SignedLevel Level,
     byte Tail
 );
 
 [BinaryObject]
 internal sealed partial record NarrowBounds(
-    [property: BinaryByteWidth(3)] uint Unsigned,
-    [property: BinaryByteWidth(3)] int Signed,
-    [property: BinaryByteWidth(5)] long Wide,
-    [property: BinaryByteWidth(3)] ClassOfDevice Class
+    [property: BinaryByteCount(3)] uint Unsigned,
+    [property: BinaryByteCount(3)] int Signed,
+    [property: BinaryByteCount(5)] long Wide,
+    [property: BinaryByteCount(3)] ClassOfDevice Class
 );
 
 [BinaryObject]
 internal sealed partial record NarrowCollections(
-    [property: BinaryByteWidth(3)] int Count,
-    [property: BinaryElementCount("Count"), BinaryByteWidth(3)] int[] Counted,
-    [property: BinaryElementCount(2), BinaryByteWidth(3)] List<ClassOfDevice> Fixed,
-    [property: BinaryElementCount(2), BinaryByteWidth(6)] IReadOnlyList<ulong> Interface,
-    [property: BinaryByteWidth(3)] ReadOnlyMemory<uint> Remaining
+    [property: BinaryByteCount(3)] int Count,
+    [property: BinaryElementCount("Count"), BinaryElementByteCount(3)] int[] Counted,
+    [property: BinaryElementCount(2), BinaryElementByteCount(3)] List<ClassOfDevice> Fixed,
+    [property: BinaryElementCount(2), BinaryElementByteCount(6)] IReadOnlyList<ulong> Interface,
+    [property: BinaryElementByteCount(3)] ReadOnlyMemory<uint> Remaining
 );
 
 [BinaryObject]
 internal sealed partial record NarrowCollectionKinds(
-    [property: BinaryElementCount(2), BinaryByteWidth(3)] List<int> List,
-    [property: BinaryElementCount(2), BinaryByteWidth(3)] IReadOnlyCollection<ClassOfDevice> EnumCollection,
-    [property: BinaryElementCount(2), BinaryByteWidth(2)] SignedLevel[] SignedEnums
+    [property: BinaryElementCount(2), BinaryElementByteCount(3)] List<int> List,
+    [property: BinaryElementCount(2), BinaryElementByteCount(3)] IReadOnlyCollection<ClassOfDevice> EnumCollection,
+    [property: BinaryElementCount(2), BinaryElementByteCount(2)] SignedLevel[] SignedEnums
 );
 
 [BinaryObject]
 internal sealed partial record ScalarThenNarrowArray(
     ushort Head,
-    [property: BinaryElementCount(2), BinaryByteWidth(3)] uint[] Values
+    [property: BinaryElementCount(2), BinaryElementByteCount(3)] uint[] Values
 );
 
-public sealed class ByteWidthTests
+public sealed class ByteCountTests
 {
     [Theory]
     [InlineData(true, "563412665544332211FEFFFF002020FEEF")]
     [InlineData(false, "123456112233445566FFFFFE202000FEEF")]
-    public void Scalars_ShouldUseDeclaredWidth(bool littleEndian, string hex)
+    public void Scalars_ShouldUseDeclaredByteCount(bool littleEndian, string hex)
     {
         var expected = Convert.FromHexString(hex);
         var value = new NarrowScalars(
@@ -138,7 +138,7 @@ public sealed class ByteWidthTests
     [Theory]
     [InlineData(true, "020000010000FEFFFF000020002000665544332211A6A5A4A3A2A1563412")]
     [InlineData(false, "000002000001FFFFFE200000002000112233445566A1A2A3A4A5A6123456")]
-    public void Collections_ShouldUseDeclaredElementWidth(bool littleEndian, string hex)
+    public void Collections_ShouldUseDeclaredElementByteCount(bool littleEndian, string hex)
     {
         var expected = Convert.FromHexString(hex);
         var value = new NarrowCollections(
@@ -176,7 +176,7 @@ public sealed class ByteWidthTests
     [Theory]
     [InlineData(true, "FFFFFF030201000020002000FEFF0200")]
     [InlineData(false, "FFFFFF010203200000002000FFFE0002")]
-    public void CollectionKinds_ShouldUseDeclaredElementWidth(bool littleEndian, string hex)
+    public void CollectionKinds_ShouldUseDeclaredElementByteCount(bool littleEndian, string hex)
     {
         var expected = Convert.FromHexString(hex);
         var value = new NarrowCollectionKinds(

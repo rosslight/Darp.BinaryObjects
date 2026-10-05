@@ -59,7 +59,8 @@ To control these types there are attributes
 - [x] `BinaryIgnore`: Ignore some members
 - [x] `BinaryElementCount`: Sets the number of elements in an array
 - [ ] `BinaryReadRemaining`: Reads the remaining into an array
-- [x] `BinaryByteWidth`: Sets the number of bytes of an integer or enum which is narrower than its type
+- [x] `BinaryByteCount`: Sets the number of bytes of an integer or enum which is narrower than its type
+- [x] `BinaryElementByteCount`: Sets the number of bytes of each integer or enum in a collection
 - [ ] `BinaryConstantValue`: Mark a (readonly) property which will have a predefined value
 
 Unplanned:
@@ -123,21 +124,23 @@ they do not need to be reconstructible by the generated reader.
 
 ## Integers narrower than their type
 
-`BinaryByteWidth` reads and writes an integer or enum with fewer bytes than its type has, such as a 24-bit value in a `uint`:
+`BinaryByteCount` reads and writes an integer or enum with fewer bytes than its type has, such as a 24-bit value in a `uint`.
+`BinaryElementByteCount` does the same for each element of a collection:
 
 ```csharp
 [BinaryObject]
 public sealed partial record Samples(
-    [property: BinaryByteWidth(3)] uint Timestamp,
-    [property: BinaryByteWidth(3)] int Count,
-    [property: BinaryElementCount("Count"), BinaryByteWidth(3)] int[] Values
+    [property: BinaryByteCount(3)] uint Timestamp,
+    [property: BinaryByteCount(3)] int Count,
+    [property: BinaryElementCount("Count"), BinaryElementByteCount(3)] int[] Values
 );
 ```
 
-- It applies to `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong` and enums, and to each element of a collection of them. Other member types fail with `DBO013`.
-- The width has to be between 1 and the size of the type; other widths fail with `DBO012`. A width equal to the size of the type has no effect and reports the informational `DBO011`.
+- Both apply to `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong` and enums. Other types fail with `DBO013`.
+- `BinaryByteCount` on a collection fails with `DBO014` and `BinaryElementByteCount` on a single value with `DBO015`.
+- The byte count has to be between 1 and the size of the type; other values fail with `DBO012`. A byte count equal to the size of the type has no effect and reports the informational `DBO011`.
 - Readers zero-extend unsigned types and sign-extend signed types. Enums follow their underlying type.
-- Writers return `false` when a value does not fit into the width. A scalar that does not fit fails before any of its adjacent fixed-size members are written; a collection stops at the first element that does not fit.
+- Writers return `false` when a value does not fit into its byte count. A scalar that does not fit fails before any of its adjacent fixed-size members are written; a collection stops at the first element that does not fit.
 - A member referenced by `BinaryElementCount` still has to be an `sbyte`, `byte`, `short`, `ushort` or `int`.
 
 ## How it's supposed to work
