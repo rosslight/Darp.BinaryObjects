@@ -1128,6 +1128,18 @@ partial class BinaryObjectsGenerator
                         bytesRead = list.Count * {byteLength};
                         return list;
                         """,
+                (WellKnownCollectionKind.List, WellKnownTypeKind.Bool or WellKnownTypeKind.SByte, not null) => (
+                    _,
+                    typeName,
+                    _
+                ) =>
+                    $"""
+                        ReadOnlySpan<{typeName}> values = MemoryMarshal.Cast<byte, {typeName}>(source);
+                        var list = new List<{typeName}>(values.Length);
+                        list.AddRange(values);
+                        bytesRead = list.Count;
+                        return list;
+                        """,
                 (WellKnownCollectionKind.List, WellKnownTypeKind.EnumByte or WellKnownTypeKind.EnumSByte, not null) => (
                     _,
                     _,
