@@ -1,0 +1,131 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+    public uint Unsigned { get; set; }
+    [BinaryByteCount("Length"), BinaryElementCount(2)] public uint[] WithConstantElementCount { get; set; } = Array.Empty<uint>();
+                     ^^^^^^^^
+    [BinaryElementCount("Length"), BinaryByteCount("Length")] public uint[] WithMemberElementCount { get; set; } = Array.Empty<uint>();
+*/
+ : (11,21)-(11,29),
+      Message: Collection member 'WithConstantElementCount' cannot have both BinaryByteCount and BinaryElementCount. Use one of them to define where the collection ends.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO016,
+        Title: ByteCountWithElementCount,
+        MessageFormat: Collection member '{0}' cannot have both BinaryByteCount and BinaryElementCount. Use one of them to define where the collection ends.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount("Length"), BinaryElementCount(2)] public uint[] WithConstantElementCount { get; set; } = Array.Empty<uint>();
+    [BinaryElementCount("Length"), BinaryByteCount("Length")] public uint[] WithMemberElementCount { get; set; } = Array.Empty<uint>();
+                                                   ^^^^^^^^
+    [BinaryByteCount("Length")] public uint SingleValue { get; set; }
+*/
+ : (12,51)-(12,59),
+      Message: Collection member 'WithMemberElementCount' cannot have both BinaryByteCount and BinaryElementCount. Use one of them to define where the collection ends.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO016,
+        Title: ByteCountWithElementCount,
+        MessageFormat: Collection member '{0}' cannot have both BinaryByteCount and BinaryElementCount. Use one of them to define where the collection ends.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementCount("Length"), BinaryByteCount("Length")] public uint[] WithMemberElementCount { get; set; } = Array.Empty<uint>();
+    [BinaryByteCount("Length")] public uint SingleValue { get; set; }
+                     ^^^^^^^^
+    [BinaryByteCount("Missing")] public uint[] MissingMember { get; set; } = Array.Empty<uint>();
+*/
+ : (13,21)-(13,29),
+      Message: BinaryByteCount with a member name requires a collection, but member 'SingleValue' is a single value,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO017,
+        Title: ByteCountMemberOnScalar,
+        MessageFormat: BinaryByteCount with a member name requires a collection, but member '{0}' is a single value,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount("Length")] public uint SingleValue { get; set; }
+    [BinaryByteCount("Missing")] public uint[] MissingMember { get; set; } = Array.Empty<uint>();
+                     ^^^^^^^^^
+    [BinaryByteCount(null!)] public uint[] NullMember { get; set; } = Array.Empty<uint>();
+*/
+ : (14,21)-(14,30),
+      Message: Member 'Missing' defining length for 'MissingMember' was not found,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthNotFound,
+        MessageFormat: Member '{0}' defining length for '{1}' was not found,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount("Missing")] public uint[] MissingMember { get; set; } = Array.Empty<uint>();
+    [BinaryByteCount(null!)] public uint[] NullMember { get; set; } = Array.Empty<uint>();
+                     ^^^^^
+    [BinaryByteCount("Unsigned")] public uint[] UnsupportedMemberType { get; set; } = Array.Empty<uint>();
+*/
+ : (15,21)-(15,26),
+      Message: Member '' defining length for 'NullMember' was not found,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthNotFound,
+        MessageFormat: Member '{0}' defining length for '{1}' was not found,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: ,
+      Message: Member 'Unsigned' defining length for 'UnsupportedMemberType' shall be an integer value. Allowed types are [sbyte, byte, short, ushort, int].,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: MemberDefiningLengthDataInvalidType,
+        MessageFormat: Member '{0}' defining length for '{1}' shall be an integer value. Allowed types are [sbyte, byte, short, ushort, int].,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount("Unsigned")] public uint[] UnsupportedMemberType { get; set; } = Array.Empty<uint>();
+    [BinaryByteCount("Length")] public Variable[] VariableElements { get; set; } = Array.Empty<Variable>();
+                                                  ^^^^^^^^^^^^^^^^
+}
+*/
+ : (17,50)-(17,66),
+      Message: Collection member 'VariableElements' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO001,
+        Title: CollectionElementLengthUnknown,
+        MessageFormat: Collection member '{0}' requires a known, positive binary element length. Use BinaryConstant on manual element types.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

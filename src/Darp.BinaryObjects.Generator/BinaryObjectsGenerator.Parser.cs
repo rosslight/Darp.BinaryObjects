@@ -360,6 +360,8 @@ partial class BinaryObjectsGenerator
         length = byteCount ?? length;
         int? arrayMinLength = null;
         IMember? arrayLengthMember = null;
+        IMember? arrayByteCountMember = null;
+        AttributeData? arrayByteCountAttribute = null;
         int? arrayLength = null;
         ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
         foreach (AttributeData attributeData in attributes)
@@ -375,37 +377,38 @@ partial class BinaryObjectsGenerator
                     {
                         if (pair is { Key: "memberWithLength", Value.Value: string memberName })
                         {
-                            IMember? previousMember = previousMembers.FirstOrDefault(x =>
-                                x.MemberSymbol.Name.Equals(memberName, StringComparison.Ordinal)
-                            );
-                            if (previousMember is null)
-                            {
-                                var diagnostic = DiagnosticData.Create(
-                                    descriptor: DiagnosticDescriptors.MemberDefiningLengthNotFound,
-                                    location: attributeData.GetLocationOfConstructorArgument(0)
-                                        ?? symbol.GetSourceLocation(),
-                                    messageArgs: [memberName, symbol.Name]
-                                );
-                                diagnostics.Add(diagnostic);
+                            if (!TryGetLengthMember(attributeData, memberName, out arrayLengthMember))
                                 return false;
-                            }
-                            if (!previousMember.TypeSymbol.IsValidLengthInteger())
-                            {
-                                var diagnostic = DiagnosticData.Create(
-                                    descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
-                                    location: previousMember.TypeSymbol.GetSourceLocation(),
-                                    messageArgs: [memberName, symbol.Name]
-                                );
-                                diagnostics.Add(diagnostic);
-                                return false;
-                            }
-                            arrayLengthMember = previousMember;
                         }
                         else if (pair is { Key: "length", Value.Value: int lengthValue })
                         {
                             arrayLength = lengthValue;
                         }
                     }
+                    continue;
+                case "Darp.BinaryObjects.BinaryByteCountAttribute":
+                    // A constant narrows a single value and is resolved together with the element byte count
+                    if (
+                        attributeData.ConstructorArguments
+                        is not [{ Type.SpecialType: SpecialType.System_String } byteCountMember]
+                    )
+                        continue;
+                    // A null name is looked up like any other name which does not exist
+                    var byteCountMemberName = byteCountMember.Value as string ?? string.Empty;
+                    if (collectionKind is WellKnownCollectionKind.None)
+                    {
+                        diagnostics.Add(
+                            DiagnosticData.Create(
+                                DiagnosticDescriptors.ByteCountMemberOnScalar,
+                                attributeData.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                                [symbol.Name]
+                            )
+                        );
+                        return false;
+                    }
+                    if (!TryGetLengthMember(attributeData, byteCountMemberName, out arrayByteCountMember))
+                        return false;
+                    arrayByteCountAttribute = attributeData;
                     continue;
                 case "Darp.BinaryObjects.BinaryMinElementCountAttribute":
                     foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
@@ -420,6 +423,21 @@ partial class BinaryObjectsGenerator
                     continue;
             }
         }
+
+        if (arrayByteCountAttribute is not null && (arrayLengthMember is not null || arrayLength is not null))
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteCountWithElementCount,
+                    arrayByteCountAttribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    [symbol.Name]
+                )
+            );
+            return false;
+        }
+        // The collection ends after a number of elements or a number of bytes
+        var lengthIsInBytes = arrayByteCountMember is not null;
+        arrayLengthMember ??= arrayByteCountMember;
 
         var isConstant = false;
         if (typeKind is WellKnownTypeKind.BinaryObject)
@@ -498,6 +516,7 @@ partial class BinaryObjectsGenerator
                     TypeByteLength = length,
                     ArrayMinLength = arrayMinLength ?? 0,
                     ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
+                    LengthIsInBytes = lengthIsInBytes,
                 },
                 (not WellKnownCollectionKind.None, _, _, _) => new ReadRemainingArrayMemberGroup
                 {
@@ -522,6 +541,7 @@ partial class BinaryObjectsGenerator
                 TypeByteLength = length,
                 ArrayMinLength = arrayMinLength ?? 0,
                 ArrayLengthMemberName = arrayLengthMember.MemberSymbol.Name,
+                LengthIsInBytes = lengthIsInBytes,
             },
             (not WellKnownCollectionKind.None, not null, _) => new ConstantArrayMember
             {
@@ -553,6 +573,38 @@ partial class BinaryObjectsGenerator
             //),
         };
         return true;
+
+        bool TryGetLengthMember(
+            AttributeData attributeData,
+            string memberName,
+            [NotNullWhen(true)] out IMember? lengthMember
+        )
+        {
+            lengthMember = previousMembers.FirstOrDefault(x =>
+                x.MemberSymbol.Name.Equals(memberName, StringComparison.Ordinal)
+            );
+            if (lengthMember is null)
+            {
+                var diagnostic = DiagnosticData.Create(
+                    descriptor: DiagnosticDescriptors.MemberDefiningLengthNotFound,
+                    location: attributeData.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    messageArgs: [memberName, symbol.Name]
+                );
+                diagnostics.Add(diagnostic);
+                return false;
+            }
+            if (!lengthMember.TypeSymbol.IsValidLengthInteger())
+            {
+                var diagnostic = DiagnosticData.Create(
+                    descriptor: DiagnosticDescriptors.MemberDefiningLengthDataInvalidType,
+                    location: lengthMember.TypeSymbol.GetSourceLocation(),
+                    messageArgs: [memberName, symbol.Name]
+                );
+                diagnostics.Add(diagnostic);
+                return false;
+            }
+            return true;
+        }
     }
 
     /// <summary> Gets the byte count of a value which is narrower than its type. Fails if the member cannot have the declared byte count </summary>
@@ -567,8 +619,10 @@ partial class BinaryObjectsGenerator
     {
         byteCount = null;
         ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
+        // A member name bounds a collection instead of narrowing a value
         AttributeData? memberAttribute = attributes.FirstOrDefault(x =>
             x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteCountAttribute"
+            && x.ConstructorArguments is [{ Type.SpecialType: SpecialType.System_Int32 }]
         );
         AttributeData? elementAttribute = attributes.FirstOrDefault(x =>
             x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryElementByteCountAttribute"

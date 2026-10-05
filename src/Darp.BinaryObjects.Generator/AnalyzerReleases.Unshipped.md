@@ -16,3 +16,5 @@ DBO012  | DarpBinaryObjectsGenerator | Error | ByteCountInvalid
 DBO013  | DarpBinaryObjectsGenerator | Error | ByteCountNotSupported
 DBO014  | DarpBinaryObjectsGenerator | Error | ByteCountOnCollection
 DBO015  | DarpBinaryObjectsGenerator | Error | ElementByteCountOnScalar
+DBO016  | DarpBinaryObjectsGenerator | Error | ByteCountWithElementCount
+DBO017  | DarpBinaryObjectsGenerator | Error | ByteCountMemberOnScalar
