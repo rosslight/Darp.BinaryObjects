@@ -388,8 +388,13 @@ partial class BinaryObjectsGenerator
                     continue;
                 case "Darp.BinaryObjects.BinaryByteCountAttribute":
                     // A constant narrows a single value and is resolved together with the element byte count
-                    if (attributeData.ConstructorArguments is not [{ Value: string byteCountMemberName }])
+                    if (
+                        attributeData.ConstructorArguments
+                        is not [{ Type.SpecialType: SpecialType.System_String } byteCountMember]
+                    )
                         continue;
+                    // A null name is looked up like any other name which does not exist
+                    var byteCountMemberName = byteCountMember.Value as string ?? string.Empty;
                     if (collectionKind is WellKnownCollectionKind.None)
                     {
                         diagnostics.Add(
@@ -617,7 +622,7 @@ partial class BinaryObjectsGenerator
         // A member name bounds a collection instead of narrowing a value
         AttributeData? memberAttribute = attributes.FirstOrDefault(x =>
             x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteCountAttribute"
-            && x.ConstructorArguments is [{ Value: int }]
+            && x.ConstructorArguments is [{ Type.SpecialType: SpecialType.System_Int32 }]
         );
         AttributeData? elementAttribute = attributes.FirstOrDefault(x =>
             x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryElementByteCountAttribute"

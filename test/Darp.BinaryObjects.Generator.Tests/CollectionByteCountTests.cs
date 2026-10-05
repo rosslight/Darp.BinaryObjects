@@ -44,6 +44,7 @@ public sealed class CollectionByteCountTests
                 [BinaryElementCount("Length"), BinaryByteCount("Length")] public uint[] WithMemberElementCount { get; set; } = Array.Empty<uint>();
                 [BinaryByteCount("Length")] public uint SingleValue { get; set; }
                 [BinaryByteCount("Missing")] public uint[] MissingMember { get; set; } = Array.Empty<uint>();
+                [BinaryByteCount(null!)] public uint[] NullMember { get; set; } = Array.Empty<uint>();
                 [BinaryByteCount("Unsigned")] public uint[] UnsupportedMemberType { get; set; } = Array.Empty<uint>();
                 [BinaryByteCount("Length")] public Variable[] VariableElements { get; set; } = Array.Empty<Variable>();
             }
