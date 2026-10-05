@@ -4,7 +4,7 @@ using FluentAssertions;
 
 [BinaryObject]
 public sealed partial record MemoryMemberLengthUShortSize(
-    [property: BinaryLength(2)] ushort Length,
+    ushort Length,
     [property: BinaryElementCount("Length")] ReadOnlyMemory<ushort> Value
 );
 

@@ -1,0 +1,156 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+{
+    [BinaryByteCount(0)] public uint Zero { get; set; }
+                     ^
+    [BinaryByteCount(5)] public uint TooWide { get; set; }
+*/
+ : (9,21)-(9,22),
+      Message: BinaryByteCount(0) on member 'Zero' is invalid. Type 'uint' allows a byte count from 1 to 4.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO012,
+        Title: ByteCountInvalid,
+        MessageFormat: {0}({1}) on member '{2}' is invalid. Type '{3}' allows a byte count from 1 to {4}.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(0)] public uint Zero { get; set; }
+    [BinaryByteCount(5)] public uint TooWide { get; set; }
+                     ^
+    [BinaryElementByteCount(3)] public ushort[] TooWideElements { get; set; } = Array.Empty<ushort>();
+*/
+ : (10,21)-(10,22),
+      Message: BinaryByteCount(5) on member 'TooWide' is invalid. Type 'uint' allows a byte count from 1 to 4.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO012,
+        Title: ByteCountInvalid,
+        MessageFormat: {0}({1}) on member '{2}' is invalid. Type '{3}' allows a byte count from 1 to {4}.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(5)] public uint TooWide { get; set; }
+    [BinaryElementByteCount(3)] public ushort[] TooWideElements { get; set; } = Array.Empty<ushort>();
+                            ^
+    [BinaryByteCount(3)] public double Floating { get; set; }
+*/
+ : (11,28)-(11,29),
+      Message: BinaryElementByteCount(3) on member 'TooWideElements' is invalid. Type 'ushort' allows a byte count from 1 to 2.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO012,
+        Title: ByteCountInvalid,
+        MessageFormat: {0}({1}) on member '{2}' is invalid. Type '{3}' allows a byte count from 1 to {4}.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementByteCount(3)] public ushort[] TooWideElements { get; set; } = Array.Empty<ushort>();
+    [BinaryByteCount(3)] public double Floating { get; set; }
+                     ^
+    [BinaryByteCount(1)] public char Character { get; set; }
+*/
+ : (12,21)-(12,22),
+      Message: BinaryByteCount is not supported on member 'Floating' of type 'double'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO013,
+        Title: ByteCountNotSupported,
+        MessageFormat: {0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(3)] public double Floating { get; set; }
+    [BinaryByteCount(1)] public char Character { get; set; }
+                     ^
+    [BinaryByteCount(8)] public Int128 Large { get; set; }
+*/
+ : (13,21)-(13,22),
+      Message: BinaryByteCount is not supported on member 'Character' of type 'char'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO013,
+        Title: ByteCountNotSupported,
+        MessageFormat: {0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(1)] public char Character { get; set; }
+    [BinaryByteCount(8)] public Int128 Large { get; set; }
+                     ^
+    [BinaryByteCount(1)] public Inner Nested { get; set; } = new(0);
+*/
+ : (14,21)-(14,22),
+      Message: BinaryByteCount is not supported on member 'Large' of type 'System.Int128'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO013,
+        Title: ByteCountNotSupported,
+        MessageFormat: {0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(8)] public Int128 Large { get; set; }
+    [BinaryByteCount(1)] public Inner Nested { get; set; } = new(0);
+                     ^
+    [BinaryElementByteCount(1)] public Inner[] NestedElements { get; set; } = Array.Empty<Inner>();
+*/
+ : (15,21)-(15,22),
+      Message: BinaryByteCount is not supported on member 'Nested' of type 'Inner'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO013,
+        Title: ByteCountNotSupported,
+        MessageFormat: {0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(1)] public Inner Nested { get; set; } = new(0);
+    [BinaryElementByteCount(1)] public Inner[] NestedElements { get; set; } = Array.Empty<Inner>();
+                            ^
+}
+*/
+ : (16,28)-(16,29),
+      Message: BinaryElementByteCount is not supported on member 'NestedElements' of type 'Inner'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO013,
+        Title: ByteCountNotSupported,
+        MessageFormat: {0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

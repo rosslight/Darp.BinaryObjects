@@ -345,6 +345,8 @@ partial class BinaryObjectsGenerator
         )
             typeSymbol = underlyingTypeSymbol;
         WellKnownTypeKind typeKind = GetWellKnownTypeKind(typeSymbol);
+        if (!TryGetByteCount(diagnostics, symbol, typeSymbol, typeKind, collectionKind, out var byteCount))
+            return false;
         var length = 0;
         if (typeKind is not WellKnownTypeKind.BinaryObject && !typeKind.TryGetLength(out length))
         {
@@ -355,6 +357,7 @@ partial class BinaryObjectsGenerator
             diagnostics.Add(diagnostic);
             return false;
         }
+        length = byteCount ?? length;
         int? arrayMinLength = null;
         IMember? arrayLengthMember = null;
         int? arrayLength = null;
@@ -410,15 +413,6 @@ partial class BinaryObjectsGenerator
                         if (pair is { Key: "minElements", Value.Value: int value })
                         {
                             arrayMinLength = value;
-                        }
-                    }
-                    continue;
-                case "Darp.BinaryObjects.BinaryByteLengthAttribute":
-                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
-                    {
-                        if (pair is { Key: "byteLength", Value.Value: int value })
-                        {
-                            length = value;
                         }
                     }
                     continue;
@@ -558,6 +552,86 @@ partial class BinaryObjectsGenerator
             //    $"Could not get info for {symbol.Name} {typeKind} {collectionKind} ({arrayLength}, {arrayMinLength}, {arrayLengthMember?.MemberSymbol.Name})"
             //),
         };
+        return true;
+    }
+
+    /// <summary> Gets the byte count of a value which is narrower than its type. Fails if the member cannot have the declared byte count </summary>
+    private static bool TryGetByteCount(
+        List<DiagnosticData> diagnostics,
+        ISymbol symbol,
+        ITypeSymbol typeSymbol,
+        WellKnownTypeKind typeKind,
+        WellKnownCollectionKind collectionKind,
+        out int? byteCount
+    )
+    {
+        byteCount = null;
+        ImmutableArray<AttributeData> attributes = symbol.GetAttributes();
+        AttributeData? memberAttribute = attributes.FirstOrDefault(x =>
+            x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteCountAttribute"
+        );
+        AttributeData? elementAttribute = attributes.FirstOrDefault(x =>
+            x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryElementByteCountAttribute"
+        );
+        // A single value takes its byte count from the member, a collection from its elements
+        var isCollection = collectionKind is not WellKnownCollectionKind.None;
+        AttributeData? attribute = isCollection ? elementAttribute : memberAttribute;
+        AttributeData? misplacedAttribute = isCollection ? memberAttribute : elementAttribute;
+        if ((attribute ?? misplacedAttribute) is not { } anyAttribute)
+            return true;
+        var attributeName = ReferenceEquals(anyAttribute, memberAttribute)
+            ? "BinaryByteCount"
+            : "BinaryElementByteCount";
+        if (!typeKind.SupportsByteCount() || !typeKind.TryGetLength(out var naturalLength))
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteCountNotSupported,
+                    anyAttribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    [attributeName, symbol.Name, typeSymbol.ToDisplayString()]
+                )
+            );
+            return false;
+        }
+        if (misplacedAttribute is not null)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    isCollection
+                        ? DiagnosticDescriptors.ByteCountOnCollection
+                        : DiagnosticDescriptors.ElementByteCountOnScalar,
+                    misplacedAttribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation(),
+                    [symbol.Name]
+                )
+            );
+            return false;
+        }
+        if (attribute?.ConstructorArguments is not [{ Value: int declaredCount }])
+            return true;
+        Location location = attribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation();
+        if (declaredCount < 1 || declaredCount > naturalLength)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteCountInvalid,
+                    location,
+                    [attributeName, declaredCount, symbol.Name, typeSymbol.ToDisplayString(), naturalLength]
+                )
+            );
+            return false;
+        }
+        if (declaredCount == naturalLength)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteCountRedundant,
+                    location,
+                    [attributeName, declaredCount, symbol.Name, typeSymbol.ToDisplayString()]
+                )
+            );
+            return true;
+        }
+        byteCount = declaredCount;
         return true;
     }
 

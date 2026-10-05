@@ -1,0 +1,80 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+{
+    [BinaryByteCount(3)] public uint[] Collection { get; set; } = Array.Empty<uint>();
+                     ^
+    [BinaryElementByteCount(3)] public uint Scalar { get; set; }
+*/
+ : (6,21)-(6,22),
+      Message: A constant BinaryByteCount is not supported on collection member 'Collection'. Use BinaryElementByteCount to set the byte count of each element.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO014,
+        Title: ByteCountOnCollection,
+        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryByteCount(3)] public uint[] Collection { get; set; } = Array.Empty<uint>();
+    [BinaryElementByteCount(3)] public uint Scalar { get; set; }
+                            ^
+    [BinaryElementByteCount(3), BinaryByteCount(3)] public uint[] CollectionWithBoth { get; set; } = Array.Empty<uint>();
+*/
+ : (7,28)-(7,29),
+      Message: BinaryElementByteCount requires a collection, but member 'Scalar' is a single value. Use BinaryByteCount to set its byte count.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO015,
+        Title: ElementByteCountOnScalar,
+        MessageFormat: BinaryElementByteCount requires a collection, but member '{0}' is a single value. Use BinaryByteCount to set its byte count.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementByteCount(3)] public uint Scalar { get; set; }
+    [BinaryElementByteCount(3), BinaryByteCount(3)] public uint[] CollectionWithBoth { get; set; } = Array.Empty<uint>();
+                                                ^
+    [BinaryByteCount(3), BinaryElementByteCount(3)] public uint ScalarWithBoth { get; set; }
+*/
+ : (8,48)-(8,49),
+      Message: A constant BinaryByteCount is not supported on collection member 'CollectionWithBoth'. Use BinaryElementByteCount to set the byte count of each element.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO014,
+        Title: ByteCountOnCollection,
+        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: /*
+    [BinaryElementByteCount(3), BinaryByteCount(3)] public uint[] CollectionWithBoth { get; set; } = Array.Empty<uint>();
+    [BinaryByteCount(3), BinaryElementByteCount(3)] public uint ScalarWithBoth { get; set; }
+                                                ^
+}
+*/
+ : (9,48)-(9,49),
+      Message: BinaryElementByteCount requires a collection, but member 'ScalarWithBoth' is a single value. Use BinaryByteCount to set its byte count.,
+      Severity: Error,
+      Descriptor: {
+        Id: DBO015,
+        Title: ElementByteCountOnScalar,
+        MessageFormat: BinaryElementByteCount requires a collection, but member '{0}' is a single value. Use BinaryByteCount to set its byte count.,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

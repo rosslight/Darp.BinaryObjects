@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <BinaryObjectsGenerator_IsUtilityClassInternal>true</BinaryObjectsGenerator_IsUtilityClassInternal>
+    <!-- Generated code has to work in projects which check arithmetic overflow -->
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
 
   <ItemGroup>

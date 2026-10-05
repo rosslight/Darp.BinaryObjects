@@ -34,7 +34,7 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
     {
         bytesWritten = Math.Min(destination.Length, 3);
         for (var i = 0; i < bytesWritten; i++)
-            destination[i] = (byte)(Value >> (i * 8));
+            destination[i] = unchecked((byte)(Value >> (i * 8)));
         return bytesWritten == 3;
     }
 
@@ -45,7 +45,7 @@ internal sealed class ManualUInt24(uint value) : IBinaryObject<ManualUInt24>
     {
         bytesWritten = Math.Min(destination.Length, 3);
         for (var i = 0; i < bytesWritten; i++)
-            destination[i] = (byte)(Value >> ((2 - i) * 8));
+            destination[i] = unchecked((byte)(Value >> ((2 - i) * 8)));
         return bytesWritten == 3;
     }
 

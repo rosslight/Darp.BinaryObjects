@@ -1,0 +1,23 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: /*
+[BinaryObject]
+public sealed partial record TestObject([property: BinaryByteCount(2)] ushort Value);
+                                                                   ^
+*/
+ : (3,67)-(3,68),
+      Message: BinaryByteCount(2) on member 'Value' matches the size of 'ushort' and has no effect,
+      Severity: Info,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: DBO011,
+        Title: ByteCountRedundant,
+        MessageFormat: {0}({1}) on member '{2}' matches the size of '{3}' and has no effect,
+        Category: DarpBinaryObjectsGenerator,
+        DefaultSeverity: Info,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

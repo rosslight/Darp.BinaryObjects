@@ -12,6 +12,46 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+    public static readonly DiagnosticDescriptor ByteCountRedundant = new(
+        id: "DBO011",
+        title: "ByteCountRedundant",
+        messageFormat: "{0}({1}) on member '{2}' matches the size of '{3}' and has no effect",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Info,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteCountInvalid = new(
+        id: "DBO012",
+        title: "ByteCountInvalid",
+        messageFormat: "{0}({1}) on member '{2}' is invalid. Type '{3}' allows a byte count from 1 to {4}.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteCountNotSupported = new(
+        id: "DBO013",
+        title: "ByteCountNotSupported",
+        messageFormat: "{0} is not supported on member '{1}' of type '{2}'. Only integers of up to 8 bytes and enums can use fewer bytes than their type has.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteCountOnCollection = new(
+        id: "DBO014",
+        title: "ByteCountOnCollection",
+        messageFormat: "A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ElementByteCountOnScalar = new(
+        id: "DBO015",
+        title: "ElementByteCountOnScalar",
+        messageFormat: "BinaryElementByteCount requires a collection, but member '{0}' is a single value. Use BinaryByteCount to set its byte count.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor EnumerableMemberNotSupported = new(
         id: "DBO009",
         title: "EnumerableMemberNotSupported",

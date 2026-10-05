@@ -62,8 +62,19 @@ internal sealed class ConstantWellKnownMember : IConstantMember
     public required int TypeByteLength { get; init; }
 
     public int ConstantByteLength => TypeByteLength;
+    public bool IsNarrow => TypeKind.IsNarrow(TypeByteLength);
 
     public string GetDocCommentLength() => $"{TypeByteLength}";
+
+    /// <summary> The condition under which the value does not fit into its byte count, if it is narrower than its type </summary>
+    public string? GetWriteOverflowCheck()
+    {
+        if (!IsNarrow)
+            return null;
+        var methodName = BinaryObjectsGenerator.GetFitsMethodName(TypeKind);
+        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
+        return $"!global::Darp.BinaryObjects.Generated.Utilities.{methodName}({optionalCast}this.{MemberSymbol.Name}, {TypeByteLength})";
+    }
 
     public bool TryGetWriteString(
         bool isLittleEndian,
@@ -72,7 +83,7 @@ internal sealed class ConstantWellKnownMember : IConstantMember
         out int bytesWritten
     )
     {
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var optionalCast = BinaryObjectsGenerator.GetOptionalCastToUnderlyingEnumValue(TypeSymbol);
         writeString =
             $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}(destination[{currentByteIndex}..{currentByteIndex + ConstantByteLength}], {optionalCast}this.{MemberSymbol.Name});";
@@ -100,8 +111,12 @@ internal sealed class ConstantWellKnownMember : IConstantMember
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
-        var optionalCast = BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
+        // The shared helpers read 64 bit values
+        var optionalCast =
+            IsNarrow && TypeKind is not (WellKnownTypeKind.Long or WellKnownTypeKind.ULong)
+                ? $"({TypeSymbol.ToDisplayString()}) "
+                : BinaryObjectsGenerator.GetOptionalCastToEnum(TypeKind, TypeSymbol);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -137,6 +152,7 @@ internal sealed class ConstantArrayMember : IConstantMember
     public required int ArrayLength { get; init; }
 
     public int ConstantByteLength => TypeByteLength * ArrayLength;
+    public bool IsNarrow => TypeKind.IsNarrow(TypeByteLength);
 
     public string GetDocCommentLength() => $"{TypeByteLength} * {ArrayLength}";
 
@@ -148,7 +164,7 @@ internal sealed class ConstantArrayMember : IConstantMember
     )
     {
         var memberName = this.GetWriteValue();
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -156,7 +172,7 @@ internal sealed class ConstantArrayMember : IConstantMember
         );
         writeString =
             $"global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..{currentByteIndex + ConstantByteLength}], {memberName});";
-        if (TypeKind is WellKnownTypeKind.BinaryObject)
+        if (TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesWritten{MemberSymbol.Name}";
             writeString = $$"""
@@ -180,16 +196,16 @@ internal sealed class ConstantArrayMember : IConstantMember
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
-        var optionalNumberOfElements =
-            TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
+        var optionalElementLength =
+            TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow ? $", {TypeByteLength}" : string.Empty;
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
             TypeSymbol
         );
         readString =
-            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]{optionalNumberOfElements}, out _);";
+            $"var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{currentByteIndex + ConstantByteLength}]{optionalElementLength}, out _);";
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
@@ -238,6 +254,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public required int ArrayMinLength { get; init; }
 
     public int ConstantByteLength => TypeByteLength * ArrayMinLength;
+    private bool IsNarrow => TypeKind.IsNarrow(TypeByteLength);
 
     public string GetVariableByteLength()
     {
@@ -265,7 +282,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     )
     {
         var memberName = this.GetWriteValue();
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -280,7 +297,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             var {byteLengthVariable} = {TypeByteLength} * this.{ArrayLengthMemberName};
             global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..{byteLengthVariable}], {memberName});
             """;
-        if (TypeKind is WellKnownTypeKind.BinaryObject)
+        if (TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesWritten{MemberSymbol.Name}";
             writeString = $$"""
@@ -306,7 +323,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     )
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var countVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
@@ -314,14 +331,14 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             TypeKind,
             TypeSymbol
         );
-        var optionalNumberOfElements =
-            TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
+        var optionalElementLength =
+            TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow ? $", {TypeByteLength}" : string.Empty;
         var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {countVariableName} < {ArrayMinLength}" : "";
         readString = $"""
             if ({countVariableName} < 0 || {countVariableName} > source.Length / {TypeByteLength}{optionalMinLengthCheck})
                 return false;
             var {lengthVariableName} = {TypeByteLength} * {countVariableName};
-            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalNumberOfElements}, out _);
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalElementLength}, out _);
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -353,6 +370,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
     public required int ArrayMinLength { get; init; }
 
     public int ConstantByteLength => TypeByteLength * ArrayMinLength;
+    private bool IsNarrow => TypeKind.IsNarrow(TypeByteLength);
 
     public string GetVariableByteLength()
     {
@@ -376,7 +394,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
     )
     {
         var memberName = this.GetWriteValue();
-        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetWriteMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
@@ -392,7 +410,7 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
                 return false;
             bytesWritten += global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination, {memberName});
             """;
-        if (TypeKind is WellKnownTypeKind.BinaryObject)
+        if (TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesWritten{MemberSymbol.Name}";
             writeString = $$"""
@@ -419,16 +437,16 @@ internal sealed class ReadRemainingArrayMemberGroup : IVariableMemberGroup
     {
         var variableBytesReadName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
-        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian);
+        var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
             TypeKind,
             TypeSymbol
         );
-        var optionalNumberOfElements =
-            TypeKind is WellKnownTypeKind.BinaryObject ? $", {TypeByteLength}" : string.Empty;
+        var optionalElementLength =
+            TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow ? $", {TypeByteLength}" : string.Empty;
         readString = $"""
-            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalNumberOfElements}, out int {variableBytesReadName});
+            var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source{optionalElementLength}, out int {variableBytesReadName});
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
@@ -673,11 +691,14 @@ partial class BinaryObjectsGenerator
     internal static string GetWriteMethodName(
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
-        bool isLittleEndian
+        bool isLittleEndian,
+        bool isNarrow = false
     )
     {
+        if (isNarrow && collectionKind is WellKnownCollectionKind.None)
+            return $"Write{GetSignednessName(typeKind)}{GetEndiannessName(typeKind, isLittleEndian)}";
         var typeName = GetWellKnownName(collectionKind, typeKind);
-        var prefix = typeKind is WellKnownTypeKind.BinaryObject ? "Try" : string.Empty;
+        var prefix = typeKind is WellKnownTypeKind.BinaryObject || isNarrow ? "Try" : string.Empty;
         var endianness = GetEndiannessName(typeKind, isLittleEndian);
         return prefix
             + (
@@ -699,9 +720,12 @@ partial class BinaryObjectsGenerator
     internal static string GetReadMethodName(
         WellKnownCollectionKind collectionKind,
         WellKnownTypeKind typeKind,
-        bool isLittleEndian
+        bool isLittleEndian,
+        bool isNarrow = false
     )
     {
+        if (isNarrow && collectionKind is WellKnownCollectionKind.None)
+            return $"Read{GetSignednessName(typeKind)}{GetEndiannessName(typeKind, isLittleEndian)}";
         var typeName = GetWellKnownName(collectionKind, typeKind);
         var prefix = typeKind is WellKnownTypeKind.BinaryObject ? "Try" : string.Empty;
         var endianness = GetEndiannessName(typeKind, isLittleEndian);
@@ -728,6 +752,8 @@ partial class BinaryObjectsGenerator
         int? typeByteLength
     )
     {
+        if (typeByteLength is { } byteLength && typeKind.IsNarrow(byteLength))
+            return GetNarrowUtilities(isRead, collectionKind, typeKind);
         // For normal enums, we just cast the value and do not need a specialized utility
         if (collectionKind is WellKnownCollectionKind.None)
         {
