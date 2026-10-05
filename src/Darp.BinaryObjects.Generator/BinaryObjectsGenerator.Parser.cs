@@ -345,6 +345,8 @@ partial class BinaryObjectsGenerator
         )
             typeSymbol = underlyingTypeSymbol;
         WellKnownTypeKind typeKind = GetWellKnownTypeKind(typeSymbol);
+        if (!TryGetByteWidth(diagnostics, symbol, typeSymbol, typeKind, out var byteWidth))
+            return false;
         var length = 0;
         if (typeKind is not WellKnownTypeKind.BinaryObject && !typeKind.TryGetLength(out length))
         {
@@ -355,6 +357,7 @@ partial class BinaryObjectsGenerator
             diagnostics.Add(diagnostic);
             return false;
         }
+        length = byteWidth ?? length;
         int? arrayMinLength = null;
         IMember? arrayLengthMember = null;
         int? arrayLength = null;
@@ -410,15 +413,6 @@ partial class BinaryObjectsGenerator
                         if (pair is { Key: "minElements", Value.Value: int value })
                         {
                             arrayMinLength = value;
-                        }
-                    }
-                    continue;
-                case "Darp.BinaryObjects.BinaryByteLengthAttribute":
-                    foreach (KeyValuePair<string, TypedConstant> pair in attributeData.GetArguments())
-                    {
-                        if (pair is { Key: "byteLength", Value.Value: int value })
-                        {
-                            length = value;
                         }
                     }
                     continue;
@@ -558,6 +552,59 @@ partial class BinaryObjectsGenerator
             //    $"Could not get info for {symbol.Name} {typeKind} {collectionKind} ({arrayLength}, {arrayMinLength}, {arrayLengthMember?.MemberSymbol.Name})"
             //),
         };
+        return true;
+    }
+
+    /// <summary> Gets the byte width of a member which is narrower than its type. Fails if the member cannot have the declared width </summary>
+    private static bool TryGetByteWidth(
+        List<DiagnosticData> diagnostics,
+        ISymbol symbol,
+        ITypeSymbol typeSymbol,
+        WellKnownTypeKind typeKind,
+        out int? byteWidth
+    )
+    {
+        byteWidth = null;
+        AttributeData? attribute = symbol
+            .GetAttributes()
+            .FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == "Darp.BinaryObjects.BinaryByteWidthAttribute");
+        if (attribute?.ConstructorArguments is not [{ Value: int declaredWidth }])
+            return true;
+        Location location = attribute.GetLocationOfConstructorArgument(0) ?? symbol.GetSourceLocation();
+        if (!typeKind.SupportsByteWidth() || !typeKind.TryGetLength(out var naturalLength))
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteWidthNotSupported,
+                    location,
+                    [symbol.Name, typeSymbol.ToDisplayString()]
+                )
+            );
+            return false;
+        }
+        if (declaredWidth < 1 || declaredWidth > naturalLength)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteWidthInvalid,
+                    location,
+                    [declaredWidth, symbol.Name, typeSymbol.ToDisplayString(), naturalLength]
+                )
+            );
+            return false;
+        }
+        if (declaredWidth == naturalLength)
+        {
+            diagnostics.Add(
+                DiagnosticData.Create(
+                    DiagnosticDescriptors.ByteWidthRedundant,
+                    location,
+                    [declaredWidth, symbol.Name, typeSymbol.ToDisplayString()]
+                )
+            );
+            return true;
+        }
+        byteWidth = declaredWidth;
         return true;
     }
 

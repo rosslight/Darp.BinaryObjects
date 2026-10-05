@@ -12,6 +12,30 @@ internal static class DiagnosticDescriptors
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+    public static readonly DiagnosticDescriptor ByteWidthRedundant = new(
+        id: "DBO011",
+        title: "ByteWidthRedundant",
+        messageFormat: "BinaryByteWidth({0}) on member '{1}' matches the size of '{2}' and has no effect",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Info,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteWidthInvalid = new(
+        id: "DBO012",
+        title: "ByteWidthInvalid",
+        messageFormat: "BinaryByteWidth({0}) on member '{1}' is invalid. Type '{2}' allows a byte width from 1 to {3}.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteWidthNotSupported = new(
+        id: "DBO013",
+        title: "ByteWidthNotSupported",
+        messageFormat: "BinaryByteWidth is not supported on member '{0}' of type '{1}'. Only integers of up to 8 bytes, enums, and collections of them have a byte width.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
     public static readonly DiagnosticDescriptor EnumerableMemberNotSupported = new(
         id: "DBO009",
         title: "EnumerableMemberNotSupported",

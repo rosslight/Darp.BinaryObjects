@@ -11,3 +11,6 @@ DBO007  | DarpBinaryObjectsGenerator | Warning | MemberIgnoredReadonly
 DBO008  | DarpBinaryObjectsGenerator | Warning | MemberIgnoredDuplicateName
 DBO009  | DarpBinaryObjectsGenerator | Error | EnumerableMemberNotSupported
 DBO010  | DarpBinaryObjectsGenerator | Error | ConstructorSelectionAmbiguous
+DBO011  | DarpBinaryObjectsGenerator | Info | ByteWidthRedundant
+DBO012  | DarpBinaryObjectsGenerator | Error | ByteWidthInvalid
+DBO013  | DarpBinaryObjectsGenerator | Error | ByteWidthNotSupported

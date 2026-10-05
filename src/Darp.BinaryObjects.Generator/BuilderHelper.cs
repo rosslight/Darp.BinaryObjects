@@ -86,6 +86,34 @@ internal static class BuilderHelper
                 or WellKnownTypeKind.EnumULong
                 or WellKnownTypeKind.EnumLong;
 
+    public static bool IsSigned(this WellKnownTypeKind typeKind) =>
+        typeKind
+            is WellKnownTypeKind.SByte
+                or WellKnownTypeKind.Short
+                or WellKnownTypeKind.Int
+                or WellKnownTypeKind.Long
+                or WellKnownTypeKind.EnumSByte
+                or WellKnownTypeKind.EnumShort
+                or WellKnownTypeKind.EnumInt
+                or WellKnownTypeKind.EnumLong;
+
+    /// <summary> Whether values of the type can be serialized with fewer bytes than the type has </summary>
+    public static bool SupportsByteWidth(this WellKnownTypeKind typeKind) =>
+        typeKind.IsEnum()
+        || typeKind
+            is WellKnownTypeKind.Byte
+                or WellKnownTypeKind.SByte
+                or WellKnownTypeKind.UShort
+                or WellKnownTypeKind.Short
+                or WellKnownTypeKind.UInt
+                or WellKnownTypeKind.Int
+                or WellKnownTypeKind.ULong
+                or WellKnownTypeKind.Long;
+
+    /// <summary> Whether a value is serialized with fewer bytes than its type has </summary>
+    public static bool IsNarrow(this WellKnownTypeKind typeKind, int typeByteLength) =>
+        typeKind.TryGetLength(out var naturalLength) && typeByteLength < naturalLength;
+
     public static bool IsValidLengthInteger(this ITypeSymbol symbol) =>
         symbol.ToDisplayString() switch
         {

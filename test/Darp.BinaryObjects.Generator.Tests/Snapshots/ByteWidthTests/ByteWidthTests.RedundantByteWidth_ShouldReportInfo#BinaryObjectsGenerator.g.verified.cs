@@ -4,19 +4,17 @@
 
 /// <remarks> <list type="table">
 /// <item> <term><b>Field</b></term> <description><b>Byte Length</b></description> </item>
-/// <item> <term><see cref="Value"/></term> <description>4</description> </item>
-/// <item> <term><see cref="Length"/></term> <description>4</description> </item>
-/// <item> <term><see cref="Value2"/></term> <description>4</description> </item>
-/// <item> <term> --- </term> <description>12</description> </item>
+/// <item> <term><see cref="Value"/></term> <description>2</description> </item>
+/// <item> <term> --- </term> <description>2</description> </item>
 /// </list> </remarks>
-[global::Darp.BinaryObjects.BinaryConstant(12)]
+[global::Darp.BinaryObjects.BinaryConstant(2)]
 public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObject<TestObject>
 {
     /// <inheritdoc />
     [global::System.Diagnostics.Contracts.Pure]
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
-    public int GetByteCount() => 12;
+    public int GetByteCount() => 2;
 
     /// <inheritdoc />
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
@@ -27,12 +25,10 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 12)
+        if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[0..4], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[4..8], this.Length);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32LittleEndian(destination[8..12], this.Value2);
-        bytesWritten += 12;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16LittleEndian(destination[0..2], this.Value);
+        bytesWritten += 2;
 
         return true;
     }
@@ -45,12 +41,10 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
     {
         bytesWritten = 0;
 
-        if (destination.Length < 12)
+        if (destination.Length < 2)
             return false;
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[0..4], this.Value);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[4..8], this.Length);
-        global::Darp.BinaryObjects.Generated.Utilities.WriteInt32BigEndian(destination[8..12], this.Value2);
-        bytesWritten += 12;
+        global::Darp.BinaryObjects.Generated.Utilities.WriteUInt16BigEndian(destination[0..2], this.Value);
+        bytesWritten += 2;
 
         return true;
     }
@@ -65,14 +59,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 12)
+        if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[0..4]);
-        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[4..8]);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32LittleEndian(source[8..12]);
-        bytesRead += 12;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16LittleEndian(source[0..2]);
+        bytesRead += 2;
 
-        value = new TestObject(___readValue, ___readLength, ___readValue2);
+        value = new TestObject(___readValue);
         return true;
     }
     /// <inheritdoc />
@@ -85,14 +77,12 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         bytesRead = 0;
         value = default;
 
-        if (source.Length < 12)
+        if (source.Length < 2)
             return false;
-        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[0..4]);
-        var ___readLength = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[4..8]);
-        var ___readValue2 = global::Darp.BinaryObjects.Generated.Utilities.ReadInt32BigEndian(source[8..12]);
-        bytesRead += 12;
+        var ___readValue = global::Darp.BinaryObjects.Generated.Utilities.ReadUInt16BigEndian(source[0..2]);
+        bytesRead += 2;
 
-        value = new TestObject(___readValue, ___readLength, ___readValue2);
+        value = new TestObject(___readValue);
         return true;
     }
 }
@@ -111,29 +101,29 @@ namespace Darp.BinaryObjects.Generated
     [GeneratedCodeAttribute("Darp.BinaryObjects.Generator", "GeneratorVersion")]
     file static class Utilities
     {
-        /// <summary> Writes a <c>int</c> to the destination </summary>
+        /// <summary> Writes a <c>ushort</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteInt32LittleEndian(Span<byte> destination, int value)
+        public static void WriteUInt16LittleEndian(Span<byte> destination, ushort value)
         {
-            BinaryPrimitives.WriteInt32LittleEndian(destination, value);
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, value);
         }
-        /// <summary> Writes a <c>int</c> to the destination </summary>
+        /// <summary> Writes a <c>ushort</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteInt32BigEndian(Span<byte> destination, int value)
+        public static void WriteUInt16BigEndian(Span<byte> destination, ushort value)
         {
-            BinaryPrimitives.WriteInt32BigEndian(destination, value);
+            BinaryPrimitives.WriteUInt16BigEndian(destination, value);
         }
-        /// <summary> Reads a <c>int</c> from the given source, as LittleEndian </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as LittleEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadInt32LittleEndian(ReadOnlySpan<byte> source)
+        public static ushort ReadUInt16LittleEndian(ReadOnlySpan<byte> source)
         {
-            return BinaryPrimitives.ReadInt32LittleEndian(source);
+            return BinaryPrimitives.ReadUInt16LittleEndian(source);
         }
-        /// <summary> Reads a <c>int</c> from the given source, as BigEndian </summary>
+        /// <summary> Reads a <c>ushort</c> from the given source, as BigEndian </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadInt32BigEndian(ReadOnlySpan<byte> source)
+        public static ushort ReadUInt16BigEndian(ReadOnlySpan<byte> source)
         {
-            return BinaryPrimitives.ReadInt32BigEndian(source);
+            return BinaryPrimitives.ReadUInt16BigEndian(source);
         }
     }
 }

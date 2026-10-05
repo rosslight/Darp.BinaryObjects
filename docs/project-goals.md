@@ -20,7 +20,7 @@ Member declaration order defines binary order. Keep this convention as long as i
 
 Hand-written reader and writer implementations must remain possible and comfortable to use, including composition with generated objects. Preserve a simple API rather than expanding the generator to cover every unusual layout.
 
-Member byte lengths are primarily intended to support unusual primitive widths, such as a three-byte unsigned integer, including arrays of those primitives. Padding is a possible future use case, rather than the original motivation or a current requirement.
+Member byte widths (`BinaryByteWidth`) are primarily intended to support unusual primitive widths, such as a three-byte unsigned integer, including arrays of those primitives. Padding is a possible future use case, rather than the original motivation or a current requirement.
 
 One concrete consumer use case can justify a generator feature when it fits the existing model cleanly and preserves a simple API. Manual implementations remain the appropriate extension mechanism when generation would require substantial special-case behavior.
 

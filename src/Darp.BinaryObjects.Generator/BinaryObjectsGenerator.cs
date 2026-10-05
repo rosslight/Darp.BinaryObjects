@@ -47,7 +47,8 @@ internal readonly record struct UtilityData(
     WellKnownCollectionKind CollectionKind,
     WellKnownTypeKind TypeKind,
     int? ByteLength,
-    bool EmitLittleAndBigEndian
+    bool EmitLittleAndBigEndian,
+    bool IsNarrow = false
 )
 {
     public static int? UnknownLength { get; } = null!;

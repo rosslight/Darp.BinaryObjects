@@ -257,11 +257,18 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
             {
                 // Ensure length of destination
                 var summedLength = memberInfoGroup.GetLengthCodeString();
-                var collectionLengthChecks = constantGroup
-                    .Members.OfType<ConstantArrayMember>()
-                    .Select(member => $"{member.GetCollectionCount()} < {member.ArrayLength}");
+                var memberChecks = constantGroup
+                    .Members.Select(member =>
+                        member switch
+                        {
+                            ConstantArrayMember array => $"{array.GetCollectionCount()} < {array.ArrayLength}",
+                            ConstantWellKnownMember scalar => scalar.GetWriteOverflowCheck(),
+                            _ => null,
+                        }
+                    )
+                    .Where(check => check is not null);
                 writer.WriteLine(
-                    $"if (destination.Length < {summedLength}{string.Concat(collectionLengthChecks.Select(check => $" || {check}"))})"
+                    $"if (destination.Length < {summedLength}{string.Concat(memberChecks.Select(check => $" || {check}"))})"
                 );
                 writer.Indent++;
                 writer.WriteLine("return false;");
@@ -280,7 +287,9 @@ public bool TryWrite{{methodNameEndianness}}(global::System.Span<byte> destinati
                     {
                         continue;
                     }
-                    var mayFail = memberInfo.TypeKind is WellKnownTypeKind.BinaryObject;
+                    var mayFail =
+                        memberInfo.TypeKind is WellKnownTypeKind.BinaryObject
+                        || memberInfo is ConstantArrayMember { IsNarrow: true };
                     if (mayFail && currentByteIndex > countedByteIndex)
                         writer.WriteLine($"bytesWritten += {currentByteIndex - countedByteIndex};");
                     writer.WriteMultiLine(writeString);
@@ -500,8 +509,14 @@ namespace Darp.BinaryObjects.Generated
                 WellKnownCollectionKind collectionKind,
                 WellKnownTypeKind typeKind,
                 var constLength,
-                var emitLittleAndBigEndian
+                var emitLittleAndBigEndian,
+                var isNarrow
             ) = utilityData;
+            if (isNarrow)
+            {
+                EmitNarrowUtility(writer, isReadUtility, collectionKind, typeKind);
+                continue;
+            }
             if (typeKind is WellKnownTypeKind.BinaryObject)
             {
                 if (collectionKind is WellKnownCollectionKind.None)
