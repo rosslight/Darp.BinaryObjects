@@ -8,12 +8,12 @@
     [BinaryElementByteCount(3)] public uint Scalar { get; set; }
 */
  : (6,21)-(6,22),
-      Message: A constant BinaryByteCount is not supported on collection member 'Collection'. Use BinaryElementByteCount to set the byte count of each element.,
+      Message: A constant BinaryByteCount is not supported on collection member 'Collection'. Use BinaryElementByteCount to set the byte count of each element or a member name to set the byte count of the collection.,
       Severity: Error,
       Descriptor: {
         Id: DBO014,
         Title: ByteCountOnCollection,
-        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.,
+        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element or a member name to set the byte count of the collection.,
         Category: DarpBinaryObjectsGenerator,
         DefaultSeverity: Error,
         IsEnabledByDefault: true
@@ -46,12 +46,12 @@
     [BinaryByteCount(3), BinaryElementByteCount(3)] public uint ScalarWithBoth { get; set; }
 */
  : (8,48)-(8,49),
-      Message: A constant BinaryByteCount is not supported on collection member 'CollectionWithBoth'. Use BinaryElementByteCount to set the byte count of each element.,
+      Message: A constant BinaryByteCount is not supported on collection member 'CollectionWithBoth'. Use BinaryElementByteCount to set the byte count of each element or a member name to set the byte count of the collection.,
       Severity: Error,
       Descriptor: {
         Id: DBO014,
         Title: ByteCountOnCollection,
-        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.,
+        MessageFormat: A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element or a member name to set the byte count of the collection.,
         Category: DarpBinaryObjectsGenerator,
         DefaultSeverity: Error,
         IsEnabledByDefault: true

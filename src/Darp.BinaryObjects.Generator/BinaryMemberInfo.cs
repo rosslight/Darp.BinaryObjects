@@ -251,28 +251,48 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     public required int TypeByteLength { get; init; }
 
     public required string ArrayLengthMemberName { get; init; }
+
+    /// <summary> Whether the length member holds the number of bytes of the collection instead of its number of elements </summary>
+    public required bool LengthIsInBytes { get; init; }
     public required int ArrayMinLength { get; init; }
 
     public int ConstantByteLength => TypeByteLength * ArrayMinLength;
     private bool IsNarrow => TypeKind.IsNarrow(TypeByteLength);
 
-    public string GetVariableByteLength()
+    private string GetElementCount(string length) =>
+        LengthIsInBytes && TypeByteLength > 1 ? $"{length} / {TypeByteLength}" : length;
+
+    private string GetByteLength(string length) => LengthIsInBytes ? length : $"{TypeByteLength} * {length}";
+
+    /// <summary> The condition under which the length cannot describe a collection in the buffer </summary>
+    private string GetLengthCheck(string length, string buffer)
     {
-        if (ArrayMinLength > 0)
-            return $"{TypeByteLength} * global::System.Math.Max((int)this.{ArrayLengthMemberName}, {ArrayMinLength})";
-        return $"{TypeByteLength} * this.{ArrayLengthMemberName}";
+        if (!LengthIsInBytes)
+            return $"{length} < 0 || {length} > {buffer}.Length / {TypeByteLength}";
+        // A negative length is rejected before it is divided by the element length
+        var optionalRemainderCheck = TypeByteLength > 1 ? $" || {length} % {TypeByteLength} != 0" : "";
+        return $"{length} < 0 || {length} > {buffer}.Length{optionalRemainderCheck}";
     }
 
-    public string GetVariableDocCommentLength() => $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
+    public string GetVariableByteLength()
+    {
+        if (ArrayMinLength == 0)
+            return GetByteLength($"this.{ArrayLengthMemberName}");
+        return LengthIsInBytes
+            ? $"global::System.Math.Max((int)this.{ArrayLengthMemberName}, {TypeByteLength * ArrayMinLength})"
+            : $"{TypeByteLength} * global::System.Math.Max((int)this.{ArrayLengthMemberName}, {ArrayMinLength})";
+    }
+
+    public string GetVariableDocCommentLength() => GetByteLength($"""<see cref="{ArrayLengthMemberName}"/>""");
 
     public string GetDocCommentLength()
     {
-        if (ArrayMinLength > 0)
+        if (ArrayMinLength > 0 && !LengthIsInBytes)
             return $"""{TypeByteLength} * ({ArrayMinLength} + <see cref="{ArrayLengthMemberName}"/> - {ArrayMinLength})""";
-        return $"""{TypeByteLength} * <see cref="{ArrayLengthMemberName}"/>""";
+        return GetVariableDocCommentLength();
     }
 
-    public string GetLengthCodeString() => $"{TypeByteLength} * this.{ArrayLengthMemberName}";
+    public string GetLengthCodeString() => GetByteLength($"this.{ArrayLengthMemberName}");
 
     public bool TryGetWriteString(
         bool isLittleEndian,
@@ -288,22 +308,24 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
             TypeKind,
             TypeSymbol
         );
-        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {ArrayLengthMemberName} < {ArrayMinLength}" : "";
-        var collectionLengthCheck = $" || {this.GetCollectionCount()} < this.{ArrayLengthMemberName}";
+        var length = $"this.{ArrayLengthMemberName}";
+        var elementCount = GetElementCount(length);
+        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {elementCount} < {ArrayMinLength}" : "";
+        var collectionLengthCheck = $" || {this.GetCollectionCount()} < {elementCount}";
         var byteLengthVariable = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
         writeString = $"""
-            if (this.{ArrayLengthMemberName} < 0 || this.{ArrayLengthMemberName} > destination.Length / {TypeByteLength}{optionalMinLengthCheck}{collectionLengthCheck})
+            if ({GetLengthCheck(length, "destination")}{optionalMinLengthCheck}{collectionLengthCheck})
                 return false;
-            var {byteLengthVariable} = {TypeByteLength} * this.{ArrayLengthMemberName};
+            var {byteLengthVariable} = {GetByteLength(length)};
             global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(destination[{currentByteIndex}..{byteLengthVariable}], {memberName});
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesWritten{MemberSymbol.Name}";
             writeString = $$"""
-                if (this.{{ArrayLengthMemberName}} < 0 || this.{{ArrayLengthMemberName}} > destination.Length / {{TypeByteLength}}{{optionalMinLengthCheck}}{{collectionLengthCheck}})
+                if ({{GetLengthCheck(length, "destination")}}{{optionalMinLengthCheck}}{{collectionLengthCheck}})
                     return false;
-                var {{byteLengthVariable}} = {{TypeByteLength}} * this.{{ArrayLengthMemberName}};
+                var {{byteLengthVariable}} = {{GetByteLength(length)}};
                 if (!global::Darp.BinaryObjects.Generated.Utilities.{{methodName}}{{optionalGeneric}}(destination[{{currentByteIndex}}..{{byteLengthVariable}}], {{memberName}}, {{TypeByteLength}}, out var {{countName}}))
                 {
                     bytesWritten += {{countName}};
@@ -324,7 +346,7 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
     {
         var variableName = $"{BinaryObjectsGenerator.Prefix}read{MemberSymbol.Name}";
         var methodName = BinaryObjectsGenerator.GetReadMethodName(CollectionKind, TypeKind, isLittleEndian, IsNarrow);
-        var countVariableName = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
+        var length = $"{BinaryObjectsGenerator.Prefix}read{ArrayLengthMemberName}";
         var lengthVariableName = $"{BinaryObjectsGenerator.Prefix}byteLength{MemberSymbol.Name}";
         var optionalGeneric = BinaryObjectsGenerator.GetOptionalGenericTypeParameter(
             CollectionKind,
@@ -333,20 +355,20 @@ internal sealed class VariableArrayMemberGroup : IVariableMemberGroup
         );
         var optionalElementLength =
             TypeKind is WellKnownTypeKind.BinaryObject || IsNarrow ? $", {TypeByteLength}" : string.Empty;
-        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {countVariableName} < {ArrayMinLength}" : "";
+        var optionalMinLengthCheck = ArrayMinLength > 0 ? $" || {GetElementCount(length)} < {ArrayMinLength}" : "";
         readString = $"""
-            if ({countVariableName} < 0 || {countVariableName} > source.Length / {TypeByteLength}{optionalMinLengthCheck})
+            if ({GetLengthCheck(length, "source")}{optionalMinLengthCheck})
                 return false;
-            var {lengthVariableName} = {TypeByteLength} * {countVariableName};
+            var {lengthVariableName} = {GetByteLength(length)};
             var {variableName} = global::Darp.BinaryObjects.Generated.Utilities.{methodName}{optionalGeneric}(source[{currentByteIndex}..{lengthVariableName}]{optionalElementLength}, out _);
             """;
         if (TypeKind is WellKnownTypeKind.BinaryObject)
         {
             var countName = $"{BinaryObjectsGenerator.Prefix}bytesRead{MemberSymbol.Name}";
             readString = $$"""
-                if ({{countVariableName}} < 0 || {{countVariableName}} > source.Length / {{TypeByteLength}}{{optionalMinLengthCheck}})
+                if ({{GetLengthCheck(length, "source")}}{{optionalMinLengthCheck}})
                     return false;
-                var {{lengthVariableName}} = {{TypeByteLength}} * {{countVariableName}};
+                var {{lengthVariableName}} = {{GetByteLength(length)}};
                 if (!global::Darp.BinaryObjects.Generated.Utilities.{{methodName}}{{optionalGeneric}}(source[{{currentByteIndex}}..{{lengthVariableName}}], {{TypeByteLength}}, out var {{variableName}}, out var {{countName}}))
                 {
                     bytesRead += {{countName}};

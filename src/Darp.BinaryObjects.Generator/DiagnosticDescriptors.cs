@@ -39,7 +39,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ByteCountOnCollection = new(
         id: "DBO014",
         title: "ByteCountOnCollection",
-        messageFormat: "A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element.",
+        messageFormat: "A constant BinaryByteCount is not supported on collection member '{0}'. Use BinaryElementByteCount to set the byte count of each element or a member name to set the byte count of the collection.",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -48,6 +48,22 @@ internal static class DiagnosticDescriptors
         id: "DBO015",
         title: "ElementByteCountOnScalar",
         messageFormat: "BinaryElementByteCount requires a collection, but member '{0}' is a single value. Use BinaryByteCount to set its byte count.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteCountWithElementCount = new(
+        id: "DBO016",
+        title: "ByteCountWithElementCount",
+        messageFormat: "Collection member '{0}' cannot have both BinaryByteCount and BinaryElementCount. Use one of them to define where the collection ends.",
+        category: "DarpBinaryObjectsGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    public static readonly DiagnosticDescriptor ByteCountMemberOnScalar = new(
+        id: "DBO017",
+        title: "ByteCountMemberOnScalar",
+        messageFormat: "BinaryByteCount with a member name requires a collection, but member '{0}' is a single value",
         category: "DarpBinaryObjectsGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true

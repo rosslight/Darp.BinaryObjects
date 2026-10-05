@@ -31,7 +31,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[4..];
         bytesWritten += 4;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1 || this.Value.Length < this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || this.Length < 1 || this.Value.Length < this.Length)
             return false;
         var ___byteLengthValue = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanLittleEndian(destination[0..___byteLengthValue], this.Value.Span);
@@ -59,7 +59,7 @@ public sealed partial record TestObject : global::Darp.BinaryObjects.IBinaryObje
         destination = destination[4..];
         bytesWritten += 4;
 
-        if (this.Length < 0 || this.Length > destination.Length / 2 || Length < 1 || this.Value.Length < this.Length)
+        if (this.Length < 0 || this.Length > destination.Length / 2 || this.Length < 1 || this.Value.Length < this.Length)
             return false;
         var ___byteLengthValue = 2 * this.Length;
         global::Darp.BinaryObjects.Generated.Utilities.WriteInt16SpanBigEndian(destination[0..___byteLengthValue], this.Value.Span);

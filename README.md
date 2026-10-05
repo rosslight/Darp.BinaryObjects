@@ -59,7 +59,7 @@ To control these types there are attributes
 - [x] `BinaryIgnore`: Ignore some members
 - [x] `BinaryElementCount`: Sets the number of elements in an array
 - [ ] `BinaryReadRemaining`: Reads the remaining into an array
-- [x] `BinaryByteCount`: Sets the number of bytes of an integer or enum which is narrower than its type
+- [x] `BinaryByteCount`: Sets the number of bytes of an integer or enum which is narrower than its type, or of a collection
 - [x] `BinaryElementByteCount`: Sets the number of bytes of each integer or enum in a collection
 - [ ] `BinaryConstantValue`: Mark a (readonly) property which will have a predefined value
 
@@ -108,7 +108,7 @@ Object collections require a positive fixed binary element length. `BinaryElemen
 Collections without `BinaryElementCount` consume all complete elements remaining in the supplied input span.
 They must be the last serialized member, including on write-only objects; ignored and computed members do not affect this rule.
 Pass a span bounded to one message when reading such objects. A nested object that consumes the remaining input also needs a bounded span if its parent has trailing data.
-Use a constant or member-defined `BinaryElementCount` for collections followed by other serialized members.
+Use a constant or member-defined `BinaryElementCount`, or a member-defined `BinaryByteCount`, for collections followed by other serialized members.
 
 Generated readers and writers return `false` for negative counts or counts that cannot fit the supplied buffer.
 Writers also return `false` when a collection has fewer elements than its declared count or minimum count. A declared `BinaryElementCount` writes only that many elements; surplus elements are ignored.
@@ -137,11 +137,33 @@ public sealed partial record Samples(
 ```
 
 - Both apply to `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong` and enums. Other types fail with `DBO013`.
-- `BinaryByteCount` on a collection fails with `DBO014` and `BinaryElementByteCount` on a single value with `DBO015`.
+- A constant `BinaryByteCount` on a collection fails with `DBO014` and `BinaryElementByteCount` on a single value with `DBO015`.
 - The byte count has to be between 1 and the size of the type; other values fail with `DBO012`. A byte count equal to the size of the type has no effect and reports the informational `DBO011`.
 - Readers zero-extend unsigned types and sign-extend signed types. Enums follow their underlying type.
 - Writers return `false` when a value does not fit into its byte count. A scalar that does not fit fails before any of its adjacent fixed-size members are written; a collection stops at the first element that does not fit.
 - A member referenced by `BinaryElementCount` still has to be an `sbyte`, `byte`, `short`, `ushort` or `int`.
+
+## Collections bounded by a byte count
+
+`BinaryByteCount` with a member name ends a collection after the number of bytes the member holds, where `BinaryElementCount` counts elements:
+
+```csharp
+[BinaryObject]
+public sealed partial record Packet(
+    ushort PayloadLength,
+    [property: BinaryByteCount("PayloadLength")] int[] Values,
+    byte Checksum
+);
+```
+
+A `PayloadLength` of 8 reads and writes two `int` values.
+
+- The elements need a fixed size: primitives, enums, elements narrowed with `BinaryElementByteCount`, and objects with a constant binary length.
+- The member has to be serialized before the collection and be an `sbyte`, `byte`, `short`, `ushort` or `int`, as for `BinaryElementCount`.
+- Readers and writers return `false` when the byte count is negative, exceeds the buffer or is not a multiple of the element size.
+- Writers write as many elements as the byte count holds, return `false` when the collection has fewer, and ignore surplus elements. `GetByteCount` uses the byte count without validating it.
+- `BinaryMinElementCount` applies to the number of elements the byte count holds.
+- Combining it with `BinaryElementCount` fails with `DBO016`; a member name on a single value fails with `DBO017`.
 
 ## How it's supposed to work
 
