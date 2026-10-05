@@ -152,13 +152,13 @@ namespace Darp.BinaryObjects.Generated
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteInt8(Span<byte> destination, sbyte value)
         {
-            destination[0] = (byte)value;
+            destination[0] = unchecked((byte)value);
         }
         /// <summary> Reads a <c>sbyte</c> from the given source </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadInt8(ReadOnlySpan<byte> source)
         {
-            return (sbyte)source[0];
+            return unchecked((sbyte)source[0]);
         }
         /// <summary> Writes a <c>ushort</c> to the destination </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

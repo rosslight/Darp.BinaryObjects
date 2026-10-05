@@ -819,7 +819,7 @@ partial class BinaryObjectsGenerator
             GetWriteMethodBody methodBodyGetter = typeKind switch
             {
                 WellKnownTypeKind.Bool => (_, _, _) => "destination[0] = value ? (byte)0b1 : (byte)0b0;",
-                WellKnownTypeKind.SByte => (_, _, _) => "destination[0] = (byte)value;",
+                WellKnownTypeKind.SByte => (_, _, _) => "destination[0] = unchecked((byte)value);",
                 WellKnownTypeKind.Byte => (_, _, _) => "destination[0] = value;",
                 _ => (methodName, _, _) => $"BinaryPrimitives.{methodName}(destination, value);",
             };
@@ -1022,7 +1022,7 @@ partial class BinaryObjectsGenerator
             GetReadMethodBody methodBodyGetter = typeKind switch
             {
                 WellKnownTypeKind.Bool => (_, _, _) => "return source[0] > 0;",
-                WellKnownTypeKind.SByte => (_, _, _) => "return (sbyte)source[0];",
+                WellKnownTypeKind.SByte => (_, _, _) => "return unchecked((sbyte)source[0]);",
                 WellKnownTypeKind.Byte => (_, _, _) => "return source[0];",
                 _ => (methodName, _, _) => $"return BinaryPrimitives.{methodName}(source);",
             };
